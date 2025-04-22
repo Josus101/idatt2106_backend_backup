@@ -28,6 +28,12 @@ public class JWT_token {
   private static final Key key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
   private static final long EXPIRATION_TIME = 120 * 60 * 1000; // 2 hours
 
+  /**
+   * Generates a JWT token for the given user.
+   *
+   * @param user the user for whom to generate the token
+   * @return a UserTokenDTO containing the generated token and its expiration time
+   */
   public UserTokenDTO generateJwtToken(User user) {
     Date expirationDate = new Date(System.currentTimeMillis() + EXPIRATION_TIME);
     String token = Jwts.builder()
@@ -56,10 +62,15 @@ public class JWT_token {
       throw new IllegalArgumentException("Token is empty");
     }
   }
+  /**
+   * Extracts the user ID from the JWT token.
+   *
+   * @param token the JWT token
+   * @return the user ID as a string, or null if the token is invalid
+   */
   public String extractIdFromJwt(String token) {
     try {
-      Claims claims = Jwts.parser()
-          .setSigningKey(key)
+      Claims claims = Jwts.parserBuilder().setSigningKey(key).build()
           .parseClaimsJws(token)
           .getBody();
       return claims.getSubject();
@@ -67,6 +78,12 @@ public class JWT_token {
       return null;
     }
   }
+  /**
+   * Retrieves the user associated with the given JWT token.
+   *
+   * @param token the JWT token
+   * @return the User object, or null if the token is invalid or user not found
+   */
   public User getUserByToken(String token) {
     String id = extractIdFromJwt(token);
     if (id == null) {

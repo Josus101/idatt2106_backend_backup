@@ -128,10 +128,9 @@ public class LoginService {
      * Registers a new user if the email and phone number are not in use and the data is valid.
      *
      * @param userDTO The user to register.
-     * @return 0 if successful.
      * @throws IllegalArgumentException if user data is invalid.
      */
-    public int register(UserRegisterDTO userDTO) {
+    public void register(UserRegisterDTO userDTO) {
       if (!verifyEmailNotInUse(userDTO.getEmail())) {
         throw new IllegalArgumentException("Email is already in use");
       }
@@ -150,7 +149,6 @@ public class LoginService {
       }
       user.setPassword(hasher.hashPassword(user.getPassword()));
       userRepo.save(user);
-      return 0;
     }
   }
 
