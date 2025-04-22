@@ -24,6 +24,7 @@ public class SecurityConfig {
   public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
     http
         .csrf(AbstractHttpConfigurer::disable)
+        .headers(headers -> headers.frameOptions(frame -> frame.disable())) // tillat H2 console i iframe
         .authorizeHttpRequests(auth -> auth
             .requestMatchers(
                 "/swagger-ui/**",
@@ -31,7 +32,8 @@ public class SecurityConfig {
                 "/api-docs/**",
                 "/swagger-ui.html",
                 "/swagger-resources/**",
-                "/webjars/**")
+                "/webjars/**",
+                "/h2-console/**")
             .permitAll()
             .anyRequest().authenticated()
         );
