@@ -3,6 +3,10 @@ package org.ntnu.idatt2106.backend.security;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 
+/**
+ * This class is responsible for hashing and checking passwords using BCrypt.
+ * It provides methods to hash a password and check if a given password matches a hashed password.
+ */
 @Component
 public class BCryptHasher {
 

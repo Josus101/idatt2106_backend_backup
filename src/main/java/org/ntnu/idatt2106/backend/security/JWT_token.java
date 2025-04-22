@@ -10,11 +10,16 @@ import io.jsonwebtoken.security.Keys;
 import java.security.Key;
 import java.util.Date;
 import org.ntnu.idatt2106.backend.dto.UserTokenDTO;
+import org.ntnu.idatt2106.backend.exceptions.TokenExpiredException;
 import org.ntnu.idatt2106.backend.model.User;
 import org.ntnu.idatt2106.backend.repo.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+/**
+ * Service class responsible for generating and validating JWT tokens.
+ * This includes token generation, validation, and user extraction from tokens.
+ */
 @Service
 public class JWT_token {
 
@@ -22,7 +27,6 @@ public class JWT_token {
   private UserRepo userRepo;
   private static final Key key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
   private static final long EXPIRATION_TIME = 120 * 60 * 1000; // 2 hours
-
 
   public UserTokenDTO generateJwtToken(User user) {
     Date expirationDate = new Date(System.currentTimeMillis() + EXPIRATION_TIME);
@@ -34,8 +38,6 @@ public class JWT_token {
             .compact();
     return new UserTokenDTO(token, expirationDate.getTime());
   }
-
-
   /**
    * Validates the JWT token and checks if it has expired.
    *
@@ -45,7 +47,7 @@ public class JWT_token {
    */
   public void validateJwtToken(String token) {
     try {
-      Jwts.parser().setSigningKey(key).parseClaimsJws(token);
+      Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
     } catch (ExpiredJwtException e) {
       throw new TokenExpiredException("Token has expired");
     } catch (UnsupportedJwtException | MalformedJwtException e) {
@@ -54,8 +56,6 @@ public class JWT_token {
       throw new IllegalArgumentException("Token is empty");
     }
   }
-
-
   public String extractIdFromJwt(String token) {
     try {
       Claims claims = Jwts.parser()

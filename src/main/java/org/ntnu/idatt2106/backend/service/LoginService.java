@@ -1,9 +1,6 @@
 package org.ntnu.idatt2106.backend.service;
 
-import java.util.List;
 import java.util.Optional;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.ntnu.idatt2106.backend.dto.UserRegisterDTO;
 import org.ntnu.idatt2106.backend.dto.UserTokenDTO;
 import org.ntnu.idatt2106.backend.security.BCryptHasher;
@@ -79,7 +76,7 @@ public class LoginService {
      * @return true if the phone number is available, false otherwise.
      */
     public boolean verifyPhoneNumberNotInUse(String phoneNumber) {
-      return userRepo.findByPhonenumber(phoneNumber).isEmpty();
+      return userRepo.findByPhoneNumber(phoneNumber).isEmpty();
     }
 
 
@@ -103,7 +100,7 @@ public class LoginService {
      * @return true if all fields are valid, false otherwise.
      */
     public boolean validateUser(User user) {
-      return validateEmail(user.getEmail()) && validatePassword(user.getPassword()) && validatePhoneNumber(user.getPhonenumber()) && validateName(user.getFirstname()) && validateName(user.getSurname());
+      return validateEmail(user.getEmail()) && validatePassword(user.getPassword()) && validatePhoneNumber(user.getPhoneNumber()) && validateName(user.getFirstname()) && validateName(user.getSurname());
     }
 
     /**
