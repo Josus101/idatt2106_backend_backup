@@ -3,6 +3,7 @@ package org.ntnu.idatt2106.backend.service;
 import java.util.Optional;
 import org.ntnu.idatt2106.backend.dto.UserRegisterDTO;
 import org.ntnu.idatt2106.backend.dto.UserTokenDTO;
+import org.ntnu.idatt2106.backend.exceptions.TokenExpiredException;
 import org.ntnu.idatt2106.backend.security.BCryptHasher;
 import org.ntnu.idatt2106.backend.security.JWT_token;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,8 +68,6 @@ public class LoginService {
       return phoneNumber.matches("^\\d{8}$");
     }
 
-
-
     /**
      * Checks if the phone number is not already registered.
      *
@@ -79,8 +78,6 @@ public class LoginService {
       return userRepo.findByPhoneNumber(phoneNumber).isEmpty();
     }
 
-
-
     /**
      * Validates that the provided name contains only valid name characters.
      *
@@ -90,8 +87,6 @@ public class LoginService {
     public boolean validateName(String name) {
       return name.matches("^[a-zA-Z]+(([',. -][a-zA-Z ])?[a-zA-Z]*)*$");
     }
-
-
 
     /**
      * Validates that all user information fields are valid.
@@ -122,8 +117,6 @@ public class LoginService {
       return jwt.generateJwtToken(user.get());
     }
 
-
-
     /**
      * Registers a new user if the email and phone number are not in use and the data is valid.
      *
@@ -150,5 +143,25 @@ public class LoginService {
       user.setPassword(hasher.hashPassword(user.getPassword()));
       userRepo.save(user);
     }
+
+  /**
+   * Validates the given token and returns the associated user.
+   *
+   * @param token The JWT token to validate.
+   * @return The user associated with the token.
+   * @throws TokenExpiredException if the token has expired.
+   */
+  public User validateTokenAndGetUser(String token) {
+    try {
+      jwt.validateJwtToken(token);
+      return jwt.getUserByToken(token);
+    } catch (IllegalArgumentException e) {
+      throw new IllegalArgumentException("Invalid token");
+    } catch (TokenExpiredException e) {
+      throw new TokenExpiredException("Token has expired");
+    } catch (Exception e) {
+      throw new IllegalArgumentException("Error validating token");
+    }
   }
+}
 

@@ -2,7 +2,6 @@ package org.ntnu.idatt2106.backend.controller;
 import org.ntnu.idatt2106.backend.dto.UserLoginDTO;
 import org.ntnu.idatt2106.backend.dto.UserRegisterDTO;
 import org.ntnu.idatt2106.backend.dto.UserTokenDTO;
-import org.ntnu.idatt2106.backend.security.JWT_token;
 import org.ntnu.idatt2106.backend.service.LoginService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;

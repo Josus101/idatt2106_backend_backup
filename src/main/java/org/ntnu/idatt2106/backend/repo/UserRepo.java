@@ -1,6 +1,5 @@
 package org.ntnu.idatt2106.backend.repo;
 import org.ntnu.idatt2106.backend.model.User;
-import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
