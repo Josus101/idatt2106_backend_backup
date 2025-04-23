@@ -1,10 +1,9 @@
-package org.ntnu.idatt2106.backend.models;
+package org.ntnu.idatt2106.backend.model;
 
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Entity

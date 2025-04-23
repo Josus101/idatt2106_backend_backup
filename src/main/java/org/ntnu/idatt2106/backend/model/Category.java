@@ -1,4 +1,4 @@
-package org.ntnu.idatt2106.backend.models;
+package org.ntnu.idatt2106.backend.model;
 
 import jakarta.persistence.*;
 import lombok.Getter;
