@@ -8,7 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.ntnu.idatt2106.backend.dto.UserTokenDTO;
+import org.ntnu.idatt2106.backend.dto.user.UserTokenResponse;
 import org.ntnu.idatt2106.backend.model.User;
 
 public class JWTTokenTest {
@@ -29,14 +29,14 @@ public class JWTTokenTest {
   @Test
   @DisplayName("Test generate token method generates a token")
   void testGenerateToken() {
-    UserTokenDTO token = jwt.generateJwtToken(user);
+    UserTokenResponse token = jwt.generateJwtToken(user);
     assertNotNull(token.getToken());
   }
 
   @Test
   @DisplayName("Test generate token method generates a token with correct user id")
   void testGenerateTokenUsesCorrectId() {
-    UserTokenDTO token = jwt.generateJwtToken(user);
+    UserTokenResponse token = jwt.generateJwtToken(user);
     String userId = jwt.extractIdFromJwt(token.getToken());
     assertNotNull(userId);
     assertEquals(user.getStringID(), userId);

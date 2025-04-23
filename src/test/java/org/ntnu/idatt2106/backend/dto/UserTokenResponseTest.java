@@ -2,24 +2,25 @@ package org.ntnu.idatt2106.backend.dto;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.ntnu.idatt2106.backend.dto.user.UserTokenResponse;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class UserTokenDTOTest {
+class UserTokenResponseTest {
 
   @Test
-  @DisplayName("Test UserTokenDTO constructor with all arguments")
+  @DisplayName("Test UserTokenResponse constructor with all arguments")
   void testAllArgsConstructor() {
-    UserTokenDTO dto = new UserTokenDTO("abc123", 3600L);
+    UserTokenResponse dto = new UserTokenResponse("abc123", 3600L);
 
     assertEquals("abc123", dto.getToken());
     assertEquals(3600L, dto.getExpirationTime());
   }
 
   @Test
-  @DisplayName("Test UserTokenDTO getters and setters")
+  @DisplayName("Test UserTokenResponse getters and setters")
   void testGettersAndSetters() {
-    UserTokenDTO dto = new UserTokenDTO("", 0L);
+    UserTokenResponse dto = new UserTokenResponse("", 0L);
     dto.setToken("xyz789");
     dto.setExpirationTime(7200L);
     assertEquals("xyz789", dto.getToken());

@@ -4,8 +4,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
-import org.ntnu.idatt2106.backend.dto.UserRegisterDTO;
-import org.ntnu.idatt2106.backend.dto.UserTokenDTO;
+import org.ntnu.idatt2106.backend.dto.user.UserRegisterRequest;
+import org.ntnu.idatt2106.backend.dto.user.UserTokenResponse;
 import org.ntnu.idatt2106.backend.exceptions.TokenExpiredException;
 import org.ntnu.idatt2106.backend.exceptions.UserNotFoundException;
 import org.ntnu.idatt2106.backend.model.User;
@@ -101,9 +101,9 @@ public class LoginServiceTest {
   @DisplayName("Should authenticate user with correct credentials")
   void testAuthenticateSuccess() {
     when(userRepo.findByEmail("test@example.com")).thenReturn(Optional.of(testUser));
-    when(jwt.generateJwtToken(any())).thenReturn(new UserTokenDTO("token", System.currentTimeMillis()));
+    when(jwt.generateJwtToken(any())).thenReturn(new UserTokenResponse("token", System.currentTimeMillis()));
 
-    UserTokenDTO token = loginService.authenticate("test@example.com", "securePassword");
+    UserTokenResponse token = loginService.authenticate("test@example.com", "securePassword");
 
     assertNotNull(token);
     verify(jwt).generateJwtToken(testUser);
@@ -132,7 +132,7 @@ public class LoginServiceTest {
   @Test
   @DisplayName("Should register new valid user if parameters are valid and not in use")
   void testRegisterSuccess() {
-    UserRegisterDTO dto = new UserRegisterDTO("new@example.com", "newpass", "Jane", "Doe", "87654321");
+    UserRegisterRequest dto = new UserRegisterRequest("new@example.com", "newpass", "Jane", "Doe", "87654321");
 
     when(userRepo.findByEmail(dto.getEmail())).thenReturn(Optional.empty());
     when(userRepo.findByPhoneNumber(dto.getPhoneNumber())).thenReturn(Optional.empty());
@@ -145,7 +145,7 @@ public class LoginServiceTest {
   @Test
   @DisplayName("Should not register if email is in use")
   void testRegisterEmailInUse() {
-    UserRegisterDTO dto = new UserRegisterDTO("test@example.com", "newpass", "Jane", "Doe", "87654321");
+    UserRegisterRequest dto = new UserRegisterRequest("test@example.com", "newpass", "Jane", "Doe", "87654321");
 
     when(userRepo.findByEmail(dto.getEmail())).thenReturn(Optional.of(testUser));
 
@@ -155,7 +155,7 @@ public class LoginServiceTest {
   @Test
   @DisplayName("Should not register if phone number is in use")
   void testRegisterPhoneInUse() {
-    UserRegisterDTO dto = new UserRegisterDTO("new@example.com", "newpass", "Jane", "Doe", "12345678");
+    UserRegisterRequest dto = new UserRegisterRequest("new@example.com", "newpass", "Jane", "Doe", "12345678");
 
     when(userRepo.findByEmail(dto.getEmail())).thenReturn(Optional.empty());
     when(userRepo.findByPhoneNumber(dto.getPhoneNumber())).thenReturn(Optional.of(testUser));

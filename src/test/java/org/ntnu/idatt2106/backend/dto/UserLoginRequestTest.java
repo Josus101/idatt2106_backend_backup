@@ -4,13 +4,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.ntnu.idatt2106.backend.dto.user.UserLoginRequest;
 
-public class UserLoginDTOTest {
+public class UserLoginRequestTest {
 
   @Test
-  @DisplayName("Test UserLoginDTO constructor sets fields correctly")
+  @DisplayName("Test UserLoginRequest constructor sets fields correctly")
   void  testConstructorSetsFields() {
-    UserLoginDTO dto = new UserLoginDTO(
+    UserLoginRequest dto = new UserLoginRequest(
         "urekmazino@gmail.com",
         "password123"
     );
@@ -18,9 +19,9 @@ public class UserLoginDTOTest {
     assertEquals(dto.getPassword(), "password123");
   }
   @Test
-  @DisplayName("Test UserLoginDTO getters and setters")
+  @DisplayName("Test UserLoginRequest getters and setters")
   void testGettersAndSetters() {
-    UserLoginDTO dto = new UserLoginDTO(
+    UserLoginRequest dto = new UserLoginRequest(
         "urekmazino@gmail.com",
         "password123"
     );

@@ -1,8 +1,8 @@
 package org.ntnu.idatt2106.backend.service;
 
 import java.util.Optional;
-import org.ntnu.idatt2106.backend.dto.UserRegisterDTO;
-import org.ntnu.idatt2106.backend.dto.UserTokenDTO;
+import org.ntnu.idatt2106.backend.dto.user.UserRegisterRequest;
+import org.ntnu.idatt2106.backend.dto.user.UserTokenResponse;
 import org.ntnu.idatt2106.backend.exceptions.TokenExpiredException;
 import org.ntnu.idatt2106.backend.exceptions.UserNotFoundException;
 import org.ntnu.idatt2106.backend.security.BCryptHasher;
@@ -106,7 +106,7 @@ public class LoginService {
      * @param password The user's password.
      * @return A token response object on successful authentication.
      */
-    public UserTokenDTO authenticate(String email, String password) {
+    public UserTokenResponse authenticate(String email, String password) {
       Optional<User> user = userRepo.findByEmail(email);
       if (user.isEmpty()) {
         throw new UserNotFoundException("No user found with given email and password");
@@ -124,7 +124,7 @@ public class LoginService {
      * @param userDTO The user to register.
      * @throws IllegalArgumentException if user data is invalid.
      */
-    public void register(UserRegisterDTO userDTO) {
+    public void register(UserRegisterRequest userDTO) {
       if (!verifyEmailNotInUse(userDTO.getEmail())) {
         throw new IllegalArgumentException("Email is already in use");
       }

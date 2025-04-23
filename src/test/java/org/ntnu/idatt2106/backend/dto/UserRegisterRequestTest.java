@@ -4,13 +4,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.ntnu.idatt2106.backend.dto.user.UserRegisterRequest;
 
-public class UserRegisterDTOTest {
+public class UserRegisterRequestTest {
 
   @Test
-  @DisplayName("Test UserRegisterDTO constructor sets fields correctly")
+  @DisplayName("Test UserRegisterRequest constructor sets fields correctly")
   void testConstructorSetsFieldsCorrectly() {
-    UserRegisterDTO dto = new UserRegisterDTO(
+    UserRegisterRequest dto = new UserRegisterRequest(
         "kallekontainer@gmail.com",
         "password123",
         "Kalle",
@@ -25,9 +26,9 @@ public class UserRegisterDTOTest {
   }
 
   @Test
-  @DisplayName("Test UserRegisterDTO getters and setters")
+  @DisplayName("Test UserRegisterRequest getters and setters")
   void testGettersAndSetters() {
-    UserRegisterDTO dto = new UserRegisterDTO("","","","","");
+    UserRegisterRequest dto = new UserRegisterRequest("","","","","");
     dto.setEmail("karekartong@gmail.com");
     dto.setPassword("password123");
     dto.setFirstname("Kåre");

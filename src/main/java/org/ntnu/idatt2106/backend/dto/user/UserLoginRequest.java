@@ -1,4 +1,4 @@
-package org.ntnu.idatt2106.backend.dto;
+package org.ntnu.idatt2106.backend.dto.user;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
@@ -9,7 +9,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @Schema(description = "Data Transfer Object for user login")
-public class UserLoginDTO {
+public class UserLoginRequest {
   @Schema(description = "The email of the user")
   private String email;
   @Schema(description = "The password of the user")

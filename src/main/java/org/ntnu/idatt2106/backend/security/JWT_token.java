@@ -9,7 +9,7 @@ import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.security.Keys;
 import java.security.Key;
 import java.util.Date;
-import org.ntnu.idatt2106.backend.dto.UserTokenDTO;
+import org.ntnu.idatt2106.backend.dto.user.UserTokenResponse;
 import org.ntnu.idatt2106.backend.exceptions.TokenExpiredException;
 import org.ntnu.idatt2106.backend.model.User;
 import org.ntnu.idatt2106.backend.repo.UserRepo;
@@ -32,9 +32,9 @@ public class JWT_token {
    * Generates a JWT token for the given user.
    *
    * @param user the user for whom to generate the token
-   * @return a UserTokenDTO containing the generated token and its expiration time
+   * @return a UserTokenResponse containing the generated token and its expiration time
    */
-  public UserTokenDTO generateJwtToken(User user) {
+  public UserTokenResponse generateJwtToken(User user) {
     Date expirationDate = new Date(System.currentTimeMillis() + EXPIRATION_TIME);
     String token = Jwts.builder()
             .setSubject(user.getStringID())
@@ -42,7 +42,7 @@ public class JWT_token {
             .setExpiration(expirationDate)
             .signWith(key)
             .compact();
-    return new UserTokenDTO(token, expirationDate.getTime());
+    return new UserTokenResponse(token, expirationDate.getTime());
   }
   /**
    * Validates the JWT token and checks if it has expired.
