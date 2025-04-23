@@ -11,7 +11,9 @@ import java.security.Key;
 import java.util.Date;
 import org.ntnu.idatt2106.backend.dto.UserTokenDTO;
 import org.ntnu.idatt2106.backend.exceptions.TokenExpiredException;
+import org.ntnu.idatt2106.backend.models.Admin;
 import org.ntnu.idatt2106.backend.models.User;
+import org.ntnu.idatt2106.backend.repo.AdminRepo;
 import org.ntnu.idatt2106.backend.repo.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -25,6 +27,8 @@ public class JWT_token {
 
   @Autowired
   private UserRepo userRepo;
+  @Autowired
+  private AdminRepo adminRepo;
   private static final Key key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
   private static final long EXPIRATION_TIME = 120 * 60 * 1000; // 2 hours
 
@@ -42,6 +46,22 @@ public class JWT_token {
             .setExpiration(expirationDate)
             .signWith(key)
             .compact();
+    return new UserTokenDTO(token, expirationDate.getTime());
+  }
+  /**
+   * Generates a JWT token for the given user.
+   *
+   * @param admin the user for whom to generate the token
+   * @return a UserTokenDTO containing the generated token and its expiration time
+   */
+  public UserTokenDTO generateJwtToken(Admin admin) {
+    Date expirationDate = new Date(System.currentTimeMillis() + EXPIRATION_TIME);
+    String token = Jwts.builder()
+        .setSubject(admin.getStringID())
+        .setIssuedAt(new Date())
+        .setExpiration(expirationDate)
+        .signWith(key)
+        .compact();
     return new UserTokenDTO(token, expirationDate.getTime());
   }
   /**
@@ -90,5 +110,18 @@ public class JWT_token {
       return null;
     }
     return userRepo.findById(Integer.parseInt(id)).orElse(null);
+  }
+  /**
+   * Retrieves the admin associated with the given JWT token.
+   *
+   * @param token the JWT token
+   * @return the Admin user object, or null if the token is invalid or user not found
+   */
+  public Admin getAdminUserByToken(String token) {
+    String id = extractIdFromJwt(token);
+    if (id == null) {
+      return null;
+    }
+    return adminRepo.findById(Integer.parseInt(id)).orElse(null);
   }
 }
