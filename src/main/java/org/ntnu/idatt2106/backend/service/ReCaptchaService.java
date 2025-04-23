@@ -1,5 +1,7 @@
 package org.ntnu.idatt2106.backend.service;
 
+import lombok.AllArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +17,15 @@ import java.util.List;
 public class ReCaptchaService {
   private static final String VERIFY_URL = "https://www.google.com/recaptcha/api/siteverify";
   private static final String SECRET_KEY = "6Le5biErAAAAAAh1Md7I1y-EozvHCT-20zjE-i14";
+  private final RestTemplate restTemplate;
+
+  /**
+   * Constructor for the ReCaptchaService class
+   * @param restTemplate the restTemplate used to handle sending post request to google services to verify a reCaptcha token
+   */
+  public ReCaptchaService(RestTemplate restTemplate) {
+    this.restTemplate = restTemplate;
+  }
 
 
   /**
@@ -23,8 +34,6 @@ public class ReCaptchaService {
    * @return {@code true} if the token is valid, {@code false} otherwise
    */
   public boolean verifyReCaptchaToken(String ReCaptchaToken) {
-    RestTemplate restTemplate = new RestTemplate();
-
     MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
     params.add("secret", SECRET_KEY);
     params.add("response", ReCaptchaToken);
@@ -35,7 +44,6 @@ public class ReCaptchaService {
             ReCaptchaResponse.class
     );
 
-    response.getBody();
-    return response.getBody().isSuccess();
+    return response.getBody() != null && response.getBody().isSuccess();
   }
 }

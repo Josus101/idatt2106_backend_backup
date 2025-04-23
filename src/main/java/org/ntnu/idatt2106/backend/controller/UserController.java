@@ -30,12 +30,15 @@ public class UserController {
           responseCode = "200",
           description = "User registered successfully",
           content = @Content(
-              schema = @Schema(implementation = ApiResponse.class)
+              schema = @Schema(example = "User registered successfully")
           )
       ),
       @ApiResponse(
           responseCode = "400",
-          description = "Invalid user data"
+          description = "Invalid user data",
+          content = @Content(
+                  schema = @Schema(example = "Invalid user data")
+          )
       ),
   })
   public ResponseEntity<String> registerUser(
@@ -67,14 +70,14 @@ public class UserController {
           responseCode = "404",
           description = "No user found with given email and password",
           content = @Content(
-              schema = @Schema(implementation = String.class)
+                  schema = @Schema(example = "Invalid user data")
           )
       ),
       @ApiResponse(
           responseCode = "400",
           description = "Invalid user data",
           content = @Content(
-              schema = @Schema(implementation = String.class)
+              schema = @Schema(example = "No user found with given email and password")
           )
       )
   })
