@@ -50,6 +50,14 @@ public class User {
     this.phoneNumber = phoneNumber;
   }
 
+  /**
+   * Adds a household membership to the users list of memberships.
+   * @param householdMembership the household membership to add
+   */
+  public void addHouseholdMembership(HouseholdMembers householdMembership) {
+    this.householdMemberships.add(householdMembership);
+  }
+
   public String getStringID() {
     return String.valueOf(id);
   }
