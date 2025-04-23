@@ -8,6 +8,11 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * User model for the database
+ * @Author Jonas Reiher
+ * @since 0.1
+ */
 @Entity
 @Table(name = "users")
 @Getter
@@ -42,20 +47,62 @@ public class User {
   @OneToMany(mappedBy = "user")
   private List<HouseholdMembers> householdMemberships;
 
+
+  /**
+   * Blank Constructor for the User model
+   */
   public User() {};
 
-  public User(
-          String email,
-          String password,
-          String firstname,
-          String lastname,
-          String phoneNumber) {
+
+  /**
+   * Constructor for the User model
+   * @param id of the user
+   * @param email of the user
+   * @param password of the user
+   * @param firstname of the user
+   * @param lastname of the user
+   * @param phoneNumber of the user
+   * @param latitude of the user
+   * @param longitude of the user
+   */
+  public User(int id, String email, String password, String firstname, String lastname, String phoneNumber, double latitude, double longitude) {
+    this.id = id;
     this.email = email;
     this.password = password;
     this.firstname = firstname;
     this.lastname = lastname;
     this.phoneNumber = phoneNumber;
+    this.latitude = latitude;
+    this.longitude = longitude;
   }
+
+
+  /**
+   * Constructor for the User model
+   * @param email of the user
+   * @param password of the user
+   * @param firstname of the user
+   * @param lastname of the user
+   * @param phoneNumber of the user
+   */
+  public User(String email, String password, String firstname, String lastname, String phoneNumber) {
+    this(0, email, password, firstname, lastname, phoneNumber, 0.0, 0.0);
+  }
+
+
+  /**
+   * Constructor for the User model
+   * @param id of the user
+   * @param email of the user
+   * @param password of the user
+   * @param firstname of the user
+   * @param lastname of the user
+   * @param phoneNumber of the user
+   */
+  public User(int id, String email, String password, String firstname, String lastname, String phoneNumber) {
+    this(id, email, password, firstname, lastname, phoneNumber, 0.0, 0.0);
+  }
+
 
   /**
    * Get method that returns the id of the user object as a {@code String}

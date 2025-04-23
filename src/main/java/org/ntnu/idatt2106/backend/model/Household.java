@@ -6,6 +6,11 @@ import lombok.Setter;
 
 import java.util.List;
 
+/**
+ * Household model for the database
+ * @Author Jonas Reiher
+ * @since 0.1
+ */
 @Entity
 @Table(name = "household")
 @Getter
@@ -36,15 +41,22 @@ public class Household {
   )
   private List<Item> inventory;
 
+  /**
+   * Blank constructor for the Household model
+   */
   public Household() {}
 
-  public Household(
-          int id,
-          String name,
-          double latitude,
-          double longitude,
-          List<HouseholdMembers> members,
-          List<Item> inventory) {
+
+  /**
+   * Constructor for the Household model
+   * @param id of the household
+   * @param name of the household
+   * @param latitude of the household
+   * @param longitude of the household
+   * @param members of the household
+   * @param inventory of the household
+   */
+  public Household(int id, String name, double latitude, double longitude, List<HouseholdMembers> members, List<Item> inventory) {
     this.id = id;
     this.name = name;
     this.latitude = latitude;
