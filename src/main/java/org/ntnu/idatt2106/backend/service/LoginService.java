@@ -4,6 +4,7 @@ import java.util.Optional;
 import org.ntnu.idatt2106.backend.dto.UserRegisterDTO;
 import org.ntnu.idatt2106.backend.dto.UserTokenDTO;
 import org.ntnu.idatt2106.backend.exceptions.TokenExpiredException;
+import org.ntnu.idatt2106.backend.exceptions.UserNotFoundException;
 import org.ntnu.idatt2106.backend.security.BCryptHasher;
 import org.ntnu.idatt2106.backend.security.JWT_token;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -108,7 +109,7 @@ public class LoginService {
     public UserTokenDTO authenticate(String email, String password) {
       Optional<User> user = userRepo.findByEmail(email);
       if (user.isEmpty()) {
-        throw new IllegalArgumentException("No user found with given email and password");
+        throw new UserNotFoundException("No user found with given email and password");
       }
       if (!hasher.checkPassword(password, user.get().getPassword())) {
         throw new IllegalArgumentException("Incorrect password for given email");

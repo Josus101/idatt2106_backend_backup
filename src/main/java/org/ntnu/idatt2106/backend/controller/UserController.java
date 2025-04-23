@@ -1,9 +1,16 @@
 package org.ntnu.idatt2106.backend.controller;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.ntnu.idatt2106.backend.dto.UserLoginDTO;
 import org.ntnu.idatt2106.backend.dto.UserRegisterDTO;
 import org.ntnu.idatt2106.backend.dto.UserTokenDTO;
+import org.ntnu.idatt2106.backend.exceptions.UserNotFoundException;
 import org.ntnu.idatt2106.backend.service.LoginService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.crossstore.ChangeSetPersister.NotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,6 +22,23 @@ public class UserController {
   private LoginService loginService;
 
   @PostMapping("/register")
+  @Operation(
+      summary = "User register",
+      description = "Endpoint for registering a new user with the given credentials"
+  )
+  @ApiResponses(value = {
+      @ApiResponse(
+          responseCode = "200",
+          description = "User registered successfully",
+          content = @Content(
+              schema = @Schema(implementation = ApiResponse.class)
+          )
+      ),
+      @ApiResponse(
+          responseCode = "400",
+          description = "Invalid user data"
+      ),
+  })
   public ResponseEntity<String> registerUser(
     @RequestBody UserRegisterDTO userRegister) {
     try {
@@ -26,7 +50,35 @@ public class UserController {
     }
   }
 
+
   @PostMapping("/login")
+  @Operation(
+      summary = "User login",
+      description = "Validates user credentials and returns a JWT token on success"
+  )
+  @ApiResponses(value = {
+      @ApiResponse(
+          responseCode = "200",
+          description = "JWT token returned",
+          content = @Content(
+              schema = @Schema(implementation = UserTokenDTO.class)
+          )
+      ),
+      @ApiResponse(
+          responseCode = "404",
+          description = "No user found with given email and password",
+          content = @Content(
+              schema = @Schema(implementation = String.class)
+          )
+      ),
+      @ApiResponse(
+          responseCode = "400",
+          description = "Invalid user data",
+          content = @Content(
+              schema = @Schema(implementation = String.class)
+          )
+      )
+  })
   public ResponseEntity<?> login(
       @RequestBody UserLoginDTO userLogin)
   {
@@ -36,6 +88,8 @@ public class UserController {
     }
     catch (IllegalArgumentException e) {
       return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid user data");
+    } catch (UserNotFoundException e) {
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No user found with given email and password");
     }
     return ResponseEntity.ok(token);
   }

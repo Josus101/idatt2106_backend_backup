@@ -1,5 +1,6 @@
 package org.ntnu.idatt2106.backend.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -11,11 +12,17 @@ import lombok.Setter;
 @AllArgsConstructor
 @Getter
 @Setter
+@Schema(description = "Data transfer object representing user registration data")
 public class UserRegisterDTO {
+    @Schema(description = "The email of the user")
     private String email;
+    @Schema(description = "The password of the user")
     private String password;
+    @Schema(description = "The first name of the user")
     private String firstname;
+    @Schema(description = "The surname of the user")
     private String surname;
+    @Schema(description = "The phoneNumber of the user")
     private String phoneNumber;
 
 }
