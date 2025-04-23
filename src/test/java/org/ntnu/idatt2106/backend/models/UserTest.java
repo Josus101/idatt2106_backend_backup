@@ -1,9 +1,11 @@
-package org.ntnu.idatt2106.backend.model;
+package org.ntnu.idatt2106.backend.models;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.ntnu.idatt2106.backend.models.Household;
+import org.ntnu.idatt2106.backend.models.HouseholdMembers;
 import org.ntnu.idatt2106.backend.models.User;
 
 public class UserTest {
@@ -110,4 +112,14 @@ public class UserTest {
     );
     assertEquals("Jane Doe", user.toString());
   }
+
+  //@Test
+  //@DisplayName("Test adding household to user adds correctly")
+  //void testAddHousehold() {
+  //  User user = new User();
+  //  Household household = new Household();
+  //  HouseholdMembers householdMembership = new HouseholdMembers();
+  //  user.addHouseholdMembership(household);
+  //  assertTrue(user.getHouseholds().contains(household));
+  //}
 }

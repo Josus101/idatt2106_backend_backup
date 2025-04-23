@@ -2,12 +2,14 @@ package org.ntnu.idatt2106.backend.models;
 
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
 @Table(name = "category")
 @Getter
 @Setter
+@NoArgsConstructor
 public class Category {
 
   @Id
@@ -16,4 +18,8 @@ public class Category {
 
   @Column(nullable = false, unique = true)
   private String name;
+
+  public Category(String name) {
+    this.name = name;
+  }
 }

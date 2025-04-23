@@ -1,4 +1,4 @@
-package org.ntnu.idatt2106.backend.model;
+package org.ntnu.idatt2106.backend.models;
 
 import static org.junit.jupiter.api.Assertions.*;
 
