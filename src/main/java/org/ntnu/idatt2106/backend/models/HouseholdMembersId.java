@@ -3,8 +3,12 @@ package org.ntnu.idatt2106.backend.models;
 import jakarta.persistence.Embeddable;
 import java.io.Serializable;
 import java.util.Objects;
+import lombok.Getter;
+import lombok.Setter;
 
 @Embeddable
+@Getter
+@Setter
 public class HouseholdMembersId implements Serializable {
 
   private int user;
@@ -28,6 +32,4 @@ public class HouseholdMembersId implements Serializable {
   public int hashCode() {
     return Objects.hash(user, household);
   }
-
-  // Getters and Setters
 }
