@@ -5,12 +5,12 @@ import org.ntnu.idatt2106.backend.dto.user.UserRegisterRequest;
 import org.ntnu.idatt2106.backend.dto.user.UserTokenResponse;
 import org.ntnu.idatt2106.backend.exceptions.TokenExpiredException;
 import org.ntnu.idatt2106.backend.exceptions.UserNotFoundException;
+import org.ntnu.idatt2106.backend.model.User;
 import org.ntnu.idatt2106.backend.security.BCryptHasher;
 import org.ntnu.idatt2106.backend.security.JWT_token;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import org.ntnu.idatt2106.backend.model.User;
 import org.ntnu.idatt2106.backend.repo.UserRepo;
 
 /**
@@ -96,7 +96,7 @@ public class LoginService {
      * @return true if all fields are valid, false otherwise.
      */
     public boolean validateUser(User user) {
-      return validateEmail(user.getEmail()) && validatePassword(user.getPassword()) && validatePhoneNumber(user.getPhoneNumber()) && validateName(user.getFirstname()) && validateName(user.getSurname());
+      return validateEmail(user.getEmail()) && validatePassword(user.getPassword()) && validatePhoneNumber(user.getPhoneNumber()) && validateName(user.getFirstname()) && validateName(user.getLastname());
     }
 
     /**
@@ -135,7 +135,7 @@ public class LoginService {
         userDTO.getEmail(),
         userDTO.getPassword(),
         userDTO.getFirstname(),
-        userDTO.getSurname(),
+        userDTO.getLastname(),
         userDTO.getPhoneNumber()
       );
       if (!validateUser(user)) {

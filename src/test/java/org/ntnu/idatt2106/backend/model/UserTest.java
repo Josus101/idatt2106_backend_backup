@@ -21,7 +21,7 @@ public class UserTest {
     assertEquals("test@example.com", user.getEmail());
     assertEquals("securePass", user.getPassword());
     assertEquals("John", user.getFirstname());
-    assertEquals("Doe", user.getSurname());
+    assertEquals("Doe", user.getLastname());
     assertEquals("12345678", user.getPhoneNumber());
   }
 
@@ -58,11 +58,11 @@ public class UserTest {
   }
 
   @Test
-  @DisplayName("Test setSurname and getSurname")
+  @DisplayName("Test setLastname and getLastname")
   void testSurnameField() {
     User user = new User();
-    user.setSurname("Smith");
-    assertEquals("Smith", user.getSurname());
+    user.setLastname("Smith");
+    assertEquals("Smith", user.getLastname());
   }
 
   @Test

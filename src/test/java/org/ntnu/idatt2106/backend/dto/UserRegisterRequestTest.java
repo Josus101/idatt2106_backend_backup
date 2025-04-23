@@ -21,7 +21,7 @@ public class UserRegisterRequestTest {
     assertEquals(dto.getEmail(), "kallekontainer@gmail.com");
     assertEquals(dto.getPassword(), "password123");
     assertEquals(dto.getFirstname(), "Kalle");
-    assertEquals(dto.getSurname(), "Kontainer");
+    assertEquals(dto.getLastname(), "Kontainer");
     assertEquals(dto.getPhoneNumber(), "12345678");
   }
 
@@ -32,13 +32,13 @@ public class UserRegisterRequestTest {
     dto.setEmail("karekartong@gmail.com");
     dto.setPassword("password123");
     dto.setFirstname("Kåre");
-    dto.setSurname("Pappkartong");
+    dto.setLastname("Pappkartong");
     dto.setPhoneNumber("12345678");
 
     assertEquals(dto.getEmail(), "karekartong@gmail.com");
     assertEquals(dto.getPassword(), "password123");
     assertEquals(dto.getFirstname(), "Kåre");
-    assertEquals(dto.getSurname(), "Pappkartong");
+    assertEquals(dto.getLastname(), "Pappkartong");
     assertEquals(dto.getPhoneNumber(), "12345678");
   }
 }
