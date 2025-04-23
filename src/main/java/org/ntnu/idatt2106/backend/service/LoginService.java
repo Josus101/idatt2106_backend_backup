@@ -10,7 +10,7 @@ import org.ntnu.idatt2106.backend.security.JWT_token;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import org.ntnu.idatt2106.backend.model.User;
+import org.ntnu.idatt2106.backend.models.User;
 import org.ntnu.idatt2106.backend.repo.UserRepo;
 
 /**

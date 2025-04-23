@@ -8,7 +8,7 @@ import org.ntnu.idatt2106.backend.dto.UserRegisterDTO;
 import org.ntnu.idatt2106.backend.dto.UserTokenDTO;
 import org.ntnu.idatt2106.backend.exceptions.TokenExpiredException;
 import org.ntnu.idatt2106.backend.exceptions.UserNotFoundException;
-import org.ntnu.idatt2106.backend.model.User;
+import org.ntnu.idatt2106.backend.models.User;
 import org.ntnu.idatt2106.backend.repo.UserRepo;
 import org.ntnu.idatt2106.backend.security.BCryptHasher;
 import org.ntnu.idatt2106.backend.security.JWT_token;

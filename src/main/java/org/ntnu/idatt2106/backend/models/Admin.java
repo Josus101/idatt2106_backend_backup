@@ -1,39 +1,39 @@
 package org.ntnu.idatt2106.backend.models;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.Comment;
 
-@Entity
-@Table(name = "admin")
 @Getter
 @Setter
+@Table(name = "admin")
 public class Admin {
-
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private int id;
-
-  @Column(nullable = false, unique = true)
+  @Column(unique = true, nullable = false)
   private String username;
-
   @Column(nullable = false)
   private String password;
-
   @Column(nullable = false)
-  private boolean isSuper;
+  private boolean isSuperUser;
 
-  public Admin() {};
-
-  public Admin(
-          int id,
-          String username,
-          String password,
-          boolean isSuper) {
-    this.id = id;
+  public Admin(String username, String password, boolean isSuperUser) {
     this.username = username;
     this.password = password;
-    this.isSuper = isSuper;
+    this.isSuperUser = isSuperUser;
+  }
+
+  public String getStringID() {
+    return String.valueOf(id);
+  }
+
+  @Override
+  public String toString() {
+    return username;
   }
 }

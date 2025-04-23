@@ -1,18 +1,14 @@
 package org.ntnu.idatt2106.backend.models;
-
-// java util
-import java.util.List;
-import java.util.Map;
-
-// jpa
 import jakarta.persistence.*;
+import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
+import org.ntnu.idatt2106.backend.models.HouseholdMembers;
 
-@Entity
-@Table(name = "users")
 @Getter
 @Setter
+@Entity
+@Table(name = "users")
 public class User {
 
   @Id
@@ -29,41 +25,38 @@ public class User {
   private String firstname;
 
   @Column(nullable = false)
-  private String lastname;
+  private String surname;
 
   @Column(unique = true, nullable = false)
   private String phoneNumber;
 
-  @Column
-  private double latitude;
+  @Column()
+  private float latitude;
 
-  @Column
-  private double longitude;
+  @Column()
+  private float longitude;
 
   @OneToMany(mappedBy = "user")
   private List<HouseholdMembers> householdMemberships;
 
-  public User() {};
 
-  public User(
-          int id,
-          String email,
-          String password,
-          String firstname,
-          String lastname,
-          String phoneNumber,
-          double latitude,
-          double longitude,
-          List<HouseholdMembers> householdMemberships) {
-    this.id = id;
+  public User() {}
+
+  public User(String email, String password, String firstname, String surname, String phoneNumber) {
     this.email = email;
+    this.password = password;
     this.firstname = firstname;
-    this.lastname = lastname;
+    this.surname = surname;
     this.phoneNumber = phoneNumber;
-    this.latitude = latitude;
-    this.longitude = longitude;
-    this.householdMemberships = householdMemberships;
   }
 
-
+  public String getStringID() {
+    return String.valueOf(id);
+  }
+  @Override
+  public String toString() {
+    return firstname + " " + surname;
+  }
 }
+
+

@@ -11,7 +11,7 @@ import java.security.Key;
 import java.util.Date;
 import org.ntnu.idatt2106.backend.dto.UserTokenDTO;
 import org.ntnu.idatt2106.backend.exceptions.TokenExpiredException;
-import org.ntnu.idatt2106.backend.model.User;
+import org.ntnu.idatt2106.backend.models.User;
 import org.ntnu.idatt2106.backend.repo.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
