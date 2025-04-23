@@ -7,6 +7,7 @@ import org.mockito.*;
 import org.ntnu.idatt2106.backend.dto.UserRegisterDTO;
 import org.ntnu.idatt2106.backend.dto.UserTokenDTO;
 import org.ntnu.idatt2106.backend.exceptions.TokenExpiredException;
+import org.ntnu.idatt2106.backend.exceptions.UserNotFoundException;
 import org.ntnu.idatt2106.backend.model.User;
 import org.ntnu.idatt2106.backend.repo.UserRepo;
 import org.ntnu.idatt2106.backend.security.BCryptHasher;
@@ -113,7 +114,7 @@ public class LoginServiceTest {
   void testAuthenticateWrongEmail() {
     when(userRepo.findByEmail("wrong@example.com")).thenReturn(Optional.empty());
 
-    assertThrows(IllegalArgumentException.class, () -> {
+    assertThrows(UserNotFoundException.class, () -> {
       loginService.authenticate("wrong@example.com", "securePassword");
     });
   }
