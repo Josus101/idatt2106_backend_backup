@@ -9,7 +9,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @Schema(description = "Data transfer object for admin login credentials")
-public class AdminLoginDTO {
+public class AdminLoginRegisterDTO {
   @Schema(description = "Username of the admin", example = "admin")
   private String username;
   @Schema(description = "Password of the admin", example = "admin123")

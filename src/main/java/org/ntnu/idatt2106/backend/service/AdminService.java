@@ -132,10 +132,67 @@ public class AdminService {
     adminRepo.save(admin);
   }
 
+  /**
+   * Registers a new admin user with the provided username and password.
+   *
+   * @param username The admin's username.
+   * @param password The admin's password.
+   * @param token The token of the admin registering the new admin.
+   * @throws IllegalArgumentException if the admin data is invalid or the username is already in use.
+   */
+  public void register(String username, String password, String token) {
+    Admin admin = new Admin(username, password, false);
+    register(admin, token);
+  }
 
+  /**
+   * Elevates an admin user to a superuser.
+   *
+   * @param id The ID of the admin to elevate.
+   * @param authorizationHeader The authorization header containing the token of the admin performing the action.
+   * @throws IllegalArgumentException if the admin is not found or is already a superuser.
+   * @throws UnauthorizedException if the admin is not authorized to elevate another admin.
+   */
+  public void elevateAdmin(String id, String authorizationHeader) {
+    try {
+      verifyAdminIsSuperUser(authorizationHeader);
+    } catch (UnauthorizedException e) {
+      throw new UnauthorizedException("You are not authorized to elevate an admin");
+    }
+    Optional<Admin> admin = adminRepo.findById(Integer.parseInt(id));
+    if (admin.isEmpty()) {
+      throw new IllegalArgumentException("No admin found with given id");
+    }
+    Admin adminUser = admin.get();
+    if (adminUser.isSuperUser()) {
+      throw new IllegalArgumentException("Admin is already a super user");
+    }
+    adminUser.setSuperUser(true);
+    adminRepo.save(adminUser);
+  }
 
-
-
-
-
+  /**
+   * Deletes an admin user.
+   *
+   * @param id The ID of the admin to delete.
+   * @param authorizationHeader The authorization header containing the token of the admin performing the action.
+   * @throws IllegalArgumentException if the admin is not found or is a superuser.
+   * @throws UnauthorizedException if the admin is not authorized to delete another admin.
+   */
+  public void exterminateAdmin(String id, String authorizationHeader) {
+    try {
+      verifyAdminIsSuperUser(authorizationHeader);
+    } catch (UnauthorizedException e) {
+      throw new UnauthorizedException("You are not authorized to delete an admin");
+    }
+    Optional<Admin> admin = adminRepo.findById(Integer.parseInt(id));
+    if (admin.isEmpty()) {
+      throw new IllegalArgumentException("No admin found with given id");
+    }
+    Admin adminUser = admin.get();
+    if (adminUser.isSuperUser()) {
+      throw new IllegalArgumentException("Cannot delete a super user");
+    }
+    adminRepo.delete(adminUser);
+  }
 }

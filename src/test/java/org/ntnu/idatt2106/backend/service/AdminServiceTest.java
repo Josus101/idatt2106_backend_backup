@@ -170,4 +170,91 @@ public class AdminServiceTest {
     });
   }
 
+  @Test
+  @DisplayName("Should register admin using string overload method")
+  void testRegisterOverloadedSuccess() {
+    when(jwt.getAdminUserByToken("token")).thenReturn(testAdmin);
+    when(adminRepo.existsByUsername("newadmin")).thenReturn(false);
+
+    adminService.register("newadmin", "password", "token");
+
+    verify(adminRepo).save(any(Admin.class));
+  }
+
+  @Test
+  @DisplayName("Should throw if elevating non-existing admin")
+  void testElevateAdminNotFound() {
+    when(jwt.getAdminUserByToken("token")).thenReturn(testAdmin);
+    when(adminRepo.findById(1)).thenReturn(Optional.empty());
+
+    assertThrows(IllegalArgumentException.class, () -> {
+      adminService.elevateAdmin("1", "token");
+    });
+  }
+
+  @Test
+  @DisplayName("Should throw if elevating already super user")
+  void testElevateAdminAlreadySuperUser() {
+    Admin superAdmin = new Admin("super", "pass", true);
+
+    when(jwt.getAdminUserByToken("token")).thenReturn(testAdmin);
+    when(adminRepo.findById(1)).thenReturn(Optional.of(superAdmin));
+
+    assertThrows(IllegalArgumentException.class, () -> {
+      adminService.elevateAdmin("1", "token");
+    });
+  }
+
+  @Test
+  @DisplayName("Should elevate a non-super admin to super user")
+  void testElevateAdminSuccess() {
+    Admin nonSuper = new Admin("user", "pass", false);
+
+    when(jwt.getAdminUserByToken("token")).thenReturn(testAdmin);
+    when(adminRepo.findById(1)).thenReturn(Optional.of(nonSuper));
+
+    adminService.elevateAdmin("1", "token");
+
+    assertTrue(nonSuper.isSuperUser());
+    verify(adminRepo).save(nonSuper);
+  }
+
+  @Test
+  @DisplayName("Should throw if exterminate target not found")
+  void testExterminateAdminNotFound() {
+    when(jwt.getAdminUserByToken("token")).thenReturn(testAdmin);
+    when(adminRepo.findById(1)).thenReturn(Optional.empty());
+
+    assertThrows(IllegalArgumentException.class, () -> {
+      adminService.exterminateAdmin("1", "token");
+    });
+  }
+
+  @Test
+  @DisplayName("Should throw if trying to delete super user")
+  void testExterminateSuperUserThrows() {
+    Admin superAdmin = new Admin("super", "pass", true);
+
+    when(jwt.getAdminUserByToken("token")).thenReturn(testAdmin);
+    when(adminRepo.findById(1)).thenReturn(Optional.of(superAdmin));
+
+    assertThrows(IllegalArgumentException.class, () -> {
+      adminService.exterminateAdmin("1", "token");
+    });
+  }
+
+  @Test
+  @DisplayName("Should delete a non-super admin successfully")
+  void testExterminateAdminSuccess() {
+    Admin nonSuper = new Admin("normal", "pass", false);
+
+    when(jwt.getAdminUserByToken("token")).thenReturn(testAdmin);
+    when(adminRepo.findById(1)).thenReturn(Optional.of(nonSuper));
+
+    adminService.exterminateAdmin("1", "token");
+
+    verify(adminRepo).delete(nonSuper);
+  }
+
+
 }
