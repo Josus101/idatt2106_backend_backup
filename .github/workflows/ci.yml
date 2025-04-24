@@ -89,6 +89,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: jacoco-report
+          path: jacoco
 
       - name: Move report to public dir
         run: mkdir -p public && mv jacoco/* public/
