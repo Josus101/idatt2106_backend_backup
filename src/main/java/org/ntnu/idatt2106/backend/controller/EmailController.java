@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import org.ntnu.idatt2106.backend.models.User;
 import org.ntnu.idatt2106.backend.repo.UserRepo;
@@ -33,9 +34,14 @@ public class EmailController {
   public ResponseEntity<String> sendVerification(
       @Parameter(description = "ID of the user", example = "1")
       @PathVariable int userId) {
+    System.out.println("Sending verification email to user with ID: " + userId);
     return userRepo.findById(userId)
         .map(user -> {
-          emailService.sendVerificationEmail(user);
+          try {
+            emailService.sendVerificationEmail(user);
+          } catch (MessagingException e) {
+            throw new RuntimeException(e);
+          }
           return ResponseEntity.ok("Verification email sent.");
         })
         .orElse(ResponseEntity.notFound().build());
@@ -53,9 +59,14 @@ public class EmailController {
   public ResponseEntity<String> sendResetPassword(
       @Parameter(description = "ID of the user", example = "1")
       @PathVariable int userId) {
+    System.out.println("Sending reset password email to user with ID: " + userId);
     return userRepo.findById(userId)
         .map(user -> {
-          emailService.sendResetPasswordEmail(user);
+          try {
+            emailService.sendResetPasswordEmail(user);
+          } catch (MessagingException e) {
+            throw new RuntimeException(e);
+          }
           return ResponseEntity.ok("Reset password email sent.");
         })
         .orElse(ResponseEntity.notFound().build());
@@ -73,7 +84,7 @@ public class EmailController {
       @Parameter(description = "Recipient email address", example = "example@mail.com")
       @RequestParam String to) {
     System.out.println("Sending test email to: " + to);
-    emailService.sendEmail(to, "Test Email", "This is a test email from EmailService.");
+    emailService.sendTestEmail(to, "Test Email", "This is a test email from EmailService.");
     return ResponseEntity.ok("Test email sent to: " + to);
   }
 }
