@@ -57,7 +57,7 @@ jobs:
     name: Build Jar
     runs-on: ubuntu-latest
     needs: test
-    if: github.ref_name == 'dev'
+#    if: github.ref_name == 'dev'
     steps:
       - uses: actions/checkout@v4
 
@@ -81,7 +81,7 @@ jobs:
     name: Publish Coverage as Artifact
     runs-on: ubuntu-latest
     needs: test
-    if: github.ref_name == 'dev'
+#    if: github.ref_name == 'dev'
     steps:
       - uses: actions/checkout@v4
 
