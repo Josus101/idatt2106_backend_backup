@@ -4,14 +4,14 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.ntnu.idatt2106.backend.dto.admin.AdminLoginRegisterDTO;
+import org.ntnu.idatt2106.backend.dto.admin.AdminLoginRegisterRequest;
 
 public class AdminLoginRegisterDTOTest {
 
   @Test
   @DisplayName("Test all-args constructor sets fields correctly")
   void testConstructorSetsFields() {
-    AdminLoginRegisterDTO dto = new AdminLoginRegisterDTO("adminUser", "securePass");
+    AdminLoginRegisterRequest dto = new AdminLoginRegisterRequest("adminUser", "securePass");
 
     assertEquals("adminUser", dto.getUsername());
     assertEquals("securePass", dto.getPassword());
@@ -20,7 +20,7 @@ public class AdminLoginRegisterDTOTest {
   @Test
   @DisplayName("Test setUsername and getUsername")
   void testUsernameField() {
-    AdminLoginRegisterDTO dto = new AdminLoginRegisterDTO("initUser", "pass");
+    AdminLoginRegisterRequest dto = new AdminLoginRegisterRequest("initUser", "pass");
     dto.setUsername("newUser");
     assertEquals("newUser", dto.getUsername());
   }
@@ -28,7 +28,7 @@ public class AdminLoginRegisterDTOTest {
   @Test
   @DisplayName("Test setPassword and getPassword")
   void testPasswordField() {
-    AdminLoginRegisterDTO dto = new AdminLoginRegisterDTO("admin", "initialPass");
+    AdminLoginRegisterRequest dto = new AdminLoginRegisterRequest("admin", "initialPass");
     dto.setPassword("newPass");
     assertEquals("newPass", dto.getPassword());
   }
