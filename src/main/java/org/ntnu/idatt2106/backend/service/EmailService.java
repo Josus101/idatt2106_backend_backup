@@ -7,6 +7,7 @@ import org.ntnu.idatt2106.backend.repo.EmailVerificationTokenRepo;
 import org.ntnu.idatt2106.backend.repo.ResetPasswordTokenRepo;
 import org.ntnu.idatt2106.backend.security.JWT_token;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
@@ -15,7 +16,6 @@ import java.util.Date;
 
 @Service
 public class EmailService {
-
   @Autowired
   private JavaMailSender mailSender;
 
@@ -27,6 +27,9 @@ public class EmailService {
 
   @Autowired
   private ResetPasswordTokenRepo ResetPasswordTokenRepo;
+
+  @Value("${mail.from}")
+  private String fromEmail;
 
   private static final String BASE_URL = "http://localhost:8080/";
 
@@ -64,12 +67,19 @@ public class EmailService {
   }
 
   public void sendEmail(String to, String subject, String body) {
-    SimpleMailMessage message = new SimpleMailMessage();
-    System.out.println("Sending email to: " + to);
-    System.out.println("Subject: " + subject);
-    message.setTo(to);
-    message.setSubject(subject);
-    message.setText(body);
-    mailSender.send(message);
+    try {
+      SimpleMailMessage message = new SimpleMailMessage();
+      System.out.println("Sending email to: " + to);
+      System.out.println("Subject: " + subject);
+      message.setFrom("noreply.krisefikser@gmail.com");
+      message.setFrom(fromEmail);
+      message.setTo(to);
+      message.setSubject(subject);
+      message.setText(body);
+      mailSender.send(message);
+    } catch (Exception e) {
+      System.out.println(
+          "Error sending message, make sure EMAIL_USERNAME and EMAIL_PASSWORD are set in the .env file. \nThe error message is " + e);
+    }
   }
 }
