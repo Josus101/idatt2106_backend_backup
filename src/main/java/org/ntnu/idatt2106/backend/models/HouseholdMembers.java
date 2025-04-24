@@ -15,7 +15,7 @@ public class HouseholdMembers {
 
   @ManyToOne
   @MapsId("user")
-  @JoinColumn(name = "user")
+  @JoinColumn(name = "user_id")
   private User user;
 
   @ManyToOne
