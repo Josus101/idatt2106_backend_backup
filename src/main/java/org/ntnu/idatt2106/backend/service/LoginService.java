@@ -164,5 +164,16 @@ public class LoginService {
       throw new IllegalArgumentException("Error validating token");
     }
   }
+
+  /**
+   * Resets the password for the user
+   * @param user The user to reset the password for
+   * @param newPassword The new password to set
+   */
+  public void resetPassword(User user, String newPassword) {
+    user.setPassword(hasher.hashPassword(newPassword));
+    userRepo.save(user);
+  }
+
 }
 
