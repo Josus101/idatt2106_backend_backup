@@ -1,13 +1,18 @@
-package org.ntnu.idatt2106.backend.models;
+package org.ntnu.idatt2106.backend.model;
 
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.IdGeneratorType;
 
 import java.util.Date;
 import java.util.List;
 
+
+/**
+ * Item model for the database
+ * @Author Jonas Reiher
+ * @since 0.1
+ */
 @Entity
 @Table(name = "item")
 @Getter
@@ -42,14 +47,20 @@ public class Item {
   @JoinColumn(name = "category_id", nullable = false)
   private Category category;
 
+  /**
+   * Blank constructor for the Item model
+   */
   public Item() {};
 
-  public Item(
-          int id,
-          String name,
-          double amount,
-          String unit,
-          Date expirationDate) {
+  /**
+   * Constructor for the item model
+   * @param id of the item
+   * @param name of the item
+   * @param amount of the item
+   * @param unit of the item
+   * @param expirationDate of the item
+   */
+  public Item(int id, String name, double amount, String unit, Date expirationDate) {
     this.id = id;
     this.name = name;
     this.amount = amount;

@@ -1,10 +1,14 @@
-package org.ntnu.idatt2106.backend.models;
+package org.ntnu.idatt2106.backend.model;
 
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.Comment;
 
+/**
+ * Admin model for the database
+ * @Author Jonas Reiher
+ * @since 0.1
+ */
 @Entity
 @Table(name = "admin")
 @Getter
@@ -24,13 +28,21 @@ public class Admin {
   @Column(nullable = false)
   private boolean isSuper;
 
-  public Admin() {};
 
-  public Admin(
-          int id,
-          String username,
-          String password,
-          boolean isSuper) {
+  /**
+   * Blank constructor for the Admin model
+   */
+  public Admin() {};
+  
+
+  /**
+   * Constructor for the Admin model.
+   * @param id of the admin entry
+   * @param username of the admin
+   * @param password of the admin
+   * @param isSuper flag to set the super admin status of the admin
+   */
+  public Admin(int id, String username, String password, boolean isSuper) {
     this.id = id;
     this.username = username;
     this.password = password;
