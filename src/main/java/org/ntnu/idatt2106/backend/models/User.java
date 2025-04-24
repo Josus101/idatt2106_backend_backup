@@ -36,6 +36,9 @@ public class User {
   @Column()
   private float longitude;
 
+  @Column()
+  private boolean verified;
+
   @OneToMany(mappedBy = "user")
   private List<HouseholdMembers> householdMemberships;
 
@@ -48,6 +51,7 @@ public class User {
     this.firstname = firstname;
     this.surname = surname;
     this.phoneNumber = phoneNumber;
+    this.verified = false;
   }
 
   /**

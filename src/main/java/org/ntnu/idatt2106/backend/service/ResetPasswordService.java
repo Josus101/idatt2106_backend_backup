@@ -33,6 +33,12 @@ public class ResetPasswordService {
    */
   public User findUserByToken(String token) {
     Optional<ResetPasswordToken> resetPasswordToken = resetPasswordTokenRepo.findByToken(token);
+    if (resetPasswordToken.isEmpty()) {
+      throw new UserNotFoundException("User not found");
+    }
+    if (resetPasswordToken.get().getExpirationDate().before(new java.util.Date())) {
+      throw new UserNotFoundException("Token expired");
+    }
     return resetPasswordToken.map(ResetPasswordToken::getUser).orElse(null);
   }
 

@@ -175,5 +175,14 @@ public class LoginService {
     userRepo.save(user);
   }
 
+  /**
+   * Verifies the email address of the user.
+   *
+   * @param user The user to verify.
+   */
+  public void verifyEmail(User user) {
+    user.setVerified(true);
+    userRepo.save(user);
+  }
 }
 

@@ -9,6 +9,8 @@ import org.ntnu.idatt2106.backend.dto.UserRegisterDTO;
 import org.ntnu.idatt2106.backend.dto.UserTokenDTO;
 import org.ntnu.idatt2106.backend.exceptions.UserNotFoundException;
 import org.ntnu.idatt2106.backend.service.LoginService;
+import org.ntnu.idatt2106.backend.service.ResetPasswordService;
+import org.ntnu.idatt2106.backend.service.VerifyEmailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.crossstore.ChangeSetPersister.NotFoundException;
 import org.springframework.http.HttpStatus;
@@ -20,6 +22,12 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
   @Autowired
   private LoginService loginService;
+
+  @Autowired
+  private ResetPasswordService resetPasswordService;
+
+  @Autowired
+  private VerifyEmailService verifyEmailService;
 
   @PostMapping("/register")
   @Operation(
@@ -92,6 +100,67 @@ public class UserController {
       return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No user found with given email and password");
     }
     return ResponseEntity.ok(token);
+  }
+
+  @GetMapping("/reset-password/{token}")
+  @Operation(
+      summary = "Reset password",
+      description = "Resets the password for the user with the given token"
+  )
+  @ApiResponses(value = {
+      @ApiResponse(
+          responseCode = "200",
+          description = "Password reset successfully"
+      ),
+      @ApiResponse(
+          responseCode = "404",
+          description = "User not found with given token",
+          content = @Content(
+              schema = @Schema(implementation = String.class)
+          )
+      )
+  })
+  public ResponseEntity<String> resetPassword(
+      @PathVariable String token,
+      @RequestParam String newPassword) {
+    try {
+      resetPasswordService.resetPassword(token, newPassword);
+      return ResponseEntity.ok("Password reset successfully");
+    } catch (UserNotFoundException e) {
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found with given token");
+    } catch (IllegalArgumentException e) {
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid password");
+    }
+  }
+
+  @GetMapping("/verify/{token}")
+  @Operation(
+      summary = "Verify email",
+      description = "Verifies the email for the user with the given token"
+  )
+  @ApiResponses(value = {
+      @ApiResponse(
+          responseCode = "200",
+          description = "Email verified successfully"
+      ),
+      @ApiResponse(
+          responseCode = "404",
+          description = "User not found with given token",
+          content = @Content(
+              schema = @Schema(implementation = String.class)
+          )
+      )
+  })
+  public ResponseEntity<String> verifyEmail(
+      @PathVariable String token) {
+    try {
+      verifyEmailService.verifyEmail(token);
+      return ResponseEntity.ok("Email verified successfully");
+    } catch (UserNotFoundException e) {
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found with given token");
+    } catch (IllegalArgumentException e) {
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid token");
+    }
   }
 }
 
