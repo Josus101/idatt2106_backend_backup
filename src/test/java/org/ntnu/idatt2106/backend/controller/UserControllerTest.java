@@ -7,6 +7,7 @@ import org.mockito.*;
 import org.ntnu.idatt2106.backend.dto.user.UserLoginRequest;
 import org.ntnu.idatt2106.backend.dto.user.UserRegisterRequest;
 import org.ntnu.idatt2106.backend.dto.user.UserTokenResponse;
+import org.ntnu.idatt2106.backend.exceptions.UserNotFoundException;
 import org.ntnu.idatt2106.backend.service.LoginService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -82,6 +83,20 @@ class UserControllerTest {
 
     assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     assertEquals("Invalid user data", response.getBody());
+  }
+
+  @Test
+  @DisplayName("Test login method returns NOT_FOUND with non-existing user")
+  void testLoginUserNotFound() {
+    UserLoginRequest loginDTO = new UserLoginRequest("test@example.com", "wrongPassword");
+
+    when(loginService.authenticate(loginDTO.getEmail(), loginDTO.getPassword()))
+            .thenThrow(new UserNotFoundException("No user found with given email and password"));
+
+    ResponseEntity<?> response = userController.login(loginDTO);
+
+    assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    assertEquals("No user found with given email and password", response.getBody());
   }
 
   @Test

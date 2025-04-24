@@ -15,8 +15,10 @@ import java.util.List;
 
 @Service
 public class ReCaptchaService {
-  private static final String VERIFY_URL = "https://www.google.com/recaptcha/api/siteverify";
   private static final String SECRET_KEY = "6Le5biErAAAAAAh1Md7I1y-EozvHCT-20zjE-i14";
+  private static final String VERIFY_URL = "https://recaptchaenterprise.googleapis.com/v1/projects/systemutvikling2-1745329398192/assessments?key=" + SECRET_KEY;
+
+  @Autowired
   private final RestTemplate restTemplate;
 
   /**

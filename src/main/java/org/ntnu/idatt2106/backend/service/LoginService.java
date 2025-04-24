@@ -138,6 +138,7 @@ public class LoginService {
         userDTO.getLastname(),
         userDTO.getPhoneNumber()
       );
+
       if (!validateUser(user)) {
         throw new IllegalArgumentException("Invalid user data");
       }

@@ -29,6 +29,21 @@ public class JWT_token {
   private static final long EXPIRATION_TIME = 120 * 60 * 1000; // 2 hours
 
   /**
+   * Constructor for JWT_token service.
+   *
+   * @param userRepo the User repository for database access
+   */
+  public JWT_token(UserRepo userRepo) {
+    this.userRepo = userRepo;
+  }
+
+  /**
+   * Default constructor for JWT_token service.
+   */
+  public JWT_token() {
+  }
+
+  /**
    * Generates a JWT token for the given user.
    *
    * @param user the user for whom to generate the token
@@ -44,6 +59,26 @@ public class JWT_token {
             .compact();
     return new UserTokenResponse(token, expirationDate.getTime());
   }
+
+  /**
+   * Generates a JWT token for the given user with a given expiration time.
+   *
+   * @param user the user for whom to generate the token
+   * @param expirationTime the expiration time in milliseconds
+   * @return a UserTokenResponse containing the generated token and its expiration time
+   */
+  public UserTokenResponse generateJwtTokenWithExpirationTime(User user, long expirationTime) {
+    Date expirationDate = new Date(System.currentTimeMillis() + expirationTime);
+    String token = Jwts.builder()
+            .setSubject(user.getStringID())
+            .setIssuedAt(new Date())
+            .setExpiration(expirationDate)
+            .signWith(key)
+            .compact();
+    return new UserTokenResponse(token, expirationDate.getTime());
+  }
+
+
   /**
    * Validates the JWT token and checks if it has expired.
    *
@@ -91,4 +126,5 @@ public class JWT_token {
     }
     return userRepo.findById(Integer.parseInt(id)).orElse(null);
   }
+
 }

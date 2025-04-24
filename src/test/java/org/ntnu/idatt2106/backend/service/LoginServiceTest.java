@@ -110,6 +110,56 @@ public class LoginServiceTest {
   }
 
   @Test
+  @DisplayName("Should validate user correctly with all valid and invalid field combinations")
+  void testValidateUser() {
+    // All fields valid
+    assertTrue(loginService.validateUser(testUser));
+
+    // Invalid email
+    testUser.setEmail("invalid-email");
+    assertFalse(loginService.validateUser(testUser));
+
+    // Reset and test invalid password
+    testUser.setEmail("valid@example.com");
+    testUser.setPassword("");
+    assertFalse(loginService.validateUser(testUser));
+
+    // Reset and test invalid phone number
+    testUser.setPassword("securePassword");
+    testUser.setPhoneNumber("123");
+    assertFalse(loginService.validateUser(testUser));
+
+    // Reset and test invalid first name
+    testUser.setPhoneNumber("12345678");
+    testUser.setFirstname("1234");
+    assertFalse(loginService.validateUser(testUser));
+
+    // Reset and test invalid last name
+    testUser.setFirstname("John");
+    testUser.setLastname("1234");
+    assertFalse(loginService.validateUser(testUser));
+  }
+
+
+  @Test
+  @DisplayName("Should throw IllegalArgumentException when user data is invalid")
+  void testRegisterInvalidUserData() {
+    UserRegisterRequest invalidUser = new UserRegisterRequest(
+            "valid@example.com",  // valid email
+            "securePassword",     // valid password
+            "1234",               // invalid first name (numbers)
+            "Doe",                // valid last name
+            "12345678"            // valid phone
+    );
+
+    when(userRepo.findByEmail(invalidUser.getEmail())).thenReturn(Optional.empty());
+    when(userRepo.findByPhoneNumber(invalidUser.getPhoneNumber())).thenReturn(Optional.empty());
+
+    assertThrows(IllegalArgumentException.class, () -> loginService.register(invalidUser));
+  }
+
+
+  @Test
   @DisplayName("Should fail authentication with wrong email")
   void testAuthenticateWrongEmail() {
     when(userRepo.findByEmail("wrong@example.com")).thenReturn(Optional.empty());
@@ -188,4 +238,19 @@ public class LoginServiceTest {
 
     assertThrows(IllegalArgumentException.class, () -> loginService.validateTokenAndGetUser("invalid"));
   }
+
+  @Test
+  @DisplayName("Test validateTokenAndGetUser throws IllegalArgumentException on generic error")
+  void testValidateTokenError() {
+    doThrow(new RuntimeException("Error")) // more realistic than `Exception`
+            .when(jwt).validateJwtToken("errorToken");
+
+    IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
+            loginService.validateTokenAndGetUser("errorToken")
+    );
+
+    assertEquals("Error validating token", exception.getMessage());
+  }
+
+
 }

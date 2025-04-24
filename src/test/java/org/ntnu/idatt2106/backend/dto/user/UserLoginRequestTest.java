@@ -1,4 +1,4 @@
-package org.ntnu.idatt2106.backend.dto;
+package org.ntnu.idatt2106.backend.dto.user;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 

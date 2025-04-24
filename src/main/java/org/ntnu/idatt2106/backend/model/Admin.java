@@ -13,7 +13,6 @@ import lombok.Setter;
 @Table(name = "admin")
 @Getter
 @Setter
-
 public class Admin {
 
   @Id
@@ -34,6 +33,7 @@ public class Admin {
    * Blank constructor for the Admin model
    */
   public Admin() {};
+  
 
   /**
    * Constructor for the Admin model.

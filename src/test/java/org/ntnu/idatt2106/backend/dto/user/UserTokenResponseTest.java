@@ -1,4 +1,4 @@
-package org.ntnu.idatt2106.backend.dto;
+package org.ntnu.idatt2106.backend.dto.user;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

@@ -26,6 +26,23 @@ public class UserTest {
   }
 
   @Test
+  @DisplayName("Test User constructor with ID and user details sets fields correctly")
+  void testConstructorWithIdAndDetails() {
+    User user = new User(101, "test@example.com", "securePass", "John", "Doe", "12345678");
+
+    assertEquals(101, user.getId());
+    assertEquals("test@example.com", user.getEmail());
+    assertEquals("securePass", user.getPassword());
+    assertEquals("John", user.getFirstname());
+    assertEquals("Doe", user.getLastname());
+    assertEquals("12345678", user.getPhoneNumber());
+
+    // Assuming this constructor sets latitude and longitude to 0.0
+    assertEquals(0.0f, user.getLatitude());
+    assertEquals(0.0f, user.getLongitude());
+  }
+
+  @Test
   @DisplayName("Test setId and getId")
   void testIdField() {
     User user = new User();

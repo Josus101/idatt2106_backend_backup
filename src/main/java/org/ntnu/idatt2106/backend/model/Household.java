@@ -53,6 +53,21 @@ public class Household {
    * @param name of the household
    * @param latitude of the household
    * @param longitude of the household
+   */
+  public Household(int id, String name, double latitude, double longitude) {
+    this.id = id;
+    this.name = name;
+    this.latitude = latitude;
+    this.longitude = longitude;
+  }
+
+
+  /**
+   * Constructor for the Household model
+   * @param id of the household
+   * @param name of the household
+   * @param latitude of the household
+   * @param longitude of the household
    * @param members of the household
    * @param inventory of the household
    */
