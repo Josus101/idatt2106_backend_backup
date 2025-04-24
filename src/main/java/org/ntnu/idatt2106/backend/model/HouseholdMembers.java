@@ -21,12 +21,12 @@ public class HouseholdMembers {
 
   @ManyToOne
   @MapsId("user")
-  @JoinColumn(name = "user")
+  @JoinColumn(name = "user_id")
   private User user;
 
   @ManyToOne
   @MapsId("household")
-  @JoinColumn(name = "household")
+  @JoinColumn(name = "household_id")
   private Household household;
 
   private boolean isAdmin;

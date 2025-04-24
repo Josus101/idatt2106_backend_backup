@@ -101,7 +101,7 @@ public class LoginServiceTest {
   @DisplayName("Should authenticate user with correct credentials")
   void testAuthenticateSuccess() {
     when(userRepo.findByEmail("test@example.com")).thenReturn(Optional.of(testUser));
-    when(jwt.generateJwtToken(any())).thenReturn(new UserTokenResponse("token", System.currentTimeMillis()));
+    when(jwt.generateJwtToken((User) any())).thenReturn(new UserTokenResponse("token", System.currentTimeMillis()));
 
     UserTokenResponse token = loginService.authenticate("test@example.com", "securePassword");
 

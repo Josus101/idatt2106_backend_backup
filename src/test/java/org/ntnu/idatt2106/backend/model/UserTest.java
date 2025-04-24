@@ -126,4 +126,14 @@ public class UserTest {
     );
     assertEquals("Jane Doe", user.toString());
   }
+
+  //@Test
+  //@DisplayName("Test adding household to user adds correctly")
+  //void testAddHousehold() {
+  //  User user = new User();
+  //  Household household = new Household();
+  //  HouseholdMembers householdMembership = new HouseholdMembers();
+  //  user.addHouseholdMembership(household);
+  //  assertTrue(user.getHouseholds().contains(household));
+  //}
 }

@@ -19,16 +19,15 @@ class AdminTest {
   @DisplayName("Test Admin constructor sets fields correctly")
   void testConstructorSetsFields() {
     Admin admin = new Admin(
-            123,
             "adminUsername",
             "securePassword",
             false
     );
 
-    assertEquals(123, admin.getId());
+    assertEquals(0, admin.getId());
     assertEquals("adminUsername", admin.getUsername());
     assertEquals("securePassword", admin.getPassword());
-    assertFalse(admin.isSuper());
+    assertFalse(admin.isSuperUser());
 
     // test empty constructor
     Admin admin1 = new Admin();
@@ -59,10 +58,10 @@ class AdminTest {
   @Test
   @DisplayName("Test setSuper and isSuper")
   void testSuperField() {
-    testAdmin.setSuper(true);
-    assertTrue(testAdmin.isSuper());
+    testAdmin.setSuperUser(true);
+    assertTrue(testAdmin.isSuperUser());
 
-    testAdmin.setSuper(false);
-    assertFalse(testAdmin.isSuper());
+    testAdmin.setSuperUser(false);
+    assertFalse(testAdmin.isSuperUser());
   }
 }

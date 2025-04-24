@@ -1,16 +1,13 @@
 package org.ntnu.idatt2106.backend.model;
 
-// java util
 import java.util.List;
-
-// jpa
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
 /**
  * User model for the database
- * @Author Jonas Reiher
+ * @Author Konrad Seime
  * @since 0.1
  */
 @Entity
