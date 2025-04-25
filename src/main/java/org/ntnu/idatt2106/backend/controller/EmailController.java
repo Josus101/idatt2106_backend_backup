@@ -84,7 +84,11 @@ public class EmailController {
       @Parameter(description = "Recipient email address", example = "example@mail.com")
       @RequestParam String to) {
     System.out.println("Sending test email to: " + to);
-    emailService.sendTestEmail(to, "Test Email", "This is a test email from EmailService.");
+    try {
+      emailService.sendTestEmail(to, "Test Email", "This is a test email from EmailService.");
+    } catch (MessagingException e) {
+      throw new RuntimeException("Failed to send test email", e);
+    }
     return ResponseEntity.ok("Test email sent to: " + to);
   }
 }

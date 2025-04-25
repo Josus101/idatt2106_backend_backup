@@ -221,7 +221,7 @@ public class EmailService {
    * @param subject The subject of the email.
    * @param text The text content of the email.
    */
-  public void sendTestEmail(String to, String subject, String text) {
+  public void sendTestEmail(String to, String subject, String text) throws MessagingException {
     String htmlContent = buildEmailTemplate(
         "Test Email",
         text,
@@ -229,10 +229,6 @@ public class EmailService {
         " ",
         "This is a test email."
     );
-    try {
-      sendHtmlEmail(to, subject, htmlContent);
-    } catch (MessagingException e) {
-      throw new RuntimeException("Failed to send test email", e);
-    }
+    sendHtmlEmail(to, subject, htmlContent);
   }
 }

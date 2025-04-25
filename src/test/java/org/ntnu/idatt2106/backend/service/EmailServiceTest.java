@@ -1,5 +1,6 @@
 package org.ntnu.idatt2106.backend.service;
 
+import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -111,4 +112,5 @@ public class EmailServiceTest {
     assertTrue(html.contains("Click Here"));
     assertTrue(html.contains("http://link"));
   }
+
 }

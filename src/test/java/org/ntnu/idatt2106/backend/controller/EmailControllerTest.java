@@ -100,7 +100,7 @@ class EmailControllerTest {
 
   @Test
   @DisplayName("Should send test email and return 200 OK")
-  void shouldSendTestEmailSuccessfully() {
+  void shouldSendTestEmailSuccessfully() throws MessagingException {
     ResponseEntity<String> response = emailController.sendTestEmail("test@example.com");
 
     assertEquals(200, response.getStatusCode().value());
@@ -119,6 +119,23 @@ class EmailControllerTest {
     });
 
     assertEquals("jakarta.mail.MessagingException: Failed to send", exception.getMessage());
+  }
+
+  @Test
+  @DisplayName("Should throw RuntimeException when MessagingException occurs in test email")
+  void shouldThrowRuntimeExceptionForMessagingExceptionInTest() throws MessagingException {
+    when(userRepo.findById(1)).thenReturn(Optional.of(testUser));
+    doThrow(new MessagingException("Failed to send")).when(emailService).
+        sendTestEmail(testUser.getEmail(), "Test Email",
+            "This is a test email from EmailService.");
+
+
+    RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+      emailController.sendTestEmail(testUser.getEmail());
+    });
+
+    assertEquals("Failed to send test email", exception.getMessage());
+
   }
 
   @Test
