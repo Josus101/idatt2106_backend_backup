@@ -16,6 +16,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+/**
+ * Controller class for handling user-related operations.
+ * This class is responsible for defining the endpoints for user registration, login, password reset, and email verification.
+ *
+ * @version 1.0
+ * @since 1.0
+ * @Author Jonas Reiher
+ */
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
@@ -28,6 +36,11 @@ public class UserController {
   @Autowired
   private VerifyEmailService verifyEmailService;
 
+  /**
+   * Endpoint for registering a new user.
+   * @param userRegister the user registration request containing email and password
+   * @return a response entity indicating the result of the operation
+   */
   @PostMapping("/register")
   @Operation(
       summary = "User register",
@@ -60,7 +73,11 @@ public class UserController {
     }
   }
 
-
+  /**
+   * Endpoint for user login.
+   * @param userLogin the user login request containing email and password
+   * @return a response entity containing the JWT token if login is successful
+   */
   @PostMapping("/login")
   @Operation(
       summary = "User login",
@@ -104,6 +121,12 @@ public class UserController {
     return ResponseEntity.ok(token);
   }
 
+  /**
+   * Endpoint for resetting the password of a user.
+   * @param token the token for password reset
+   * @param newPassword the new password for the user
+   * @return a response entity indicating the result of the operation
+   */
   @GetMapping("/reset-password/{token}")
   @Operation(
       summary = "Reset password",
@@ -135,6 +158,11 @@ public class UserController {
     }
   }
 
+  /**
+   * Endpoint for verifying the email of a user.
+   * @param token the token for email verification
+   * @return a response entity indicating the result of the operation
+   */
   @GetMapping("/verify/{token}")
   @Operation(
       summary = "Verify email",

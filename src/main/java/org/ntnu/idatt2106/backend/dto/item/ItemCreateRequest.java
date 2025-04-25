@@ -8,6 +8,12 @@ import lombok.Setter;
 
 import java.util.Date;
 
+/**
+ * Data Transfer Object for creating an item.
+ * This class is used to transfer item data between the client and server.
+ * @Author Jonas Reiher
+ * @since 0.1
+ */
 @AllArgsConstructor
 @Getter
 @Setter

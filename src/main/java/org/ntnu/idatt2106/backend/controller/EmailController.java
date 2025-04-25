@@ -20,6 +20,12 @@ public class EmailController {
   private final EmailService emailService;
   private final UserRepo userRepo;
 
+  /**
+   * Endpoint for sending a verification email to a user.
+   *
+   * @param userId the ID of the user to send the verification email to
+   * @return a response entity indicating the result of the operation
+   */
   @Operation(
       summary = "Send verification email",
       description = "Sends an email with a verification link to the user with the specified ID.",
@@ -47,6 +53,12 @@ public class EmailController {
         .orElse(ResponseEntity.notFound().build());
   }
 
+  /**
+   * Endpoint for sending a password reset email to a user.
+   *
+   * @param userId the ID of the user to send the password reset email to
+   * @return a response entity indicating the result of the operation
+   */
   @Operation(
       summary = "Send reset password email",
       description = "Sends an email with a password reset link to the user with the specified ID.",
@@ -72,6 +84,12 @@ public class EmailController {
         .orElse(ResponseEntity.notFound().build());
   }
 
+  /**
+   * Endpoint for sending a test email to a specified address.
+   *
+   * @param to the recipient email address
+   * @return a response entity indicating the result of the operation
+   */
   @Operation(
       summary = "Send test email",
       description = "Sends a test email to a specified address for debugging purposes.",

@@ -11,6 +11,11 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class EnvConfig {
 
+  /**
+   * Loads environment variables from a .env file using Dotenv.
+   * The method is annotated with @PostConstruct to ensure it runs after the bean's
+   * construction and dependency injection.
+   */
   @PostConstruct
   public void init() {
     try {

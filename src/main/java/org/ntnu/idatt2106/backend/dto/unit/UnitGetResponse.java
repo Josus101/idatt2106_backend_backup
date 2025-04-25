@@ -6,7 +6,10 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * DTO for the response of a unit
+ * Data Transfer Object for getting a unit.
+ * Contains the ID and name of the unit.
+ * @Author Jonas Reiher
+ * @since 0.1
  */
 @AllArgsConstructor
 @Getter

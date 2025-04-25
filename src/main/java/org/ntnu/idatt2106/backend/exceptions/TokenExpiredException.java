@@ -8,6 +8,11 @@ package org.ntnu.idatt2106.backend.exceptions;
  * @since 0.1
  */
 public class TokenExpiredException extends RuntimeException {
+
+    /**
+     * Constructor for TokenExpiredException.
+     * @param message The message to be displayed when the exception is thrown.
+     */
     public TokenExpiredException(String message) {
         super(message);
     }

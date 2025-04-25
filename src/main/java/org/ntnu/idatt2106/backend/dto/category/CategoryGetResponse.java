@@ -5,6 +5,12 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * Data Transfer Object for getting a category.
+ * Contains the ID and name of the category.
+ * @Author Jonas Reiher
+ * @since 0.1
+ */
 @AllArgsConstructor
 @Getter
 @Setter

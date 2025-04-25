@@ -14,7 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-// TODO: Update java doc when endpoints are implemented , change version to 1.0
+
 /**
  * Controller class for handling inventory-related operations.
  * This class is responsible for defining the endpoints for managing items in the inventory.
@@ -234,7 +234,7 @@ public class InventoryController {
 //  }
 
 
-  // TODO: Maybe move
+  // TODO: Maybe move to household controller
   /**
    * Endpoint for retrieving all items associated with a household.
    * @param id the ID of the household
@@ -271,10 +271,5 @@ public class InventoryController {
       return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: " + e.getMessage());
     }
   }
-
-
-
-
-
 
 }
