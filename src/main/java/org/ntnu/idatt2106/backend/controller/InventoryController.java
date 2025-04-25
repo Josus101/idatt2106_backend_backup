@@ -19,8 +19,8 @@ import org.springframework.web.bind.annotation.*;
  * Controller class for handling inventory-related operations.
  * This class is responsible for defining the endpoints for managing items in the inventory.
  *
- * @version 0.5
- * @since 0.4
+ * @version 1.0
+ * @since 1.0
  * @Author Jonas Reiher
  */
 @RestController
