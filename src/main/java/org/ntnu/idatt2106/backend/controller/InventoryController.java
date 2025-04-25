@@ -14,10 +14,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
+// TODO: Update java doc when endpoints are implemented , change version to 1.0
 /**
  * Controller class for handling inventory-related operations.
  * This class is responsible for defining the endpoints for managing items in the inventory.
+ *
+ * @version 0.5
+ * @since 0.4
+ * @Author Jonas Reiher
  */
 @RestController
 @RequestMapping("/api/emergency/items")
@@ -38,14 +42,14 @@ public class InventoryController {
   @Autowired
   ItemService itemService;
 
-  @GetMapping("")
-  @Operation(
-      summary = "Get all items",
-      description = "Endpoint for retrieving all items in the inventory"
-  )
-  public String getInventory() {
-    return "Inventory";
-  }
+//  @GetMapping("")
+//  @Operation(
+//      summary = "Get all items",
+//      description = "Endpoint for retrieving all items in the inventory"
+//  )
+//  public String getInventory() {
+//    return "Inventory";
+//  }
 
   /**
    * Endpoint for retrieving an item by its ID.
@@ -214,21 +218,23 @@ public class InventoryController {
   }
 
 
-  @GetMapping("/category/{id}")
-  public String getItemsByCategory(@PathVariable String id) {
-    return "Items in category with ID: " + id;
-  }
+//  @GetMapping("/category/{id}")
+//  public String getItemsByCategory(@PathVariable String id) {
+//    return "Items in category with ID: " + id;
+//  }
+//
+//  @GetMapping("/categories")
+//  public String getCategories() {
+//    return "Categories";
+//  }
+//
+//  @GetMapping("/units")
+//  public String getUnits() {
+//    return "Units";
+//  }
 
-  @GetMapping("/categories")
-  public String getCategories() {
-    return "Categories";
-  }
 
-  @GetMapping("/units")
-  public String getUnits() {
-    return "Units";
-  }
-
+  // TODO: Maybe move
   /**
    * Endpoint for retrieving all items associated with a household.
    * @param id the ID of the household
