@@ -148,7 +148,10 @@ public class LoginService {
       user.setPassword(hasher.hashPassword(user.getPassword()));
       userRepo.save(user);
       try {
-        emailService.sendVerificationEmail(user); }
+        emailService.sendVerificationEmail(user);
+      } catch (IllegalStateException e) {
+        throw new IllegalStateException("Failed to send verification email", e);
+      }
       catch (Exception e) {
         throw new RuntimeException("Failed to send verification email", e);
       }

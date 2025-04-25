@@ -1,5 +1,6 @@
 package org.ntnu.idatt2106.backend.service;
 
+import jakarta.mail.MessagingException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -25,6 +26,9 @@ public class LoginServiceTest {
 
   @Mock
   private UserRepo userRepo;
+
+  @Mock
+  private EmailService emailService;
 
   @Mock
   private JWT_token jwt;
@@ -181,14 +185,16 @@ public class LoginServiceTest {
 
   @Test
   @DisplayName("Should register new valid user if parameters are valid and not in use")
-  void testRegisterSuccess() {
+  void testRegisterSuccess() throws MessagingException {
     UserRegisterRequest dto = new UserRegisterRequest("new@example.com", "newpass", "Jane", "Doe", "87654321");
 
     when(userRepo.findByEmail(dto.getEmail())).thenReturn(Optional.empty());
     when(userRepo.findByPhoneNumber(dto.getPhoneNumber())).thenReturn(Optional.empty());
+    doNothing().when(emailService).sendVerificationEmail(any(User.class));
 
     loginService.register(dto);
 
+    verify(emailService, times(1)).sendVerificationEmail(any(User.class));
     verify(userRepo).save(any(User.class));
   }
 

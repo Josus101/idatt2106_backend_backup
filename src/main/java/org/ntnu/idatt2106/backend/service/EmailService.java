@@ -50,6 +50,8 @@ public class EmailService {
    * Sends an email verification link to the user.
    *
    * @param user The user to whom the email is sent.
+   * @throws MessagingException If there is an error while sending the email.
+   * @throws IllegalStateException If the user is already verified.
    */
   public void sendVerificationEmail(User user) throws MessagingException {
     if (user.isVerified()) {
