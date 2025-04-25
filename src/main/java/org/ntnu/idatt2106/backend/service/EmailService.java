@@ -52,6 +52,9 @@ public class EmailService {
    * @param user The user to whom the email is sent.
    */
   public void sendVerificationEmail(User user) throws MessagingException {
+    if (user.isVerified()) {
+      throw new IllegalStateException("User is already verified");
+    }
     String token = generateEmailVerifyToken(user);
     String encodedToken = URLEncoder.encode(token, StandardCharsets.UTF_8);
     String verificationUrl = BASE_URL + "api/users/verify/" + encodedToken;

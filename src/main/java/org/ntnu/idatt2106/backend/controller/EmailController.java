@@ -41,6 +41,8 @@ public class EmailController {
             emailService.sendVerificationEmail(user);
           } catch (MessagingException e) {
             throw new RuntimeException(e);
+          } catch (IllegalStateException e) {
+            return ResponseEntity.status(400).body("User is already verified.");
           }
           return ResponseEntity.ok("Verification email sent.");
         })

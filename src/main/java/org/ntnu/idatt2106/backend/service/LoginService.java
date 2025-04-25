@@ -27,6 +27,9 @@ public class LoginService {
     @Autowired
     private JWT_token jwt;
 
+    @Autowired
+    private EmailService emailService;
+
     private final BCryptHasher hasher = new BCryptHasher();
 
     /**
@@ -144,6 +147,11 @@ public class LoginService {
       }
       user.setPassword(hasher.hashPassword(user.getPassword()));
       userRepo.save(user);
+      try {
+        emailService.sendVerificationEmail(user); }
+      catch (Exception e) {
+        throw new RuntimeException("Failed to send verification email", e);
+      }
     }
 
   /**
