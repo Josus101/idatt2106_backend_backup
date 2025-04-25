@@ -4,11 +4,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
-import org.ntnu.idatt2106.backend.dto.UserRegisterDTO;
-import org.ntnu.idatt2106.backend.dto.UserTokenDTO;
+import org.ntnu.idatt2106.backend.dto.user.UserRegisterRequest;
+import org.ntnu.idatt2106.backend.dto.user.UserTokenResponse;
 import org.ntnu.idatt2106.backend.exceptions.TokenExpiredException;
 import org.ntnu.idatt2106.backend.exceptions.UserNotFoundException;
-import org.ntnu.idatt2106.backend.models.User;
+import org.ntnu.idatt2106.backend.model.User;
 import org.ntnu.idatt2106.backend.repo.UserRepo;
 import org.ntnu.idatt2106.backend.security.BCryptHasher;
 import org.ntnu.idatt2106.backend.security.JWT_token;
@@ -101,13 +101,63 @@ public class LoginServiceTest {
   @DisplayName("Should authenticate user with correct credentials")
   void testAuthenticateSuccess() {
     when(userRepo.findByEmail("test@example.com")).thenReturn(Optional.of(testUser));
-    when(jwt.generateJwtToken((User) any())).thenReturn(new UserTokenDTO("token", System.currentTimeMillis()));
+    when(jwt.generateJwtToken((User) any())).thenReturn(new UserTokenResponse("token", System.currentTimeMillis()));
 
-    UserTokenDTO token = loginService.authenticate("test@example.com", "securePassword");
+    UserTokenResponse token = loginService.authenticate("test@example.com", "securePassword");
 
     assertNotNull(token);
     verify(jwt).generateJwtToken(testUser);
   }
+
+  @Test
+  @DisplayName("Should validate user correctly with all valid and invalid field combinations")
+  void testValidateUser() {
+    // All fields valid
+    assertTrue(loginService.validateUser(testUser));
+
+    // Invalid email
+    testUser.setEmail("invalid-email");
+    assertFalse(loginService.validateUser(testUser));
+
+    // Reset and test invalid password
+    testUser.setEmail("valid@example.com");
+    testUser.setPassword("");
+    assertFalse(loginService.validateUser(testUser));
+
+    // Reset and test invalid phone number
+    testUser.setPassword("securePassword");
+    testUser.setPhoneNumber("123");
+    assertFalse(loginService.validateUser(testUser));
+
+    // Reset and test invalid first name
+    testUser.setPhoneNumber("12345678");
+    testUser.setFirstname("1234");
+    assertFalse(loginService.validateUser(testUser));
+
+    // Reset and test invalid last name
+    testUser.setFirstname("John");
+    testUser.setLastname("1234");
+    assertFalse(loginService.validateUser(testUser));
+  }
+
+
+  @Test
+  @DisplayName("Should throw IllegalArgumentException when user data is invalid")
+  void testRegisterInvalidUserData() {
+    UserRegisterRequest invalidUser = new UserRegisterRequest(
+            "valid@example.com",  // valid email
+            "securePassword",     // valid password
+            "1234",               // invalid first name (numbers)
+            "Doe",                // valid last name
+            "12345678"            // valid phone
+    );
+
+    when(userRepo.findByEmail(invalidUser.getEmail())).thenReturn(Optional.empty());
+    when(userRepo.findByPhoneNumber(invalidUser.getPhoneNumber())).thenReturn(Optional.empty());
+
+    assertThrows(IllegalArgumentException.class, () -> loginService.register(invalidUser));
+  }
+
 
   @Test
   @DisplayName("Should fail authentication with wrong email")
@@ -132,7 +182,7 @@ public class LoginServiceTest {
   @Test
   @DisplayName("Should register new valid user if parameters are valid and not in use")
   void testRegisterSuccess() {
-    UserRegisterDTO dto = new UserRegisterDTO("new@example.com", "newpass", "Jane", "Doe", "87654321");
+    UserRegisterRequest dto = new UserRegisterRequest("new@example.com", "newpass", "Jane", "Doe", "87654321");
 
     when(userRepo.findByEmail(dto.getEmail())).thenReturn(Optional.empty());
     when(userRepo.findByPhoneNumber(dto.getPhoneNumber())).thenReturn(Optional.empty());
@@ -145,7 +195,7 @@ public class LoginServiceTest {
   @Test
   @DisplayName("Should not register if email is in use")
   void testRegisterEmailInUse() {
-    UserRegisterDTO dto = new UserRegisterDTO("test@example.com", "newpass", "Jane", "Doe", "87654321");
+    UserRegisterRequest dto = new UserRegisterRequest("test@example.com", "newpass", "Jane", "Doe", "87654321");
 
     when(userRepo.findByEmail(dto.getEmail())).thenReturn(Optional.of(testUser));
 
@@ -155,7 +205,7 @@ public class LoginServiceTest {
   @Test
   @DisplayName("Should not register if phone number is in use")
   void testRegisterPhoneInUse() {
-    UserRegisterDTO dto = new UserRegisterDTO("new@example.com", "newpass", "Jane", "Doe", "12345678");
+    UserRegisterRequest dto = new UserRegisterRequest("new@example.com", "newpass", "Jane", "Doe", "12345678");
 
     when(userRepo.findByEmail(dto.getEmail())).thenReturn(Optional.empty());
     when(userRepo.findByPhoneNumber(dto.getPhoneNumber())).thenReturn(Optional.of(testUser));
@@ -188,4 +238,19 @@ public class LoginServiceTest {
 
     assertThrows(IllegalArgumentException.class, () -> loginService.validateTokenAndGetUser("invalid"));
   }
+
+  @Test
+  @DisplayName("Test validateTokenAndGetUser throws IllegalArgumentException on generic error")
+  void testValidateTokenError() {
+    doThrow(new RuntimeException("Error")) // more realistic than `Exception`
+            .when(jwt).validateJwtToken("errorToken");
+
+    IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
+            loginService.validateTokenAndGetUser("errorToken")
+    );
+
+    assertEquals("Error validating token", exception.getMessage());
+  }
+
+
 }

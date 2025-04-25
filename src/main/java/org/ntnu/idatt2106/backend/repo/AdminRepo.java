@@ -1,7 +1,7 @@
 package org.ntnu.idatt2106.backend.repo;
 
 import java.util.Optional;
-import org.ntnu.idatt2106.backend.models.Admin;
+import org.ntnu.idatt2106.backend.model.Admin;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface AdminRepo extends JpaRepository<Admin, Integer> {

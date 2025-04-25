@@ -2,7 +2,7 @@ package org.ntnu.idatt2106.backend.service;
 
 import java.util.Optional;
 import org.ntnu.idatt2106.backend.exceptions.UnauthorizedException;
-import org.ntnu.idatt2106.backend.models.Admin;
+import org.ntnu.idatt2106.backend.model.Admin;
 import org.ntnu.idatt2106.backend.repo.AdminRepo;
 import org.ntnu.idatt2106.backend.security.BCryptHasher;
 import org.ntnu.idatt2106.backend.security.JWT_token;

@@ -4,8 +4,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
-import org.ntnu.idatt2106.backend.dto.admin.AdminLoginRegisterDTO;
-import org.ntnu.idatt2106.backend.dto.admin.AdminLoginRegisterDTO;
+import org.ntnu.idatt2106.backend.dto.admin.AdminLoginRegisterRequest;
 import org.ntnu.idatt2106.backend.exceptions.UnauthorizedException;
 import org.ntnu.idatt2106.backend.service.AdminService;
 import org.springframework.http.HttpStatus;
@@ -30,7 +29,7 @@ class AdminControllerTest {
   @Test
   @DisplayName("Should return 200 when admin is successfully created")
   void testAddAdminUserSuccess() {
-    AdminLoginRegisterDTO dto = new AdminLoginRegisterDTO("admin", "securePass");
+    AdminLoginRegisterRequest dto = new AdminLoginRegisterRequest("admin", "securePass");
 
     ResponseEntity<Boolean> response = adminController.addAdminUser(dto, "Bearer token");
 
@@ -42,7 +41,7 @@ class AdminControllerTest {
   @Test
   @DisplayName("Should return 401 if unauthorized during admin creation")
   void testAddAdminUserUnauthorized() {
-    AdminLoginRegisterDTO dto = new AdminLoginRegisterDTO("admin", "securePass");
+    AdminLoginRegisterRequest dto = new AdminLoginRegisterRequest("admin", "securePass");
     doThrow(new UnauthorizedException("Not allowed")).when(adminService).register(anyString(), anyString(), anyString());
 
     ResponseEntity<Boolean> response = adminController.addAdminUser(dto, "Bearer token");
@@ -53,7 +52,7 @@ class AdminControllerTest {
   @Test
   @DisplayName("Should return 500 on exception during admin creation")
   void testAddAdminUserException() {
-    AdminLoginRegisterDTO dto = new AdminLoginRegisterDTO("admin", "securePass");
+    AdminLoginRegisterRequest dto = new AdminLoginRegisterRequest("admin", "securePass");
     doThrow(new RuntimeException("Unexpected")).when(adminService).register(any(), any(), any());
 
     ResponseEntity<Boolean> response = adminController.addAdminUser(dto, "Bearer token");
@@ -104,7 +103,7 @@ class AdminControllerTest {
   @Test
   @DisplayName("Should return token on successful admin login")
   void testAdminLoginSuccess() {
-    AdminLoginRegisterDTO loginDTO = new AdminLoginRegisterDTO("admin", "securePass");
+    AdminLoginRegisterRequest loginDTO = new AdminLoginRegisterRequest("admin", "securePass");
     when(adminService.authenticate("admin", "securePass")).thenReturn("validToken");
 
     ResponseEntity<?> response = adminController.login(loginDTO);
@@ -116,7 +115,7 @@ class AdminControllerTest {
   @Test
   @DisplayName("Should return 400 on invalid admin login")
   void testAdminLoginBadRequest() {
-    AdminLoginRegisterDTO loginDTO = new AdminLoginRegisterDTO("admin", "wrongPass");
+    AdminLoginRegisterRequest loginDTO = new AdminLoginRegisterRequest("admin", "wrongPass");
     when(adminService.authenticate(any(), any()))
         .thenThrow(new IllegalArgumentException("Invalid credentials"));
 
@@ -129,7 +128,7 @@ class AdminControllerTest {
   @Test
   @DisplayName("Should return 500 on exception during login")
   void testAdminLoginException() {
-    AdminLoginRegisterDTO loginDTO = new AdminLoginRegisterDTO("admin", "pass");
+    AdminLoginRegisterRequest loginDTO = new AdminLoginRegisterRequest("admin", "pass");
     when(adminService.authenticate(any(), any()))
         .thenThrow(new RuntimeException("Unexpected"));
 

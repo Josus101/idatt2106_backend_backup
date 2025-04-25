@@ -6,7 +6,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import org.ntnu.idatt2106.backend.dto.admin.AdminLoginRegisterDTO;
+import org.ntnu.idatt2106.backend.dto.admin.AdminLoginRegisterRequest;
 import org.ntnu.idatt2106.backend.exceptions.UnauthorizedException;
 import org.ntnu.idatt2106.backend.service.AdminService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,7 +57,7 @@ public class AdminController {
           required = true,
           example = "Bearer eyJhbGciOiJIUzI1N.iIsInR5cCI6IkpXVCJ9..."
       )
-      @RequestBody AdminLoginRegisterDTO admin,
+      @RequestBody AdminLoginRegisterRequest admin,
       @RequestHeader("Authorization") String authorizationHeader) {
 
     try {
@@ -144,7 +144,7 @@ public class AdminController {
     )
   })
   public ResponseEntity<?> login(
-      @RequestBody AdminLoginRegisterDTO adminLogin) {
+      @RequestBody AdminLoginRegisterRequest adminLogin) {
     try {
       String token = adminService.authenticate(adminLogin.getUsername(), adminLogin.getPassword());
       return ResponseEntity.ok(token);

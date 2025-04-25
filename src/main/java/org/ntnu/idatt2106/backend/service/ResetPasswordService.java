@@ -2,8 +2,8 @@ package org.ntnu.idatt2106.backend.service;
 
 import java.util.Optional;
 import org.ntnu.idatt2106.backend.exceptions.UserNotFoundException;
-import org.ntnu.idatt2106.backend.models.ResetPasswordToken;
-import org.ntnu.idatt2106.backend.models.User;
+import org.ntnu.idatt2106.backend.model.ResetPasswordToken;
+import org.ntnu.idatt2106.backend.model.User;
 import org.ntnu.idatt2106.backend.repo.ResetPasswordTokenRepo;
 import org.ntnu.idatt2106.backend.repo.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -5,11 +5,11 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
 import org.ntnu.idatt2106.backend.exceptions.UnauthorizedException;
-import org.ntnu.idatt2106.backend.models.Admin;
+import org.ntnu.idatt2106.backend.model.Admin;
 import org.ntnu.idatt2106.backend.repo.AdminRepo;
 import org.ntnu.idatt2106.backend.security.BCryptHasher;
 import org.ntnu.idatt2106.backend.security.JWT_token;
-import org.ntnu.idatt2106.backend.dto.UserTokenDTO;
+import org.ntnu.idatt2106.backend.dto.user.UserTokenResponse;
 
 import java.util.Optional;
 
@@ -101,7 +101,7 @@ public class AdminServiceTest {
   void testAuthenticateSuccess() {
     when(adminRepo.findByUsername("admin")).thenReturn(Optional.of(testAdmin));
     when(jwt.generateJwtToken(any(Admin.class)))
-        .thenReturn(new UserTokenDTO("jwtToken", System.currentTimeMillis()));
+        .thenReturn(new UserTokenResponse("jwtToken", System.currentTimeMillis()));
 
     String token = adminService.authenticate("admin", "password");
     assertNotNull(token);
