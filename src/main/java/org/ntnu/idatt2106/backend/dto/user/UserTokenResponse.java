@@ -5,6 +5,12 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * Data Transfer Object used for user token response.
+ * Contains the token string and its expiration time.
+ * @Author Konrad Seime
+ * @since 0.1
+ */
 @AllArgsConstructor
 @Getter
 @Setter

@@ -11,8 +11,9 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * Admin model for the database
- * @Author Jonas Reiher
+ * Admin model for the database.
+ *
+ * @Author Konrad Seime
  * @since 0.1
  */
 @Entity
@@ -34,6 +35,7 @@ public class Admin {
 
   /**
    * Constructor for the Admin model.
+   *
    * @param username of the admin
    * @param password of the admin
    * @param isSuperUser flag to set the super admin status of the admin
@@ -44,7 +46,7 @@ public class Admin {
     this.isSuperUser = isSuperUser;
   }
 
-  public String getStringID() {
+  public String getStringId() {
     return String.valueOf(id);
   }
 

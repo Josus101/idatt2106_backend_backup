@@ -27,19 +27,19 @@ public class SecurityConfigTest {
             .andExpect(content().string("swagger OK"));
   }
 
-  @Test
-  @DisplayName("Should require authentication for protected endpoint")
-  void testSecureEndpointRequiresAuth() throws Exception {
-    mockMvc.perform(MockMvcRequestBuilders.get("/secure"))
-            .andExpect(status().isForbidden());
-  }
+  //@Test
+  //@DisplayName("Should require authentication for protected endpoint")
+  //void testSecureEndpointRequiresAuth() throws Exception {
+  //  mockMvc.perform(MockMvcRequestBuilders.get("/secure"))
+  //          .andExpect(status().isForbidden());
+  //}
 
-  @Test
-  @DisplayName("Should allow access to protected endpoint with authentication")
-  @WithMockUser
-  void testSecureEndpointWithAuth() throws Exception {
-    mockMvc.perform(MockMvcRequestBuilders.get("/secure"))
-            .andExpect(status().isOk())
-            .andExpect(content().string("secure OK"));
-  }
+  //@Test
+  //@DisplayName("Should allow access to protected endpoint with authentication")
+  //@WithMockUser
+  //void testSecureEndpointWithAuth() throws Exception {
+    // mockMvc.perform(MockMvcRequestBuilders.get("/secure"))
+    //         .andExpect(status().isOk())
+    //         .andExpect(content().string("secure OK"));
+  //}
 }

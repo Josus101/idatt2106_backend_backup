@@ -139,7 +139,7 @@ public class LoginServiceTest {
     assertFalse(loginService.validateUser(testUser));
 
     // Reset and test invalid last name
-    testUser.setFirstname("John");
+    testUser.setFirstname("WhiteMonster"); // We love white monster
     testUser.setLastname("1234");
     assertFalse(loginService.validateUser(testUser));
   }
@@ -152,7 +152,7 @@ public class LoginServiceTest {
             "valid@example.com",  // valid email
             "securePassword",     // valid password
             "1234",               // invalid first name (numbers)
-            "Doe",                // valid last name
+            "Monkeyface",                // valid last name (funnier now)
             "12345678"            // valid phone
     );
 
@@ -248,7 +248,7 @@ public class LoginServiceTest {
   @Test
   @DisplayName("Test validateTokenAndGetUser throws IllegalArgumentException on generic error")
   void testValidateTokenError() {
-    doThrow(new RuntimeException("Error")) // more realistic than `Exception`
+    doThrow(new RuntimeException("Error"))
             .when(jwt).validateJwtToken("errorToken");
 
     IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
@@ -256,6 +256,50 @@ public class LoginServiceTest {
     );
 
     assertEquals("Error validating token", exception.getMessage());
+  }
+
+  @Test
+  @DisplayName("Test resetPassword changes password")
+  void testResetPasswordChangesPassword() {
+    testUser.setPassword(hasher.hashPassword("oldPassword"));
+    String oldPassword = testUser.getPassword();
+    String newPassword = "newSecurePassword";
+    loginService.resetPassword(testUser, newPassword);
+    assertNotEquals(oldPassword, testUser.getPassword());
+  }
+
+  @Test
+  @DisplayName("Test resetPassword sets the password correctly")
+  void testResetPasswordSetsCorrectPassword() {
+    String newPassword = "newSecurePassword";
+    loginService.resetPassword(testUser, newPassword);
+    assertTrue(hasher.checkPassword(newPassword, testUser.getPassword()));
+  }
+
+  @Test
+  @DisplayName("Test verifyEmail sets user as verified")
+  void testVerifyEmailSetsUserAsVerified() {
+    testUser.setVerified(false);
+    loginService.verifyEmail(testUser);
+    assertTrue(testUser.isVerified());
+  }
+
+  @Test
+  @DisplayName("Test register throws Exception if sending email fails")
+  void testRegisterThrowsIfSendingEmailFails() throws MessagingException {
+    UserRegisterRequest userRegisterRequest = new UserRegisterRequest(
+        "Whitemonster@gmail.com",
+        "password",
+        "White",
+        "Monster",
+        "12345678"
+    );
+    when(userRepo.findByEmail(userRegisterRequest.getEmail())).thenReturn(Optional.empty());
+    when(userRepo.findByPhoneNumber(userRegisterRequest.getPhoneNumber())).thenReturn(Optional.empty());
+    doThrow(new MessagingException("Failed to send email")).when(emailService).sendVerificationEmail(any(User.class));
+    assertThrows(RuntimeException.class, () -> {
+      loginService.register(userRegisterRequest);
+    });
   }
 
 

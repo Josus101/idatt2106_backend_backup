@@ -19,6 +19,13 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * This class is used to handle all the requests related to admin users.
+ * It contains endpoints for creating, deleting, and elevating admin users.
+ *
+ * @Author Konrad Seime
+ * @since 0.1
+ */
 @RestController
 @RequestMapping("/api/admin")
 public class AdminController {
@@ -29,9 +36,9 @@ public class AdminController {
   @PostMapping("/createAdmin")
   @Operation(
       summary = "Create a new admin user",
-      description = "Post request to create a new admin user. " +
-          "Requires superuser privileges. " +
-          "Returns true if the admin was created successfully, false otherwise."
+      description = "Post request to create a new admin user. "
+          + "Requires superuser privileges. "
+          + "Returns true if the admin was created successfully, false otherwise."
   )
   @ApiResponses(value = {
       @ApiResponse(
@@ -73,9 +80,9 @@ public class AdminController {
   @PostMapping("/elevate/{id}")
   @Operation(
       summary = "Elevates an admin user to a superuseer",
-      description = "Post request to elevate an admin user to a superuser. " +
-          "Requires superuser privileges. " +
-          "Returns true if the admin was elevated successfully, false otherwise."
+      description = "Post request to elevate an admin user to a superuser. "
+          + "Requires superuser privileges. "
+          + "Returns true if the admin was elevated successfully, false otherwise."
   )
   @ApiResponses(value = {
       @ApiResponse(
@@ -120,7 +127,7 @@ public class AdminController {
       summary = "Admin login",
       description = "Validates admin credentials and returns a JWT token on success"
   )
-  @ApiResponses ( value = {
+  @ApiResponses (value = {
     @ApiResponse(
         responseCode = "200",
         description = "JWT token returned",
@@ -158,9 +165,9 @@ public class AdminController {
   @PostMapping("/delete/{id}")
   @Operation(
       summary = "Delete an admin user",
-      description = "Post request to delete an admin user. " +
-          "Requires superuser privileges. " +
-          "Returns true if the admin was deleted successfully, false otherwise."
+      description = "Post request to delete an admin user. "
+          + "Requires superuser privileges. "
+          + "Returns true if the admin was deleted successfully, false otherwise."
   )
   @ApiResponses(value = {
       @ApiResponse(

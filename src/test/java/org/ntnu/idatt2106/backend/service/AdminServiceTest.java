@@ -91,7 +91,7 @@ public class AdminServiceTest {
     Admin nonSuperAdmin = new Admin("admin", "pass", false);
     when(jwt.getAdminUserByToken("token")).thenReturn(nonSuperAdmin);
 
-    assertThrows(IllegalArgumentException.class, () -> {
+    assertThrows(UnauthorizedException.class, () -> {
       adminService.verifyAdminIsSuperUser("token");
     });
   }
@@ -140,6 +140,31 @@ public class AdminServiceTest {
     adminService.register(newAdmin, "token");
 
     verify(adminRepo).save(any(Admin.class));
+  }
+
+  @Test
+  @DisplayName("Test register should throw if username is invalid")
+  void testRegisterThrowsIfUsernameInvalid() {
+    Admin newAdmin = new Admin("", "password", false);
+
+    when(jwt.getAdminUserByToken("token")).thenReturn(testAdmin);
+    when(adminRepo.existsByUsername("newadmin")).thenReturn(false);
+
+    assertThrows(IllegalArgumentException.class, () -> {
+      adminService.register(newAdmin, "token");
+    });
+  }
+  @Test
+  @DisplayName("Test register should throw if password is invalid")
+  void testRegisterThrowsIfPasswordInvalid() {
+    Admin newAdmin = new Admin("usernamerson", "", false);
+
+    when(jwt.getAdminUserByToken("token")).thenReturn(testAdmin);
+    when(adminRepo.existsByUsername("newadmin")).thenReturn(false);
+
+    assertThrows(IllegalArgumentException.class, () -> {
+      adminService.register(newAdmin, "token");
+    });
   }
 
   @Test
@@ -218,6 +243,19 @@ public class AdminServiceTest {
     assertTrue(nonSuper.isSuperUser());
     verify(adminRepo).save(nonSuper);
   }
+  @Test
+  @DisplayName("Test elevateAdmin throws if not super user")
+  void testElevateAdminThrowsWhenUnauthorized() {
+    Admin nonSuper = new Admin("user", "pass", false);
+    Admin notVerySuper2 = new Admin("weakling", "pass", false);
+    when(jwt.getAdminUserByToken("token")).thenReturn(notVerySuper2);
+    when(adminRepo.findById(1)).thenReturn(Optional.of(nonSuper));
+
+    assertThrows(UnauthorizedException.class, () -> {
+      adminService.elevateAdmin("1", "token");
+    });
+    assertFalse(nonSuper.isSuperUser());
+  }
 
   @Test
   @DisplayName("Should throw if exterminate target not found")
@@ -254,6 +292,19 @@ public class AdminServiceTest {
     adminService.exterminateAdmin("1", "token");
 
     verify(adminRepo).delete(nonSuper);
+  }
+
+  @Test
+  @DisplayName("Test exterminateAdmin throws if not super user")
+  void testExterminateAdminThrowsWhenUnauthorized() {
+    Admin nonSuper = new Admin("user", "pass", false);
+    Admin notVerySuper2 = new Admin("weakling", "pass", false);
+    when(jwt.getAdminUserByToken("token")).thenReturn(notVerySuper2);
+    when(adminRepo.findById(1)).thenReturn(Optional.of(nonSuper));
+
+    assertThrows(UnauthorizedException.class, () -> {
+      adminService.exterminateAdmin("1", "token");
+    });
   }
 
 

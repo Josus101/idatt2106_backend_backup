@@ -16,7 +16,8 @@ import org.ntnu.idatt2106.backend.repo.UserRepo;
 /**
  * Service class responsible for login and user management operations.
  * This includes user authentication, registration, and updating profile data
- *
+ * @Author Konrad Seime
+ * @since 0.1
  */
 @Service
 public class LoginService {
@@ -149,10 +150,7 @@ public class LoginService {
       userRepo.save(user);
       try {
         emailService.sendVerificationEmail(user);
-      } catch (IllegalStateException e) {
-        throw new IllegalStateException("Failed to send verification email", e);
-      }
-      catch (Exception e) {
+      }catch (Exception e) {
         throw new RuntimeException("Failed to send verification email", e);
       }
     }
