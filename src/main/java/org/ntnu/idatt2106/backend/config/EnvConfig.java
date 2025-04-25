@@ -13,9 +13,17 @@ public class EnvConfig {
 
   @PostConstruct
   public void init() {
-    Dotenv dotenv = Dotenv.configure().load();
-    dotenv.entries().forEach(entry ->
-        System.setProperty(entry.getKey(), entry.getValue())
-    );
+    try {
+      Dotenv dotenv = Dotenv.configure()
+          .ignoreIfMalformed()
+          .ignoreIfMissing() // Ignore env file if missing, mainly for pipeline
+          .load();
+
+      dotenv.entries().forEach(entry ->
+          System.setProperty(entry.getKey(), entry.getValue())
+      );
+    } catch (Exception e) {
+      System.out.println("Dotenv load skipped or failed: " + e.getMessage());
+    }
   }
 }
