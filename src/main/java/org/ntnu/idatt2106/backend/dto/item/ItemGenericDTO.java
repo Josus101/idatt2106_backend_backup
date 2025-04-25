@@ -26,4 +26,5 @@ public class ItemGenericDTO {
   @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
   @Schema(description = "Expiration date of the item", example = "2025-04-25")
   private Date expirationDate;
+
 }
