@@ -22,6 +22,12 @@ public class Category {
   @Column(nullable = false, unique = true)
   private String name;
 
+  @Column
+  private Integer kcalPerUnit;
+
+  @Column(nullable = false)
+  private Boolean isEssential;
+
 
   /**
    * Blank constructor for the Category model
@@ -32,9 +38,14 @@ public class Category {
    * Constructor for the Category model
    * @param id of the category
    * @param name of the category
+   * @param kcalPerUnit of the category (nullable)
+   * @param isEssential whether the category is essential
    */
-  public Category(int id, String name) {
+  public Category(int id, String name, Integer kcalPerUnit, Boolean isEssential) { // Changed int to Integer
     this.id = id;
     this.name = name;
+    this.kcalPerUnit = kcalPerUnit;
+    this.isEssential = isEssential;
   }
 }
+
