@@ -7,13 +7,19 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.persistence.EntityNotFoundException;
+import org.ntnu.idatt2106.backend.dto.category.CategoryGetResponse;
 import org.ntnu.idatt2106.backend.dto.item.ItemCreateRequest;
 import org.ntnu.idatt2106.backend.dto.item.ItemGenericDTO;
+import org.ntnu.idatt2106.backend.dto.unit.UnitGetResponse;
+import org.ntnu.idatt2106.backend.service.CategoryService;
 import org.ntnu.idatt2106.backend.service.ItemService;
+import org.ntnu.idatt2106.backend.service.UnitService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * Controller class for handling inventory-related operations.
@@ -41,6 +47,12 @@ public class InventoryController {
   // Service classes
   @Autowired
   ItemService itemService;
+
+  @Autowired
+  UnitService unitService;
+
+  @Autowired
+  CategoryService categoryService;
 
 //  @GetMapping("")
 //  @Operation(
@@ -217,21 +229,112 @@ public class InventoryController {
     }
   }
 
+  /**
+   * Endpoint for retrieving a category by its ID
+   * @param id the ID of the category
+   * @return a response entity containing the list of items
+   */
+  @GetMapping("/category/{id}")
+  @Operation(
+          summary = "Get all items associated with a category",
+          description = "Endpoint for retrieving all items associated with a category"
+  )
+  @ApiResponses(value = {
+          @ApiResponse(
+                  responseCode = "200",
+                  description = "Items retrieved successfully",
+                  content = @Content(
+                          schema = @Schema(implementation = ItemGenericDTO.class)
+                  )
+          ),
+          @ApiResponse(
+                  responseCode = "404",
+                  description = "No items found for this category",
+                  content = @Content(
+                          schema = @Schema(example = "Error: No items found for this category")
+                  )
+          )
+  })
+  public ResponseEntity<?> getItemsByCategory(
+          @Parameter(
+                  description = "The id of the category@PathVariable String id",
+                  example = "1") @PathVariable int id
+  )
+  {
+    try {
+      return ResponseEntity.ok(itemService.getItemsByCategoryId(id));
 
-//  @GetMapping("/category/{id}")
-//  public String getItemsByCategory(@PathVariable String id) {
-//    return "Items in category with ID: " + id;
-//  }
-//
-//  @GetMapping("/categories")
-//  public String getCategories() {
-//    return "Categories";
-//  }
-//
-//  @GetMapping("/units")
-//  public String getUnits() {
-//    return "Units";
-//  }
+    } catch (EntityNotFoundException e) {
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: " + e.getMessage());
+    }
+  }
+
+  /**
+   * Endpoint for retrieving all categories.
+   * @return a response entity containing the list of categories
+   */
+  @GetMapping("/categories")
+  @Operation(
+          summary = "Get all categories",
+          description = "Endpoint for retrieving all categories"
+  )
+  @ApiResponses(value = {
+          @ApiResponse(
+                  responseCode = "200",
+                  description = "Categories retrieved successfully",
+                  content = @Content(
+                          schema = @Schema(implementation = ItemGenericDTO.class)
+                  )
+          ),
+          @ApiResponse(
+                  responseCode = "404",
+                  description = "No categories found",
+                  content = @Content(
+                          schema = @Schema(example = "Error: No categories found")
+                  )
+          )
+  })
+  public ResponseEntity<?> getCategories() {
+    List<CategoryGetResponse> categories = categoryService.getAllCategories();
+    if (categories.isEmpty()) {
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No categories found.");
+    }
+    return ResponseEntity.ok(categories);
+  }
+
+  /**
+   * Endpoint for retrieving all units of measurement.
+   * @return a response entity containing the list of units
+   */
+  @GetMapping("/units")
+  @Operation(
+          summary = "Get all units",
+          description = "Endpoint for retrieving all units of measurement"
+  )
+  @ApiResponses(value = {
+          @ApiResponse(
+                  responseCode = "200",
+                  description = "Units retrieved successfully",
+                  content = @Content(
+                          schema = @Schema(implementation = UnitGetResponse.class)
+                  )
+          ),
+          @ApiResponse(
+                  responseCode = "404",
+                  description = "No units found",
+                  content = @Content(
+                          schema = @Schema(example = "Error: No units found")
+                  )
+          )
+  })
+  public ResponseEntity<?> getUnits() {
+    List<UnitGetResponse> units = unitService.getAllUnits();
+    if (units.isEmpty()) {
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No units found.");
+    }
+    return ResponseEntity.ok(units);
+  }
+
 
 
   // TODO: Maybe move to household controller
