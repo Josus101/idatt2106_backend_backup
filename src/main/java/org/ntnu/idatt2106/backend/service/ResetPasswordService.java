@@ -20,9 +20,6 @@ public class ResetPasswordService {
   private ResetPasswordTokenRepo resetPasswordTokenRepo;
 
   @Autowired
-  private UserRepo userRepo;
-
-  @Autowired
   private LoginService loginService;
 
 

@@ -2,12 +2,10 @@ package org.ntnu.idatt2106.backend.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
-import org.ntnu.idatt2106.backend.model.User;
 import org.ntnu.idatt2106.backend.repo.UserRepo;
 import org.ntnu.idatt2106.backend.service.EmailService;
 import org.springframework.http.ResponseEntity;

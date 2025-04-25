@@ -24,9 +24,6 @@ public class VerifyEmailService {
   private EmailVerificationTokenRepo emailVerificationTokenRepo;
 
   @Autowired
-  private UserRepo userRepo;
-
-  @Autowired
   private LoginService loginService;
 
   /**

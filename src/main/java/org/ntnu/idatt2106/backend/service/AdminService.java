@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 /**
  * Service class for handling admin-related operations.
+ *
  * @Author Konrad Seime
  * @since 0.1
  */
@@ -69,7 +70,8 @@ public class AdminService {
   }
 
   /**
-   * Gets admin user by token
+   * Gets admin user by token.
+   *
    * @param token The token to validate and extract admin from
    * @throws IllegalArgumentException if the token is invalid or the admin is not found
    */
@@ -140,7 +142,7 @@ public class AdminService {
    * @param username The admin's username.
    * @param password The admin's password.
    * @param token The token of the admin registering the new admin.
-   * @throws IllegalArgumentException if the admin data is invalid or the username is already in use.
+   * @throws IllegalArgumentException if admin data is invalid or username is already in use.
    */
   public void register(String username, String password, String token) {
     Admin admin = new Admin(username, password, false);
@@ -151,7 +153,8 @@ public class AdminService {
    * Elevates an admin user to a superuser.
    *
    * @param id The ID of the admin to elevate.
-   * @param authorizationHeader The authorization header containing the token of the admin performing the action.
+   * @param authorizationHeader The authorization header containing the
+   *                            token of the admin performing the action.
    * @throws IllegalArgumentException if the admin is not found or is already a superuser.
    * @throws UnauthorizedException if the admin is not authorized to elevate another admin.
    */
@@ -177,7 +180,8 @@ public class AdminService {
    * Deletes an admin user.
    *
    * @param id The ID of the admin to delete.
-   * @param authorizationHeader The authorization header containing the token of the admin performing the action.
+   * @param authorizationHeader The authorization header containing the
+   *                            token of the admin performing the action.
    * @throws IllegalArgumentException if the admin is not found or is a superuser.
    * @throws UnauthorizedException if the admin is not authorized to delete another admin.
    */

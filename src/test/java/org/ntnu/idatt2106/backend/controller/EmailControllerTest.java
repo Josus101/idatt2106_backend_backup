@@ -45,7 +45,7 @@ class EmailControllerTest {
 
     ResponseEntity<String> response = emailController.sendVerification(1);
 
-    assertEquals(200, response.getStatusCodeValue());
+    assertEquals(200, response.getStatusCode().value());
     assertEquals("Verification email sent.", response.getBody());
     verify(emailService).sendVerificationEmail(testUser);
   }
@@ -57,7 +57,7 @@ class EmailControllerTest {
 
     ResponseEntity<String> response = emailController.sendVerification(1);
 
-    assertEquals(404, response.getStatusCodeValue());
+    assertEquals(404, response.getStatusCode().value());
     verify(emailService, never()).sendVerificationEmail(any());
   }
 
@@ -70,7 +70,7 @@ class EmailControllerTest {
 
     ResponseEntity<String> response = emailController.sendVerification(1);
 
-    assertEquals(400, response.getStatusCodeValue());
+    assertEquals(400, response.getStatusCode().value());
     assertEquals("User is already verified.", response.getBody());
     verify(emailService).sendVerificationEmail(testUser);
   }
@@ -82,7 +82,7 @@ class EmailControllerTest {
 
     ResponseEntity<String> response = emailController.sendResetPassword(1);
 
-    assertEquals(200, response.getStatusCodeValue());
+    assertEquals(200, response.getStatusCode().value());
     assertEquals("Reset password email sent.", response.getBody());
     verify(emailService).sendResetPasswordEmail(testUser);
   }
@@ -94,7 +94,7 @@ class EmailControllerTest {
 
     ResponseEntity<String> response = emailController.sendResetPassword(1);
 
-    assertEquals(404, response.getStatusCodeValue());
+    assertEquals(404, response.getStatusCode().value());
     verify(emailService, never()).sendResetPasswordEmail(any());
   }
 
@@ -103,7 +103,7 @@ class EmailControllerTest {
   void shouldSendTestEmailSuccessfully() {
     ResponseEntity<String> response = emailController.sendTestEmail("test@example.com");
 
-    assertEquals(200, response.getStatusCodeValue());
+    assertEquals(200, response.getStatusCode().value());
     assertEquals("Test email sent to: test@example.com", response.getBody());
     verify(emailService).sendTestEmail("test@example.com", "Test Email", "This is a test email from EmailService.");
   }

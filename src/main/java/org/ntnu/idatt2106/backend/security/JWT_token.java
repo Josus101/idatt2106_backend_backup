@@ -75,7 +75,7 @@ public class JWT_token {
   public UserTokenResponse generateJwtToken(Admin admin) {
     Date expirationDate = new Date(System.currentTimeMillis() + EXPIRATION_TIME);
     String token = Jwts.builder()
-        .setSubject(admin.getStringID())
+        .setSubject(admin.getStringId())
         .setIssuedAt(new Date())
         .setExpiration(expirationDate)
         .signWith(key)

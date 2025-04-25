@@ -13,7 +13,6 @@ import org.ntnu.idatt2106.backend.repo.ResetPasswordTokenRepo;
 import org.ntnu.idatt2106.backend.security.JWT_token;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -123,7 +122,7 @@ public class EmailService {
                         border-radius: 5px;
                         font-weight: bold;
                     }
-                    .footer { 
+                    .footer {
                         margin-top: 30px;
                         font-size: 12px;
                         color: #7f8c8d;
