@@ -11,7 +11,7 @@ class CategoryTest {
   private Category testCategory;
   @BeforeEach
   void setUp() {
-    testCategory = new Category(1, "Test Category");
+    testCategory = new Category(1, "Test Category", null, false);
   }
 
   @Test

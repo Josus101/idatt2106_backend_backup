@@ -29,8 +29,9 @@ public class Item {
   @Column(nullable = false)
   private double amount;
 
-  @Column(nullable = false)
-  private String unit;
+  @ManyToOne
+  @JoinColumn(name = "unit_id", nullable = false)
+  private Unit unit;
 
   @Column(nullable = false)
   private Date expirationDate;
@@ -60,7 +61,7 @@ public class Item {
    * @param unit of the item
    * @param expirationDate of the item
    */
-  public Item(int id, String name, double amount, String unit, Date expirationDate) {
+  public Item(int id, String name, double amount, Unit unit, Date expirationDate) {
     this.id = id;
     this.name = name;
     this.amount = amount;

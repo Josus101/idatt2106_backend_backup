@@ -13,12 +13,13 @@ public class ItemTest {
   @DisplayName("Test Item constructor sets fields correctly")
   void testConstructorSetsFields() {
     Date date = new Date();
-    Item item = new Item(1, "Milk", 2.5, "liters", date);
+    Unit unit = new Unit("liters");
+    Item item = new Item(1, "Milk", 2.5, unit, date);
 
     assertEquals(1, item.getId());
     assertEquals("Milk", item.getName());
     assertEquals(2.5, item.getAmount());
-    assertEquals("liters", item.getUnit());
+    assertEquals("liters", item.getUnit().getName());
     assertEquals(date, item.getExpirationDate());
   }
 
@@ -50,8 +51,9 @@ public class ItemTest {
   @DisplayName("Test setUnit and getUnit")
   void testUnitField() {
     Item item = new Item();
-    item.setUnit("kg");
-    assertEquals("kg", item.getUnit());
+    Unit unit = new Unit("kg");
+    item.setUnit(unit);
+    assertEquals("kg", item.getUnit().getName());
   }
 
   @Test

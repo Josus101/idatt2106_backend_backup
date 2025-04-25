@@ -5,6 +5,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
  * Configuration class for handling Spring Security.
@@ -25,7 +27,8 @@ public class SecurityConfig {
     http
         .csrf(AbstractHttpConfigurer::disable)
         .headers(headers -> headers.frameOptions(frame -> frame.disable())) // tillat H2 console i iframe
-        .authorizeHttpRequests(auth -> auth
+            .cors(cors->{})
+            .authorizeHttpRequests(auth -> auth
             .requestMatchers(
                 "/swagger-ui/**",
                 "/v3/api-docs/**",
@@ -38,9 +41,10 @@ public class SecurityConfig {
                 "/api/email/verify/**",
                 "/api/email/reset-password/**",
                 "/api/users/reset-password/**",
-                "/api/users/verify/**")
+                "/api/users/verify/**",
+                "/api/households/**")
             .permitAll()
-            .anyRequest().authenticated()
+            .anyRequest().permitAll() //TODO: switch to authenticated users only
         );
 
     return http.build();
