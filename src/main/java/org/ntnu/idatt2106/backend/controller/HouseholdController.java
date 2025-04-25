@@ -6,14 +6,14 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.ntnu.idatt2106.backend.dto.household.PreparednessStatus;
-import org.ntnu.idatt2106.backend.model.Household;
 import org.ntnu.idatt2106.backend.repo.HouseholdRepo;
 import org.ntnu.idatt2106.backend.service.PreparednessService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.server.ResponseStatusException;
+
+import java.util.NoSuchElementException;
 
 @RestController
 @RequestMapping("/api/households")
@@ -47,11 +47,14 @@ public class HouseholdController {
                     content = @Content(schema = @Schema(example = "Household not found"))
             )
     })
-    public ResponseEntity<PreparednessStatus> getPreparednessStatus(@PathVariable int id) {
-        Household household = householdRepo.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Household not found"));
-
-        PreparednessStatus status = preparednessService.calculatePreparednessStatus(household);
-        return ResponseEntity.ok(status);
+    public ResponseEntity<?> getPreparednessStatus(@PathVariable int id) {
+        try {
+            PreparednessStatus status = preparednessService.getPreparednessStatusByHouseholdId(id);
+            return ResponseEntity.ok(status);
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Household not found");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Could not fetch preparedness status");
+        }
     }
 }

@@ -4,6 +4,8 @@ import org.ntnu.idatt2106.backend.dto.household.PreparednessStatus;
 import org.ntnu.idatt2106.backend.model.Category;
 import org.ntnu.idatt2106.backend.model.Household;
 import org.ntnu.idatt2106.backend.model.Item;
+import org.ntnu.idatt2106.backend.repo.HouseholdRepo;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -19,6 +21,9 @@ import java.util.*;
  */
 @Service
 public class PreparednessService {
+
+    @Autowired
+    private HouseholdRepo householdRepo;
 
     /**
      * Calculates the preparedness status of a given household.
@@ -91,5 +96,23 @@ public class PreparednessService {
         }
 
         return new PreparednessStatus((int) preparednessPercent, warning, message);
+    }
+
+    /**
+     * Retrieves the preparedness status for a given household by its ID.
+     * <p>
+     * This method looks up the household in the database and calculates its
+     * preparedness status based on its inventory and number of members.
+     * </p>
+     *
+     * @param householdId The ID of the household to evaluate.
+     * @return A {@link PreparednessStatus} object representing the household's preparedness level.
+     * @throws NoSuchElementException if no household is found with the given ID.
+     */
+    public PreparednessStatus getPreparednessStatusByHouseholdId(int householdId) {
+        Household household = householdRepo.findById(householdId)
+                .orElseThrow(() -> new NoSuchElementException("Household not found"));
+
+        return calculatePreparednessStatus(household);
     }
 }
