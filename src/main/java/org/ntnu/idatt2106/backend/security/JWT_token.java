@@ -37,8 +37,9 @@ public class JWT_token {
    *
    * @param userRepo the User repository for database access
    */
-  public JWT_token(UserRepo userRepo) {
+  public JWT_token(UserRepo userRepo, AdminRepo adminRepo) {
     this.userRepo = userRepo;
+    this.adminRepo = adminRepo;
   }
 
   /**

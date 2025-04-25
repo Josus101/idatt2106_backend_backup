@@ -149,10 +149,7 @@ public class LoginService {
       userRepo.save(user);
       try {
         emailService.sendVerificationEmail(user);
-      } catch (IllegalStateException e) {
-        throw new IllegalStateException("Failed to send verification email", e);
-      }
-      catch (Exception e) {
+      }catch (Exception e) {
         throw new RuntimeException("Failed to send verification email", e);
       }
     }
