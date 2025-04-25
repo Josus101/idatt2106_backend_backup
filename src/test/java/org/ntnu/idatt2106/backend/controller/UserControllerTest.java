@@ -9,6 +9,8 @@ import org.ntnu.idatt2106.backend.dto.user.UserRegisterRequest;
 import org.ntnu.idatt2106.backend.dto.user.UserTokenResponse;
 import org.ntnu.idatt2106.backend.exceptions.UserNotFoundException;
 import org.ntnu.idatt2106.backend.service.LoginService;
+import org.ntnu.idatt2106.backend.service.ResetPasswordService;
+import org.ntnu.idatt2106.backend.service.VerifyEmailService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.web.servlet.MockMvc;
@@ -24,6 +26,12 @@ class UserControllerTest {
 
   @Mock
   private LoginService loginService;
+
+  @Mock
+  private ResetPasswordService resetPasswordService;
+
+  @Mock
+  private VerifyEmailService verifyEmailService;
 
   private MockMvc mockMvc;
 
@@ -147,4 +155,88 @@ class UserControllerTest {
     assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     assertEquals("Invalid user data", response.getBody());
   }
+
+  @Test
+  @DisplayName("Should return 200 OK when password reset is successful")
+  void shouldReturnOkOnSuccessfulPasswordReset() {
+    String token = "valid-token";
+    String newPassword = "NewPassword123";
+
+    ResponseEntity<String> response = userController.resetPassword(token, newPassword);
+
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertEquals("Password reset successfully", response.getBody());
+    verify(resetPasswordService).resetPassword(token, newPassword);
+  }
+
+  @Test
+  @DisplayName("Should return 404 when UserNotFoundException is thrown during password reset")
+  void shouldReturnNotFoundWhenUserNotFoundOnPasswordReset() {
+    String token = "invalid-token";
+    String newPassword = "NewPassword123";
+
+    doThrow(new UserNotFoundException("User not found")).when(resetPasswordService)
+        .resetPassword(token, newPassword);
+
+    ResponseEntity<String> response = userController.resetPassword(token, newPassword);
+
+    assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    assertEquals("User not found with given token", response.getBody());
+  }
+
+  @Test
+  @DisplayName("Should return 400 when IllegalArgumentException is thrown during password reset")
+  void shouldReturnBadRequestOnInvalidPassword() {
+    String token = "valid-token";
+    String newPassword = "";
+
+    doThrow(new IllegalArgumentException("Invalid password")).when(resetPasswordService)
+        .resetPassword(token, newPassword);
+
+    ResponseEntity<String> response = userController.resetPassword(token, newPassword);
+
+    assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    assertEquals("Invalid password", response.getBody());
+  }
+
+  @Test
+  @DisplayName("Should return 200 OK when email is verified successfully")
+  void shouldReturnOkOnSuccessfulEmailVerification() {
+    String token = "valid-token";
+
+    ResponseEntity<String> response = userController.verifyEmail(token);
+
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertEquals("Email verified successfully", response.getBody());
+    verify(verifyEmailService).verifyEmail(token);
+  }
+
+  @Test
+  @DisplayName("Should return 404 when UserNotFoundException is thrown during email verification")
+  void shouldReturnNotFoundOnEmailVerificationUserNotFound() {
+    String token = "invalid-token";
+
+    doThrow(new UserNotFoundException("User not found")).when(verifyEmailService)
+        .verifyEmail(token);
+
+    ResponseEntity<String> response = userController.verifyEmail(token);
+
+    assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    assertEquals("User not found with given token", response.getBody());
+  }
+
+  @Test
+  @DisplayName("Should return 400 when IllegalArgumentException is thrown during email verification")
+  void shouldReturnBadRequestOnInvalidEmailToken() {
+    String token = "invalid";
+
+    doThrow(new IllegalArgumentException("Invalid token")).when(verifyEmailService)
+        .verifyEmail(token);
+
+    ResponseEntity<String> response = userController.verifyEmail(token);
+
+    assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    assertEquals("Invalid token", response.getBody());
+  }
+
 }

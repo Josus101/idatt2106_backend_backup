@@ -1,6 +1,5 @@
 package org.ntnu.idatt2106.backend.service;
 
-import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -10,9 +9,7 @@ import org.springframework.util.MultiValueMap;
 
 import org.ntnu.idatt2106.backend.dto.reCaptcha.ReCaptchaResponse;
 
-import java.util.ArrayList;
-import java.util.List;
-
+//Todo document this plz (why is it not documented my guy?)
 @Service
 public class ReCaptchaService {
   private static final String SECRET_KEY = "6Le5biErAAAAAAh1Md7I1y-EozvHCT-20zjE-i14";

@@ -2,12 +2,10 @@ package org.ntnu.idatt2106.backend.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
-import org.ntnu.idatt2106.backend.model.User;
 import org.ntnu.idatt2106.backend.repo.UserRepo;
 import org.ntnu.idatt2106.backend.service.EmailService;
 import org.springframework.http.ResponseEntity;
@@ -27,7 +25,7 @@ public class EmailController {
       description = "Sends an email with a verification link to the user with the specified ID.",
       responses = {
           @ApiResponse(responseCode = "200", description = "Verification email sent"),
-          @ApiResponse(responseCode = "404", description = "User not found", content = @Content)
+          @ApiResponse(responseCode = "404", description = "User not found")
       }
   )
   @PostMapping("/verify/{userId}")
@@ -54,7 +52,7 @@ public class EmailController {
       description = "Sends an email with a password reset link to the user with the specified ID.",
       responses = {
           @ApiResponse(responseCode = "200", description = "Reset password email sent"),
-          @ApiResponse(responseCode = "404", description = "User not found", content = @Content)
+          @ApiResponse(responseCode = "404", description = "User not found")
       }
   )
   @PostMapping("/reset-password/{userId}")
@@ -86,7 +84,11 @@ public class EmailController {
       @Parameter(description = "Recipient email address", example = "example@mail.com")
       @RequestParam String to) {
     System.out.println("Sending test email to: " + to);
-    emailService.sendTestEmail(to, "Test Email", "This is a test email from EmailService.");
+    try {
+      emailService.sendTestEmail(to, "Test Email", "This is a test email from EmailService.");
+    } catch (MessagingException e) {
+      throw new RuntimeException("Failed to send test email", e);
+    }
     return ResponseEntity.ok("Test email sent to: " + to);
   }
 }

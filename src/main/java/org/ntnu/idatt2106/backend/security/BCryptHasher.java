@@ -6,6 +6,8 @@ import org.springframework.stereotype.Component;
 /**
  * This class is responsible for hashing and checking passwords using BCrypt.
  * It provides methods to hash a password and check if a given password matches a hashed password.
+ * @Author Konrad Seime
+ * @since 0.1
  */
 @Component
 public class BCryptHasher {

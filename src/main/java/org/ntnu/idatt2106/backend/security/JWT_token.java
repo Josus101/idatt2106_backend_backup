@@ -21,6 +21,8 @@ import org.springframework.stereotype.Service;
 /**
  * Service class responsible for generating and validating JWT tokens.
  * This includes token generation, validation, and user extraction from tokens.
+ * @Author Konrad Seime
+ * @since 0.1
  */
 @Service
 public class JWT_token {
@@ -37,8 +39,9 @@ public class JWT_token {
    *
    * @param userRepo the User repository for database access
    */
-  public JWT_token(UserRepo userRepo) {
+  public JWT_token(UserRepo userRepo, AdminRepo adminRepo) {
     this.userRepo = userRepo;
+    this.adminRepo = adminRepo;
   }
 
   /**
@@ -72,7 +75,7 @@ public class JWT_token {
   public UserTokenResponse generateJwtToken(Admin admin) {
     Date expirationDate = new Date(System.currentTimeMillis() + EXPIRATION_TIME);
     String token = Jwts.builder()
-        .setSubject(admin.getStringID())
+        .setSubject(admin.getStringId())
         .setIssuedAt(new Date())
         .setExpiration(expirationDate)
         .signWith(key)

@@ -13,15 +13,15 @@ import org.springframework.stereotype.Service;
 
 /**
  * Service class for verifying email addresses.
+ *
+ * @Author Konrad Seime
+ * @since 0.1
  */
 @Service
 public class VerifyEmailService {
 
   @Autowired
   private EmailVerificationTokenRepo emailVerificationTokenRepo;
-
-  @Autowired
-  private UserRepo userRepo;
 
   @Autowired
   private LoginService loginService;
