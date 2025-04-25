@@ -5,6 +5,12 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * Data Transfer Object used for admin login and registration.
+ * Contains essential admin information like username and password.
+ * @Author Konrad Seime
+ * @since 0.1
+ */
 @AllArgsConstructor
 @Getter
 @Setter

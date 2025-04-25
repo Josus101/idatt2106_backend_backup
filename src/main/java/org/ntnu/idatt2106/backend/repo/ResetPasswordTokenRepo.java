@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 /**
  * ResetPasswordTokenRepo is a repository interface for managing ResetPasswordToken entities.
  * It extends JpaRepository to provide CRUD operations and custom query methods.
+ * @Author Konrad Seime
+ * @since 0.1
  */
 public interface ResetPasswordTokenRepo extends JpaRepository<ResetPasswordToken, Long> {
   /**

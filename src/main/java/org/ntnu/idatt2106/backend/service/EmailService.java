@@ -22,6 +22,8 @@ import java.util.Date;
 
 /**
  * Service class for sending emails to users.
+ * @Author Konrad Seime
+ * @since 0.1
  */
 @Service
 public class EmailService {

@@ -12,7 +12,7 @@ import lombok.Setter;
 
 /**
  * Admin model for the database
- * @Author Jonas Reiher
+ * @Author Konrad Seime
  * @since 0.1
  */
 @Entity

@@ -21,6 +21,8 @@ import org.springframework.stereotype.Service;
 /**
  * Service class responsible for generating and validating JWT tokens.
  * This includes token generation, validation, and user extraction from tokens.
+ * @Author Konrad Seime
+ * @since 0.1
  */
 @Service
 public class JWT_token {

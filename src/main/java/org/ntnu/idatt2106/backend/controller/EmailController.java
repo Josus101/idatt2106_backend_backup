@@ -27,7 +27,7 @@ public class EmailController {
       description = "Sends an email with a verification link to the user with the specified ID.",
       responses = {
           @ApiResponse(responseCode = "200", description = "Verification email sent"),
-          @ApiResponse(responseCode = "404", description = "User not found", content = @Content)
+          @ApiResponse(responseCode = "404", description = "User not found")
       }
   )
   @PostMapping("/verify/{userId}")
@@ -54,7 +54,7 @@ public class EmailController {
       description = "Sends an email with a password reset link to the user with the specified ID.",
       responses = {
           @ApiResponse(responseCode = "200", description = "Reset password email sent"),
-          @ApiResponse(responseCode = "404", description = "User not found", content = @Content)
+          @ApiResponse(responseCode = "404", description = "User not found")
       }
   )
   @PostMapping("/reset-password/{userId}")

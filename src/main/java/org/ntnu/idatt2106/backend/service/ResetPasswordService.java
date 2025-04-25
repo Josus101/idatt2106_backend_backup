@@ -11,6 +11,8 @@ import org.springframework.stereotype.Service;
 
 /**
  * Service class for handling password reset functionality.
+ * @Author Konrad Seime
+ * @since 0.1
  */
 @Service
 public class ResetPasswordService {

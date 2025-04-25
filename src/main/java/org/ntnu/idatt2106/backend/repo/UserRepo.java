@@ -7,6 +7,8 @@ import java.util.Optional;
 /**
  * UserRepo is a repository interface for managing User entities.
  * It extends JpaRepository to provide CRUD operations and custom query methods.
+ * @Author Konrad Seime
+ * @since 0.1
  */
 public interface UserRepo extends JpaRepository<User, Integer> {
 
