@@ -33,7 +33,12 @@ public class SecurityConfig {
                 "/swagger-ui.html",
                 "/swagger-resources/**",
                 "/webjars/**",
-                "/h2-console/**")
+                "/h2-console/**",
+                "/api/email/test",
+                "/api/email/verify/**",
+                "/api/email/reset-password/**",
+                "/api/users/reset-password/**",
+                "/api/users/verify/**")
             .permitAll()
             .anyRequest().authenticated()
         );

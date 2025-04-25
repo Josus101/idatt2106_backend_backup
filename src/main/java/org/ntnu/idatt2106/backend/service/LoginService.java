@@ -27,6 +27,9 @@ public class LoginService {
     @Autowired
     private JWT_token jwt;
 
+    @Autowired
+    private EmailService emailService;
+
     private final BCryptHasher hasher = new BCryptHasher();
 
     /**
@@ -144,6 +147,14 @@ public class LoginService {
       }
       user.setPassword(hasher.hashPassword(user.getPassword()));
       userRepo.save(user);
+      try {
+        emailService.sendVerificationEmail(user);
+      } catch (IllegalStateException e) {
+        throw new IllegalStateException("Failed to send verification email", e);
+      }
+      catch (Exception e) {
+        throw new RuntimeException("Failed to send verification email", e);
+      }
     }
 
   /**
@@ -164,6 +175,26 @@ public class LoginService {
     } catch (Exception e) {
       throw new IllegalArgumentException("Error validating token");
     }
+  }
+
+  /**
+   * Resets the password for the user
+   * @param user The user to reset the password for
+   * @param newPassword The new password to set
+   */
+  public void resetPassword(User user, String newPassword) {
+    user.setPassword(hasher.hashPassword(newPassword));
+    userRepo.save(user);
+  }
+
+  /**
+   * Verifies the email address of the user.
+   *
+   * @param user The user to verify.
+   */
+  public void verifyEmail(User user) {
+    user.setVerified(true);
+    userRepo.save(user);
   }
 }
 

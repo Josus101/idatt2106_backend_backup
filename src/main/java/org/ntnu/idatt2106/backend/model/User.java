@@ -41,6 +41,10 @@ public class User {
   @Column
   private double longitude;
 
+  @Column()
+  private boolean verified;
+
+
   @OneToMany(mappedBy = "user")
   private List<HouseholdMembers> householdMemberships;
 
@@ -62,7 +66,7 @@ public class User {
    * @param latitude of the user
    * @param longitude of the user
    */
-  public User(int id, String email, String password, String firstname, String lastname, String phoneNumber, double latitude, double longitude) {
+  public User(int id, String email, String password, String firstname, String lastname, String phoneNumber, double latitude, double longitude, boolean verified) {
     this.id = id;
     this.email = email;
     this.password = password;
@@ -71,6 +75,7 @@ public class User {
     this.phoneNumber = phoneNumber;
     this.latitude = latitude;
     this.longitude = longitude;
+    this.verified = verified;
   }
 
 
@@ -83,7 +88,7 @@ public class User {
    * @param phoneNumber of the user
    */
   public User(String email, String password, String firstname, String lastname, String phoneNumber) {
-    this(0, email, password, firstname, lastname, phoneNumber, 0.0, 0.0);
+    this(0, email, password, firstname, lastname, phoneNumber, 0.0, 0.0, false);
   }
 
 
@@ -97,7 +102,7 @@ public class User {
    * @param phoneNumber of the user
    */
   public User(int id, String email, String password, String firstname, String lastname, String phoneNumber) {
-    this(id, email, password, firstname, lastname, phoneNumber, 0.0, 0.0);
+    this(id, email, password, firstname, lastname, phoneNumber, 0.0, 0.0, false);
   }
 
 

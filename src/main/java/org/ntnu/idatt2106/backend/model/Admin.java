@@ -1,12 +1,13 @@
 package org.ntnu.idatt2106.backend.model;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import jakarta.persistence.Entity;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
@@ -18,7 +19,9 @@ import lombok.Setter;
 @Table(name = "admin")
 @Getter
 @Setter
+@NoArgsConstructor
 public class Admin {
+
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private int id;
@@ -28,13 +31,6 @@ public class Admin {
   private String password;
   @Column(nullable = false)
   private boolean isSuperUser;
-
-
-  /**
-   * Blank constructor for the Admin model
-   */
-  public Admin() {};
-
 
   /**
    * Constructor for the Admin model.
