@@ -55,14 +55,12 @@ public class Item {
 
   /**
    * Constructor for the item model
-   * @param id of the item
    * @param name of the item
    * @param amount of the item
    * @param unit of the item
    * @param expirationDate of the item
    */
-  public Item(int id, String name, double amount, Unit unit, Date expirationDate) {
-    this.id = id;
+  public Item(String name, double amount, Unit unit, Date expirationDate) {
     this.name = name;
     this.amount = amount;
     this.unit = unit;

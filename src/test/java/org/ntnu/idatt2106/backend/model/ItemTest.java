@@ -14,9 +14,8 @@ public class ItemTest {
   void testConstructorSetsFields() {
     Date date = new Date();
     Unit unit = new Unit("liters");
-    Item item = new Item(1, "Milk", 2.5, unit, date);
+    Item item = new Item("Milk", 2.5, unit, date);
 
-    assertEquals(1, item.getId());
     assertEquals("Milk", item.getName());
     assertEquals(2.5, item.getAmount());
     assertEquals("liters", item.getUnit().getName());

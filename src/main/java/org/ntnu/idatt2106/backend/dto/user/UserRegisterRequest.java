@@ -26,5 +26,7 @@ public class UserRegisterRequest {
     private String lastname;
     @Schema(description = "The phoneNumber of the user", example = "88888888")
     private String phoneNumber;
+    @Schema(description = "The RecaptchaToken", example = "hquoie0wrhob-wia0hribheuhorbg...")
+    private String reCaptchaToken;
 
 }

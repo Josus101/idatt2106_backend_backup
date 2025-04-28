@@ -100,4 +100,19 @@ public class ResetPasswordServiceTest {
 
     verify(loginService, never()).resetPassword(any(), any());
   }
+
+  @Test
+  @DisplayName("resetPassword throws UserNotFoundException when user is null")
+  void testResetPasswordUserNull() {
+    String token = "valid-token";
+    String newPassword = "newPassword123";
+
+    ResetPasswordToken mockToken = mock(ResetPasswordToken.class);
+    when(mockToken.getExpirationDate()).thenReturn(new Date(System.currentTimeMillis() + 10000)); // not expired
+    when(mockToken.getUser()).thenReturn(null); // simulate missing user
+
+    when(resetPasswordTokenRepo.findByToken(token)).thenReturn(Optional.of(mockToken));
+
+    assertThrows(UserNotFoundException.class, () -> resetPasswordService.resetPassword(token, newPassword));
+  }
 }

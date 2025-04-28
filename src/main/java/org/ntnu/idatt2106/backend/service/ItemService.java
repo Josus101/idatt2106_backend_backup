@@ -11,6 +11,8 @@ import org.ntnu.idatt2106.backend.repo.ItemRepo;
 import org.ntnu.idatt2106.backend.repo.UnitRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.List;
 
 
@@ -47,8 +49,8 @@ public class ItemService {
                     item.getId(),
                     item.getName(),
                     item.getAmount(),
-                    item.getCategory().getId(),
                     item.getUnit().getId(),
+                    item.getCategory().getId(),
                     item.getExpirationDate()))
             .orElseThrow(() -> new EntityNotFoundException("Item not found"));
   }
@@ -68,8 +70,8 @@ public class ItemService {
             item.getId(),
             item.getName(),
             item.getAmount(),
-            item.getCategory().getId(),
             item.getUnit().getId(),
+            item.getCategory().getId(),
             item.getExpirationDate()
     )).toList();
   }
@@ -87,8 +89,8 @@ public class ItemService {
             item.getId(),
             item.getName(),
             item.getAmount(),
-            item.getCategory().getId(),
             item.getUnit().getId(),
+            item.getCategory().getId(),
             item.getExpirationDate()
     )).toList();
   }
@@ -104,8 +106,8 @@ public class ItemService {
             item.getId(),
             item.getName(),
             item.getAmount(),
-            item.getCategory().getId(),
             item.getUnit().getId(),
+            item.getCategory().getId(),
             item.getExpirationDate()
     )).toList();
   }
@@ -114,49 +116,70 @@ public class ItemService {
    * Adds a new item to the database.
    * @param itemCreateRequest the data of the item to be added
    */
-  public void addItem(ItemCreateRequest itemCreateRequest) {
+  @Transactional
+  public ItemGenericDTO addItem(ItemCreateRequest itemCreateRequest) throws EntityNotFoundException {
     Item item = new Item();
 
     item.setName(itemCreateRequest.getName());
     item.setAmount(itemCreateRequest.getAmount());
 
+    Unit unit = unitRepo.findById(itemCreateRequest.getUnitId())
+            .orElseThrow(() -> new EntityNotFoundException("Unit not found"));
+    item.setUnit(unit);
+
     Category category = categoryRepo.findById(itemCreateRequest.getCategoryId())
             .orElseThrow(() -> new EntityNotFoundException("Category not found"));
     item.setCategory(category);
 
-    Unit unit = unitRepo.findById(itemCreateRequest.getUnitId())
-            .orElseThrow(() -> new EntityNotFoundException("Unit not found"));
-    item.setUnit(unit);
 
     item.setExpirationDate(itemCreateRequest.getExpirationDate());
 
     // save the item
     itemRepo.save(item);
+
+    return new ItemGenericDTO(
+            item.getId(),
+            item.getName(),
+            item.getAmount(),
+            item.getUnit().getId(),
+            item.getCategory().getId(),
+            item.getExpirationDate());
   }
 
   /**
    * Updates an existing item in the database.
    * @param itemData the data of the item to be updated
    */
-  public void updateItem(ItemGenericDTO itemData) {
+  @Transactional
+  public ItemGenericDTO updateItem(ItemGenericDTO itemData) {
     Item item = itemRepo.findById(itemData.getId())
             .orElseThrow(() -> new EntityNotFoundException("Item not found"));
 
     item.setName(itemData.getName());
     item.setAmount(itemData.getAmount());
 
+    Unit unit = unitRepo.findById(itemData.getUnitId())
+            .orElseThrow(() -> new EntityNotFoundException("Unit not found"));
+    item.setUnit(unit);
+
     Category category = categoryRepo.findById(itemData.getCategoryId())
             .orElseThrow(() -> new EntityNotFoundException("Category not found"));
     item.setCategory(category);
 
-    Unit unit = unitRepo.findById(itemData.getUnitId())
-            .orElseThrow(() -> new EntityNotFoundException("Unit not found"));
-    item.setUnit(unit);
 
     item.setExpirationDate(itemData.getExpirationDate());
 
     // save the item
     itemRepo.save(item);
+
+    return new ItemGenericDTO(
+            item.getId(),
+            item.getName(),
+            item.getAmount(),
+            item.getUnit().getId(),
+            item.getCategory().getId(),
+            item.getExpirationDate()
+    );
   }
 
   /**
