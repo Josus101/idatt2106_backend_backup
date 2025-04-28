@@ -1,6 +1,5 @@
 package org.ntnu.idatt2106.backend.model;
 
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -63,5 +62,13 @@ class AdminTest {
 
     testAdmin.setSuperUser(false);
     assertFalse(testAdmin.isSuperUser());
+  }
+
+  @Test
+  @DisplayName("Test toString method")
+  void testToString() {
+    testAdmin.setUsername("adminUser");
+
+    assertEquals("adminUser", testAdmin.toString());
   }
 }

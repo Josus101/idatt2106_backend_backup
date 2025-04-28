@@ -37,4 +37,11 @@ public interface ItemRepo extends JpaRepository<Item, Integer> {
    * @return a list of items belonging to the given category
    */
   Optional<List<Item>> findByCategory_Id(int categoryId);
+
+  /**
+   * Finds all items in the repository.
+   * @return a {@link List} of all items
+   */
+  @Override
+  List<Item> findAll();
 }

@@ -150,7 +150,7 @@ public class LoginService {
       userRepo.save(user);
       try {
         emailService.sendVerificationEmail(user);
-      }catch (Exception e) {
+      } catch (Exception e) {
         throw new RuntimeException("Failed to send verification email", e);
       }
     }

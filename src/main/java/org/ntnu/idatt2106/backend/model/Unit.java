@@ -6,7 +6,9 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * Unit model for the database
+ * Model class for the unit table in the database
+ * This class represents a unit of measurement for a food item.
+ *
  * @Author Jonas Reiher
  * @since 0.1
  */

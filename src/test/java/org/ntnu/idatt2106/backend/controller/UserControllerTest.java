@@ -9,6 +9,7 @@ import org.ntnu.idatt2106.backend.dto.user.UserRegisterRequest;
 import org.ntnu.idatt2106.backend.dto.user.UserTokenResponse;
 import org.ntnu.idatt2106.backend.exceptions.UserNotFoundException;
 import org.ntnu.idatt2106.backend.service.LoginService;
+import org.ntnu.idatt2106.backend.service.ReCaptchaService;
 import org.ntnu.idatt2106.backend.service.ResetPasswordService;
 import org.ntnu.idatt2106.backend.service.VerifyEmailService;
 import org.springframework.http.HttpStatus;
@@ -28,6 +29,9 @@ class UserControllerTest {
   private LoginService loginService;
 
   @Mock
+  ReCaptchaService reCaptchaService;
+
+  @Mock
   private ResetPasswordService resetPasswordService;
 
   @Mock
@@ -44,7 +48,9 @@ class UserControllerTest {
   @Test
   @DisplayName("Test register method returns success with valid user data")
   void testRegisterUserSuccess() {
-    UserRegisterRequest validUser = new UserRegisterRequest("test@example.com", "password123", "John", "Doe", "12345678");
+    UserRegisterRequest validUser = new UserRegisterRequest("test@example.com", "password123", "John", "Doe", "12345678", "123456789");
+
+    when(reCaptchaService.verifyReCaptchaToken(anyString())).thenReturn(true);
 
     ResponseEntity<String> response = userController.registerUser(validUser);
 
@@ -55,14 +61,15 @@ class UserControllerTest {
   @Test
   @DisplayName("Test register method returns BAD_REQUEST with invalid user data")
   void testRegisterUserBadRequest() {
-    UserRegisterRequest invalidUser = new UserRegisterRequest("invalid-email", "password123", "John", "Doe", "123");
+    UserRegisterRequest invalidUser = new UserRegisterRequest("invalid-email", "password123", "John", "Doe", "123", "123456789");
 
     doThrow(new IllegalArgumentException("Invalid user data")).when(loginService).register(invalidUser);
+    when(reCaptchaService.verifyReCaptchaToken(anyString())).thenReturn(true);
 
     ResponseEntity<String> response = userController.registerUser(invalidUser);
 
     assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-    assertEquals("Invalid user data", response.getBody());
+    assertEquals("Error: Invalid user data", response.getBody());
   }
 
   @Test
@@ -110,14 +117,15 @@ class UserControllerTest {
   @Test
   @DisplayName("Test register method returns BAD_REQUEST with duplicate email")
   void testRegisterUserDuplicateEmail() {
-    UserRegisterRequest userWithDuplicateEmail = new UserRegisterRequest("test@example.com", "password123", "John", "Doe", "12345678");
+    UserRegisterRequest userWithDuplicateEmail = new UserRegisterRequest("test@example.com", "password123", "John", "Doe", "12345678", "123456789");
 
     doThrow(new IllegalArgumentException("Email is already in use")).when(loginService).register(userWithDuplicateEmail);
+    when(reCaptchaService.verifyReCaptchaToken(anyString())).thenReturn(true);
 
     ResponseEntity<String> response = userController.registerUser(userWithDuplicateEmail);
 
     assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-    assertEquals("Invalid user data", response.getBody());
+    assertEquals("Error: Email is already in use", response.getBody());
   }
 
   @Test
@@ -134,26 +142,29 @@ class UserControllerTest {
   @Test
   @DisplayName("Test register method returns BAD_REQUEST when password is empty")
   void testRegisterUserEmptyPassword() {
-    UserRegisterRequest userWithEmptyPassword = new UserRegisterRequest("new@example.com", "", "Jane", "Doe", "87654321");
+    UserRegisterRequest userWithEmptyPassword = new UserRegisterRequest("new@example.com", "", "Jane", "Doe", "87654321", "123456789");
 
     doThrow(new IllegalArgumentException("Invalid user data")).when(loginService).register(userWithEmptyPassword);
+    when(reCaptchaService.verifyReCaptchaToken(anyString())).thenReturn(true);
 
     ResponseEntity<String> response = userController.registerUser(userWithEmptyPassword);
 
     assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-    assertEquals("Invalid user data", response.getBody());
+    assertEquals("Error: Invalid user data", response.getBody());
   }
 
   @Test
   @DisplayName("Test register method returns BAD_REQUEST when phone number is invalid")
   void testRegisterUserInvalidPhoneNumber() {
-    UserRegisterRequest userWithInvalidPhoneNumber = new UserRegisterRequest("new@example.com", "securePassword", "Jane", "Doe", "123");
+    UserRegisterRequest userWithInvalidPhoneNumber = new UserRegisterRequest("new@example.com", "securePassword", "Jane", "Doe", "123", "123456789");
 
     doThrow(new IllegalArgumentException("Invalid user data")).when(loginService).register(userWithInvalidPhoneNumber);
+    when(reCaptchaService.verifyReCaptchaToken(anyString())).thenReturn(true);
+
     ResponseEntity<String> response = userController.registerUser(userWithInvalidPhoneNumber);
 
     assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-    assertEquals("Invalid user data", response.getBody());
+    assertEquals("Error: Invalid user data", response.getBody());
   }
 
   @Test

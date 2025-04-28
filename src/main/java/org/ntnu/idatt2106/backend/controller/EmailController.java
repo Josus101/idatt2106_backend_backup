@@ -23,23 +23,23 @@ public class EmailController {
   /**
    * Endpoint for sending a verification email to a user.
    *
-   * @param userId the ID of the user to send the verification email to
+   * @param email the email of the user to send the verification email to
    * @return a response entity indicating the result of the operation
    */
   @Operation(
       summary = "Send verification email",
-      description = "Sends an email with a verification link to the user with the specified ID.",
+      description = "Sends an email with a verification link to the user with the specified email.",
       responses = {
           @ApiResponse(responseCode = "200", description = "Verification email sent"),
           @ApiResponse(responseCode = "404", description = "User not found")
       }
   )
-  @PostMapping("/verify/{userId}")
+  @PostMapping("/verify/{email}")
   public ResponseEntity<String> sendVerification(
-      @Parameter(description = "ID of the user", example = "1")
-      @PathVariable int userId) {
-    System.out.println("Sending verification email to user with ID: " + userId);
-    return userRepo.findById(userId)
+      @Parameter(description = "email of the user", example = "krekardesign@gmail.com")
+      @PathVariable String email) {
+    System.out.println("Sending verification email to user with email: " + email);
+    return userRepo.findByEmail(email)
         .map(user -> {
           try {
             emailService.sendVerificationEmail(user);
@@ -56,23 +56,23 @@ public class EmailController {
   /**
    * Endpoint for sending a password reset email to a user.
    *
-   * @param userId the ID of the user to send the password reset email to
+   * @param email the email of the user to send the password reset email to
    * @return a response entity indicating the result of the operation
    */
   @Operation(
       summary = "Send reset password email",
-      description = "Sends an email with a password reset link to the user with the specified ID.",
+      description = "Sends an email with a password reset link to the user with the specified email.",
       responses = {
           @ApiResponse(responseCode = "200", description = "Reset password email sent"),
           @ApiResponse(responseCode = "404", description = "User not found")
       }
   )
-  @PostMapping("/reset-password/{userId}")
+  @PostMapping("/reset-password/{email}")
   public ResponseEntity<String> sendResetPassword(
-      @Parameter(description = "ID of the user", example = "1")
-      @PathVariable int userId) {
-    System.out.println("Sending reset password email to user with ID: " + userId);
-    return userRepo.findById(userId)
+      @Parameter(description = "Email of the user", example = "ape@ape.com")
+      @PathVariable String email) {
+    System.out.println("Sending reset password email to user with email: " + email);
+    return userRepo.findByEmail(email)
         .map(user -> {
           try {
             emailService.sendResetPasswordEmail(user);

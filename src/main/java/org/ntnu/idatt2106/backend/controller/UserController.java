@@ -9,6 +9,7 @@ import org.ntnu.idatt2106.backend.dto.user.UserRegisterRequest;
 import org.ntnu.idatt2106.backend.dto.user.UserTokenResponse;
 import org.ntnu.idatt2106.backend.exceptions.UserNotFoundException;
 import org.ntnu.idatt2106.backend.service.LoginService;
+import org.ntnu.idatt2106.backend.service.ReCaptchaService;
 import org.ntnu.idatt2106.backend.service.ResetPasswordService;
 import org.ntnu.idatt2106.backend.service.VerifyEmailService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +30,9 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
   @Autowired
   private LoginService loginService;
+
+  @Autowired
+  ReCaptchaService reCaptchaService;
 
   @Autowired
   private ResetPasswordService resetPasswordService;
@@ -65,11 +69,15 @@ public class UserController {
   public ResponseEntity<String> registerUser(
     @RequestBody UserRegisterRequest userRegister) {
     try {
+//      if (!reCaptchaService.verifyReCaptchaToken(userRegister.getReCaptchaToken()))  {
+//        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid Captcha token");
+//      }
+
       loginService.register(userRegister);
       return ResponseEntity.ok("User registered successfully");
     }
     catch (IllegalArgumentException e) {
-      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid user data");
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: " + e.getMessage());
     }
   }
 

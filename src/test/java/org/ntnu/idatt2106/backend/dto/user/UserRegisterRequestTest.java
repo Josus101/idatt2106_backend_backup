@@ -16,7 +16,8 @@ public class UserRegisterRequestTest {
         "password123",
         "Kalle",
         "Kontainer",
-        "12345678"
+        "12345678",
+        "123456789"
     );
     assertEquals(dto.getEmail(), "kallekontainer@gmail.com");
     assertEquals(dto.getPassword(), "password123");
@@ -28,7 +29,7 @@ public class UserRegisterRequestTest {
   @Test
   @DisplayName("Test UserRegisterRequest getters and setters")
   void testGettersAndSetters() {
-    UserRegisterRequest dto = new UserRegisterRequest("","","","","");
+    UserRegisterRequest dto = new UserRegisterRequest("","","","","", "");
     dto.setEmail("karekartong@gmail.com");
     dto.setPassword("password123");
     dto.setFirstname("Kåre");

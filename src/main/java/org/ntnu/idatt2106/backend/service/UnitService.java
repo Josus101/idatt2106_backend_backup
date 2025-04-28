@@ -1,5 +1,6 @@
 package org.ntnu.idatt2106.backend.service;
 
+import jakarta.persistence.EntityNotFoundException;
 import org.ntnu.idatt2106.backend.dto.unit.UnitGetResponse;
 import org.ntnu.idatt2106.backend.repo.UnitRepo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,7 +32,7 @@ public class UnitService {
   public UnitGetResponse getUnitById(int id) {
     return unitRepo.findById(id)
       .map(unit -> new UnitGetResponse(unit.getId(), unit.getName()))
-      .orElseThrow(() -> new IllegalArgumentException("Unit not found"));
+      .orElseThrow(() -> new EntityNotFoundException("Unit not found"));
   }
 
   /**

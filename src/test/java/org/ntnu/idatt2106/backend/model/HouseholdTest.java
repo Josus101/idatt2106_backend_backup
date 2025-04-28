@@ -107,4 +107,21 @@ class HouseholdTest {
     assertEquals(1, testHousehold.getInventory().size());
     assertEquals(item, testHousehold.getInventory().get(0));
   }
+
+  @Test
+  @DisplayName("Test constructor throws IllegalArgumentException when member is null")
+  void testConstructorThrowsIllegalArgumentExceptionWhenMemberIsNull() {
+    assertThrows(IllegalArgumentException.class, () -> {
+      new HouseholdMembers(null, testHousehold, false);
+    });
+  }
+
+  @Test
+  @DisplayName("Test constructor throws IllegalArgumentException when household is null")
+  void testConstructorThrowsIllegalArgumentExceptionWhenHouseholdIsNull() {
+    assertThrows(IllegalArgumentException.class, () -> {
+      new HouseholdMembers(new User(), null, false);
+    });
+  }
+
 }
