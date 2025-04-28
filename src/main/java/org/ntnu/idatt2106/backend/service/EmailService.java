@@ -87,7 +87,7 @@ public class EmailService {
 
     String htmlContent = buildEmailTemplate(
         "Reset Your Password",
-        "You've requested to reset your password. Click the button below to proceed. But since the url won't work yes, here is the token: " + encodedToken,
+        "You've requested to reset your password. Click the button below to proceed",
         resetUrl,
         "Reset Password",
         "This link is valid for 1 hour."
