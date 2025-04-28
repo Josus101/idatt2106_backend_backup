@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import org.ntnu.idatt2106.backend.dto.user.PasswordResetRequest;
 import org.ntnu.idatt2106.backend.dto.user.UserLoginRequest;
 import org.ntnu.idatt2106.backend.dto.user.UserRegisterRequest;
 import org.ntnu.idatt2106.backend.dto.user.UserTokenResponse;
@@ -170,10 +171,11 @@ public class UserController {
   })
   public ResponseEntity<String> resetPassword(
       @PathVariable String token,
-      @RequestBody String password) {
+      @RequestBody PasswordResetRequest password) {
 
     try {
-      resetPasswordService.resetPassword(token, password);
+      System.out.println("New password: " + password);
+      resetPasswordService.resetPassword(token, password.getPassword());
       return ResponseEntity.ok("Password reset successfully");
     } catch (UserNotFoundException e) {
       return ResponseEntity.status(HttpStatus.NOT_FOUND)
