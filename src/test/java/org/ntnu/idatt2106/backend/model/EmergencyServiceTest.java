@@ -23,6 +23,7 @@ class EmergencyServiceTest {
         "Test Description",
         10.0,
         20.0,
+        "Test LocalID",
         new Type("Test Type")
     );
 
@@ -47,6 +48,7 @@ class EmergencyServiceTest {
         "Test Description",
         10.0,
         20.0,
+        "Test LocalID",
         new Type("Test Type")
     );
 

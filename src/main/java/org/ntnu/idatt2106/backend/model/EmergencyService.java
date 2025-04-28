@@ -52,11 +52,12 @@ public class EmergencyService {
    * @param longitude of the emergencyService
    * @param type of the emergencyService
    */
-  public EmergencyService(String name, String description, Double latitude, Double longitude, Type type) {
+  public EmergencyService(String name, String description, Double latitude, Double longitude, String localID, Type type) {
     this.name = name;
     this.description = description;
     this.latitude = latitude;
     this.longitude = longitude;
+    this.localID = localID;
     this.type = type;
   }
 }
