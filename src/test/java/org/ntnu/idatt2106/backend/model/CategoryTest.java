@@ -36,4 +36,13 @@ class CategoryTest {
     testCategory.setId(2);
     assertEquals(2, testCategory.getId());
   }
+
+  @Test
+  @DisplayName("Test no id constructor field")
+   void testNoIdConstructor() {
+    Category category = new Category("Test Category", 2, false);
+    assertEquals("Test Category", category.getName());
+    assertEquals(2, category.getKcalPerUnit());
+    assertFalse(category.getIsEssential());
+    }
 }
