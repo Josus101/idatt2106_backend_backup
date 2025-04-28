@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.IOException;
+
 /**
  * This class is used to handle all requests related to importing bunker data.
  * It contains an endpoint for importing bunker data from a JSON file.
@@ -50,6 +52,8 @@ public class BunkerImportController {
         try {
             bunkerImportService.importBunkerDataFromJson("Samfunnssikkerhet_0000_Norge_25833_TilfluktsromOffentlige_GeoJSON.json");
             return ResponseEntity.ok("Bunker data imported successfully.");
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Import failed due to IO error: " + e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Import failed: " + e.getMessage());
         }

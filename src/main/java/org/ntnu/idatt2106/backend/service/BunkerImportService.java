@@ -11,6 +11,7 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * Service class for importing bunker data from a JSON file.
@@ -45,8 +46,7 @@ public class BunkerImportService {
      * @throws IOException If an error occurs while reading the file.
      */
     public void importBunkerDataFromJson(String fileName) throws IOException {
-        ClassPathResource resource = new ClassPathResource(fileName);
-        JsonNode rootNode = objectMapper.readTree(resource.getInputStream());
+        JsonNode rootNode = readJsonFromFile(fileName);
 
         Type bunkerType = typeRepo.findByName("Bunker").orElseGet(() -> {
             Type newType = new Type("Bunker");
@@ -80,6 +80,17 @@ public class BunkerImportService {
 
                 emergencyServiceRepo.save(service);
             }
+        }
+    }
+
+    /**
+     * Helper method to read JSON from a file.
+     * Can be mocked in tests for easier testing.
+     */
+    protected JsonNode readJsonFromFile(String fileName) throws IOException {
+        ClassPathResource resource = new ClassPathResource(fileName);
+        try (InputStream inputStream = resource.getInputStream()) {
+            return objectMapper.readTree(inputStream);
         }
     }
 }

@@ -12,6 +12,13 @@ public class UTMConverterService {
     private static final double WGS84_ECCSQ = 0.00669438; // eccentricity squared
 
     /**
+     * Private constructor to prevent instantiation of this utility class.
+     */
+    private UTMConverterService() {
+        throw new UnsupportedOperationException("Utility class");
+    }
+
+    /**
      * Converts UTM coordinates to latitude and longitude.
      *
      * @param easting The easting value of the UTM coordinate.
