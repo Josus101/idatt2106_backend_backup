@@ -64,6 +64,13 @@ public class UserController {
                   schema = @Schema(example = "Invalid user data")
           )
       ),
+      @ApiResponse(
+          responseCode = "409",
+          description = "Email already in use",
+          content = @Content(
+              schema = @Schema(example = "Email already in use")
+          )
+      ),
   })
   public ResponseEntity<String> registerUser(
     @RequestBody UserRegisterRequest userRegister) {
@@ -78,6 +85,9 @@ public class UserController {
     } catch (MailSendingFailedException e) {
       System.out.println("Failed to send verification email. Either mail is invalid, or you're "
           + "missing .env file " + e.getMessage());
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to send verification email");
+    } catch (IllegalStateException e) {
+      System.out.println("You sure you have the .env file? " + e.getMessage());
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to send verification email");
     } catch (Exception e) {
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred during registration");

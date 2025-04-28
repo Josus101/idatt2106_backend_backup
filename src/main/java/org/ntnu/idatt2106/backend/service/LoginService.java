@@ -109,6 +109,7 @@ public class LoginService {
 
     /**
      * Authenticates a user using the provided email and password.
+     * If the user is not verified, a verification email is sent if not already sent.
      *
      * @param email The user's email.
      * @param password The user's password.
@@ -121,11 +122,13 @@ public class LoginService {
       }
       if (!user.get().isVerified()) {
         try {
-          emailService.sendVerificationEmail(user.get());
+          if (!emailService.hasValidVerificationEmail(user.get())) {
+            emailService.sendVerificationEmail(user.get());
+          }
+          throw new UserNotVerifiedException("User is not verified");
         } catch (Exception e) {
           throw new MailSendingFailedException("Failed to send verification email", e.getCause());
         }
-        throw new UserNotVerifiedException("User is not verified");
       }
       if (!hasher.checkPassword(password, user.get().getPassword())) {
         throw new IllegalArgumentException("Incorrect password for given email");

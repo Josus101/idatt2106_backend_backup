@@ -6,6 +6,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.Objects;
+import java.util.Optional;
 import org.ntnu.idatt2106.backend.model.EmailVerifyToken;
 import org.ntnu.idatt2106.backend.model.ResetPasswordToken;
 import org.ntnu.idatt2106.backend.model.User;
@@ -237,5 +238,17 @@ public class EmailService {
         "This is a test email."
     );
     sendHtmlEmail(to, subject, htmlContent);
+  }
+
+  /**
+   * Checks if the user has a valid verification email.
+   *
+   * @param user The user to check.
+   * @return true if the user has a valid verification email, false otherwise.
+   */
+  public boolean hasValidVerificationEmail(User user) {
+    Optional<EmailVerifyToken> token = emailVerificationTokenRepo.findByUser(user);
+    return token.filter(
+        emailVerifyToken -> !emailVerifyToken.getExpirationDate().before(new Date())).isPresent();
   }
 }
