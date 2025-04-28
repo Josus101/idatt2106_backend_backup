@@ -9,6 +9,7 @@ import org.ntnu.idatt2106.backend.exceptions.TokenExpiredException;
 import org.ntnu.idatt2106.backend.exceptions.UserNotFoundException;
 import org.ntnu.idatt2106.backend.exceptions.UserNotVerifiedException;
 import org.ntnu.idatt2106.backend.model.User;
+import org.ntnu.idatt2106.backend.repo.ResetPasswordTokenRepo;
 import org.ntnu.idatt2106.backend.security.BCryptHasher;
 import org.ntnu.idatt2106.backend.security.JWT_token;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +29,9 @@ public class LoginService {
 
     @Autowired
     private UserRepo userRepo;
+
+    @Autowired
+    private ResetPasswordTokenRepo resetPasswordRepo;
 
     @Autowired
     private JWT_token jwt;
@@ -197,8 +201,12 @@ public class LoginService {
    * @param newPassword The new password to set
    */
   public void resetPassword(User user, String newPassword) {
+    System.out.println("Resetting password for user: " + user);
+    System.out.println("Deleted all by " + user);
     user.setPassword(hasher.hashPassword(newPassword));
     userRepo.save(user);
+    resetPasswordRepo.deleteAllByUserId(user.getId());
+
   }
 
   /**

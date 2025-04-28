@@ -174,7 +174,6 @@ public class UserController {
       @RequestBody PasswordResetRequest password) {
 
     try {
-      System.out.println("New password: " + password);
       resetPasswordService.resetPassword(token, password.getPassword());
       return ResponseEntity.ok("Password reset successfully");
     } catch (UserNotFoundException e) {

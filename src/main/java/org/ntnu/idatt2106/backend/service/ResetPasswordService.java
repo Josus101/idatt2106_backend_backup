@@ -49,6 +49,7 @@ public class ResetPasswordService {
   public void resetPassword(String token, String newPassword) {
     User user = findUserByToken(token);
     if (user != null) {
+      System.out.println("User found: " + user);
       loginService.resetPassword(user, newPassword);
     } else {
       throw new UserNotFoundException("User not found");
