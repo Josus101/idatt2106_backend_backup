@@ -8,7 +8,7 @@ import java.util.List;
 
 
 /**
- * Type model for the database
+ * The model that represents a type of emergency service
  * @Author Jonas Reiher
  * @since 0.1
  */

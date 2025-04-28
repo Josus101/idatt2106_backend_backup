@@ -68,4 +68,35 @@ public class Item {
     this.unit = unit;
     this.expirationDate = expirationDate;
   }
+  /**
+   * Constructor for the item model
+   * @param id of the item
+   * @param name of the item
+   * @param amount of the item
+   * @param unit of the item
+   * @param expirationDate of the item
+   * @param category of the item
+   */
+  public Item(int id, String name, double amount, Unit unit, Date expirationDate, Category category) {
+    this.id = id;
+    this.name = name;
+    this.amount = amount;
+    this.unit = unit;
+    this.expirationDate = expirationDate;
+    this.category = category;
+  }
+  /**
+   * Constructor for the item model
+   * @param name of the item
+   * @param amount of the item
+   * @param unit of the item
+   * @param expirationDate of the item
+   */
+  public Item(String name, double amount, Unit unit, Date expirationDate, Category category) {
+    this.name = name;
+    this.amount = amount;
+    this.unit = unit;
+    this.expirationDate = expirationDate;
+    this.category = category;
+  }
 }
