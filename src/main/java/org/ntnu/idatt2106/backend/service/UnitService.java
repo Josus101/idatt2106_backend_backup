@@ -11,6 +11,9 @@ import java.util.List;
 /**
  * Service class for handling unit-related operations.
  * This class is responsible for the business logic related to units.
+ * @author Jona Reiher
+ * @version 0.1
+ * @since 0.1
  */
 @Service
 public class UnitService {

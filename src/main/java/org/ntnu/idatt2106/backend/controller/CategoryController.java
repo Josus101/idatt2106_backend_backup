@@ -14,6 +14,14 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * Controller class for handling category-related operations.
+ * This class is responsible for defining the endpoints for category retrieval.
+ *
+ * @author Jonas Reiher
+ * @version 0.1
+ * @since 0.1
+ */
 @RestController
 @RequestMapping("/api/categories")
 public class CategoryController {

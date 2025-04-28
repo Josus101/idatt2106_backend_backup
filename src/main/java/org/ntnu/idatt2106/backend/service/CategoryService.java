@@ -13,6 +13,8 @@ import java.util.NoSuchElementException;
  * Service class for handling category-related operations.
  * This class is responsible for the business logic related to categories.
  * @author Jonas Reiher
+ * @version 0.1
+ * @since 0.1
  */
 @Service
 public class CategoryService {

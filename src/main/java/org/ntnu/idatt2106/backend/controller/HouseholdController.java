@@ -15,6 +15,14 @@ import org.springframework.http.HttpStatus;
 
 import java.util.NoSuchElementException;
 
+/**
+ * Controller class for handling household-related operations.
+ * This class is responsible for defining the endpoints for household preparedness status retrieval.
+ *
+ * @author Erlend Eide Zindel
+ * @version 1.0
+ * @since 1.0
+ */
 @RestController
 @RequestMapping("/api/households")
 public class HouseholdController {
