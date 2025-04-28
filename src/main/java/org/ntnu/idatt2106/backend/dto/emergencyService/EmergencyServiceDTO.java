@@ -1,14 +1,21 @@
 package org.ntnu.idatt2106.backend.dto.emergencyService;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * Data Transfer Object representing an emergency service.
+ * This class is used to transfer emergency service data between the client and server.
+ * @author Erlend Eide Zindel
+ * @since 1.0
+ */
 @AllArgsConstructor
 @Getter
 @Setter
 @Schema(description = "DTO for EmergencyService")
-public class EmergencyService {
+public class EmergencyServiceDTO {
     @Schema(description = "Name of the service", example = "Torget 6")
     private String name;
 

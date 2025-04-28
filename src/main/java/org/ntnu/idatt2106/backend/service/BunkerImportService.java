@@ -12,12 +12,25 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 
+/**
+ * Service class for importing bunker data from a JSON file.
+ *
+ * @author  Erlend Eide Zindel
+ * @since 1.0
+ */
 @Service
 public class BunkerImportService {
     private final EmergencyServiceRepo emergencyServiceRepo;
     private final TypeRepo typeRepo;
     private final ObjectMapper objectMapper;
 
+    /**
+     * Constructor for BunkerImportService.
+     *
+     * @param emergencyServiceRepo The repository for EmergencyService entities.
+     * @param typeRepo The repository for Type entities.
+     * @param objectMapper The ObjectMapper for parsing JSON data.
+     */
     @Autowired
     public BunkerImportService(EmergencyServiceRepo emergencyServiceRepo, TypeRepo typeRepo, ObjectMapper objectMapper) {
         this.emergencyServiceRepo = emergencyServiceRepo;
@@ -25,6 +38,12 @@ public class BunkerImportService {
         this.objectMapper = objectMapper;
     }
 
+    /**
+     * Imports bunker data from a JSON file and saves it to the database.
+     *
+     * @param fileName The name of the JSON file to import.
+     * @throws IOException If an error occurs while reading the file.
+     */
     public void importBunkerDataFromJson(String fileName) throws IOException {
         ClassPathResource resource = new ClassPathResource(fileName);
         JsonNode rootNode = objectMapper.readTree(resource.getInputStream());
@@ -45,8 +64,8 @@ public class BunkerImportService {
             double utmx = geometry.get("coordinates").get(0).asDouble();
             double utmy = geometry.get("coordinates").get(1).asDouble();
 
-            //Norge er utm-sone 33
-            double [] latlon = UTMConverterService.utmToLatLon(utmx, utmy, 33);
+            // Convert UTM coordinates to latitude and longitude (UTM zone 33 for Norway).
+            double[] latlon = UTMConverterService.utmToLatLon(utmx, utmy, 33);
             double latitude = latlon[0];
             double longitude = latlon[1];
 

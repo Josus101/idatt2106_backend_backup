@@ -1,10 +1,24 @@
 package org.ntnu.idatt2106.backend.service;
 
+/**
+ * Utility service for converting UTM (Universal Transverse Mercator) coordinates to latitude and longitude.
+ *
+ * @author Erlend Eide Zindel
+ * @since 1.0
+ */
 public class UTMConverterService {
 
     private static final double WGS84_A = 6378137.0; // radius
     private static final double WGS84_ECCSQ = 0.00669438; // eccentricity squared
 
+    /**
+     * Converts UTM coordinates to latitude and longitude.
+     *
+     * @param easting The easting value of the UTM coordinate.
+     * @param northing The northing value of the UTM coordinate.
+     * @param zone The UTM zone number.
+     * @return A double array where the first element is latitude and the second is longitude.
+     */
     public static double[] utmToLatLon(double easting, double northing, int zone) {
         double e1sq = WGS84_ECCSQ / (1 - WGS84_ECCSQ);
         double n = WGS84_A / Math.sqrt(1 - WGS84_ECCSQ * Math.pow(Math.sin(0), 2));
