@@ -22,11 +22,17 @@ public class EmergencyService {
   @Column(nullable = false)
   private String name;
 
+  @Column
+  private String description;
+
   @Column(nullable = false)
   private double latitude;
 
   @Column(nullable = false)
   private double longitude;
+
+  @Column(unique = true)
+  private String localID;
 
   @ManyToOne
   @JoinColumn(name = "type", nullable = false)
@@ -41,12 +47,14 @@ public class EmergencyService {
   /**
    * Constructor for the EmergencyService model
    * @param name of the emergencyService
+   * @param description of the emergencyService
    * @param latitude of the emergencyService
    * @param longitude of the emergencyService
    * @param type of the emergencyService
    */
-  public EmergencyService(String name, Double latitude, Double longitude, Type type) {
+  public EmergencyService(String name, String description, Double latitude, Double longitude, Type type) {
     this.name = name;
+    this.description = description;
     this.latitude = latitude;
     this.longitude = longitude;
     this.type = type;

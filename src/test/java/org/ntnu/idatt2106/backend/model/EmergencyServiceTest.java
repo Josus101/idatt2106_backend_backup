@@ -20,6 +20,7 @@ class EmergencyServiceTest {
   void testConstructorSetsFields() {
     EmergencyService emergencyService = new EmergencyService(
         "Test Service",
+        "Test Description",
         10.0,
         20.0,
         new Type("Test Type")
@@ -43,6 +44,7 @@ class EmergencyServiceTest {
   void testFullConstructor() {
     EmergencyService emergencyService = new EmergencyService(
         "Test Service",
+        "Test Description",
         10.0,
         20.0,
         new Type("Test Type")
