@@ -3,12 +3,16 @@ package org.ntnu.idatt2106.backend.service;
 import java.util.Optional;
 import org.ntnu.idatt2106.backend.dto.user.UserRegisterRequest;
 import org.ntnu.idatt2106.backend.dto.user.UserTokenResponse;
+import org.ntnu.idatt2106.backend.exceptions.AlreadyInUseException;
+import org.ntnu.idatt2106.backend.exceptions.MailSendingFailedException;
 import org.ntnu.idatt2106.backend.exceptions.TokenExpiredException;
 import org.ntnu.idatt2106.backend.exceptions.UserNotFoundException;
+import org.ntnu.idatt2106.backend.exceptions.UserNotVerifiedException;
 import org.ntnu.idatt2106.backend.model.User;
 import org.ntnu.idatt2106.backend.security.BCryptHasher;
 import org.ntnu.idatt2106.backend.security.JWT_token;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mail.MailSendException;
 import org.springframework.stereotype.Service;
 
 import org.ntnu.idatt2106.backend.repo.UserRepo;
@@ -110,10 +114,18 @@ public class LoginService {
      * @param password The user's password.
      * @return A token response object on successful authentication.
      */
-    public UserTokenResponse authenticate(String email, String password) {
+    public UserTokenResponse authenticate(String email, String password) throws IllegalArgumentException, UserNotVerifiedException, UserNotFoundException {
       Optional<User> user = userRepo.findByEmail(email);
       if (user.isEmpty()) {
         throw new UserNotFoundException("No user found with given email and password");
+      }
+      if (!user.get().isVerified()) {
+        try {
+          emailService.sendVerificationEmail(user.get());
+        } catch (Exception e) {
+          throw new MailSendingFailedException("Failed to send verification email", e.getCause());
+        }
+        throw new UserNotVerifiedException("User is not verified");
       }
       if (!hasher.checkPassword(password, user.get().getPassword())) {
         throw new IllegalArgumentException("Incorrect password for given email");
@@ -130,10 +142,10 @@ public class LoginService {
      */
     public void register(UserRegisterRequest userDTO) {
       if (!verifyEmailNotInUse(userDTO.getEmail())) {
-        throw new IllegalArgumentException("Email is already in use");
+        throw new AlreadyInUseException("Email is already in use");
       }
       if (!verifyPhoneNumberNotInUse(userDTO.getPhoneNumber())) {
-        throw new IllegalArgumentException("Phone number is already in use");
+        throw new AlreadyInUseException("Phone number is already in use");
       }
       User user = new User(
         userDTO.getEmail(),
@@ -147,11 +159,12 @@ public class LoginService {
         throw new IllegalArgumentException("Invalid user data");
       }
       user.setPassword(hasher.hashPassword(user.getPassword()));
-      userRepo.save(user);
       try {
         emailService.sendVerificationEmail(user);
+        userRepo.save(user);
+
       }catch (Exception e) {
-        throw new RuntimeException("Failed to send verification email", e);
+        throw new MailSendingFailedException("Failed to send verification email", e.getCause());
       }
     }
 

@@ -5,6 +5,7 @@ import jakarta.mail.internet.MimeMessage;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
+import java.util.Objects;
 import org.ntnu.idatt2106.backend.model.EmailVerifyToken;
 import org.ntnu.idatt2106.backend.model.ResetPasswordToken;
 import org.ntnu.idatt2106.backend.model.User;
@@ -52,7 +53,7 @@ public class EmailService {
    *
    * @param user The user to whom the email is sent.
    * @throws MessagingException If there is an error while sending the email.
-   * @throws IllegalStateException If the user is already verified.
+   * @throws IllegalStateException If the user is already verified, or if the email sender is not configured.
    */
   public void sendVerificationEmail(User user) throws MessagingException {
     if (user.isVerified()) {
@@ -76,6 +77,8 @@ public class EmailService {
    * Sends a password reset email to the user.
    *
    * @param user The user to whom the email is sent.
+   * @throws MessagingException If there is an error while sending the email.
+   * @throws IllegalStateException If the email sender is not configured.
    */
   public void sendResetPasswordEmail(User user) throws MessagingException {
     String token = generateResetPasswordToken(user);
@@ -158,9 +161,13 @@ public class EmailService {
    * @param subject The subject of the email.
    * @param htmlContent The HTML content of the email.
    * @throws MessagingException If there is an error while sending the email.
+   * @throws IllegalStateException If the email sender is not configured.
    */
   private void sendHtmlEmail(String to, String subject, String htmlContent)
       throws MessagingException {
+    if (fromEmail.equals("I_AM_INVALID")) {
+      throw new IllegalStateException("Email sender is not configured. Make sure you have the current .env file");
+    }
     MimeMessage message = mailSender.createMimeMessage();
     MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
@@ -171,7 +178,6 @@ public class EmailService {
 
     message.addHeader("X-Mailer", "KrisefikserMailer");
     message.addHeader("X-Priority", "1");
-    message.addHeader("List-Unsubscribe", "<mailto:unsubscribe@yourdomain.com>");
 
     mailSender.send(message);
   }
@@ -220,8 +226,10 @@ public class EmailService {
    * @param to The recipient's email address.
    * @param subject The subject of the email.
    * @param text The text content of the email.
+   * @throws MessagingException If there is an error while sending the email.
+   * @throws IllegalStateException If the email sender is not configured.
    */
-  public void sendTestEmail(String to, String subject, String text) throws MessagingException {
+  public void sendTestEmail(String to, String subject, String text) throws MessagingException, IllegalStateException {
     String htmlContent = buildEmailTemplate(
         "Test Email",
         text,
