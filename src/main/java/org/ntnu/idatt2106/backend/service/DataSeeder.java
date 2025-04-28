@@ -31,6 +31,21 @@ public class DataSeeder implements CommandLineRunner {
   private final BCryptHasher hasher;
   private final LoginService loginService;
 
+  /**
+   * Constructor for DataSeeder.
+   *
+   * @param adminRepo Admin repository
+   * @param userRepo User repository
+   * @param hasher Password hasher
+   * @param loginService Login service
+   * @param categoryRepo Category repository
+   * @param emergencyServiceRepo Emergency service repository
+   * @param householdRepo Household repository
+   * @param itemRepo Item repository
+   * @param typeRepo Type repository
+   * @param unitRepo Unit repository
+   * @param householdMembersRepo Household members repository
+   */
   public DataSeeder(AdminRepo adminRepo, UserRepo userRepo,
       BCryptHasher hasher, LoginService loginService, CategoryRepo categoryRepo,
       EmergencyServiceRepo emergencyServiceRepo, HouseholdRepo householdRepo,
@@ -49,6 +64,13 @@ public class DataSeeder implements CommandLineRunner {
     this.loginService = loginService;
   }
 
+  /**
+   * Seeds the database with initial data.
+   * This method is called after the application starts.
+   *
+   * @param args Command line arguments
+   * @throws Exception if an error occurs during seeding
+   */
   @Override
   @Transactional
   public void run(String... args) throws Exception {
@@ -64,32 +86,35 @@ public class DataSeeder implements CommandLineRunner {
     seedHouseholdThree();
     seedHouseholdFour();
     seedEmergencyServicesWithTypes();
-    System.out.println("Seeding complete.");
+    System.out.println("\nSeeding complete.\n");
   }
 
+  /**
+   * Seeds the database with categories and units.
+   * This method is called during the application startup.
+   */
   private void seedCategoriesAndUnits() {
     if (categoryRepo.count() == 0) {
       List<Category> categories = List.of(
-          new Category(1, "Water", 0, true),
-          new Category(2, "Canned Food", 200, true),
-          new Category(3, "Dried Food", 350, true),
-          new Category(4, "Medical Supplies", 0, true),
-          new Category(5, "Snacks", 500, false),
-          new Category(6, "Beverages", 45, false),
-          new Category(7, "Sugar Free Monster", 11, false),
-          new Category(8, "Pet Food", 300, true),
-          new Category(9, "Baby Supplies", 100, true),
-          new Category(10, "Batteries", 0, true),
-          new Category(11, "Hygiene Products", 0, true),
-          new Category(12, "Cooking Fuel", 0, true),
-          new Category(13, "Fresh Vegetables", 35, false),
-          new Category(14, "Fresh Fruits", 52, false),
-          new Category(15, "Frozen Food", 250, true),
-          new Category(16, "Grains (Rice, Pasta)", 360, true)
+          new Category("Water", 0, true),
+          new Category("Canned Food", 200, true),
+          new Category("Dried Food", 350, true),
+          new Category("Medical Supplies", 0, true),
+          new Category("Snacks", 500, false),
+          new Category("Beverages", 45, false),
+          new Category("Sugar Free Monster", 11, false),
+          new Category("Pet Food", 300, true),
+          new Category("Baby Supplies", 100, true),
+          new Category("Batteries", 0, true),
+          new Category("Hygiene Products", 0, true),
+          new Category("Cooking Fuel", 0, true),
+          new Category("Fresh Vegetables", 35, false),
+          new Category("Fresh Fruits", 52, false),
+          new Category("Frozen Food", 250, true),
+          new Category("Grains (Rice, Pasta)", 360, true)
       );
       categoryRepo.saveAll(categories);
     }
-
     if (unitRepo.count() == 0) {
       List<Unit> units = List.of(
           new Unit("KG"),
@@ -100,6 +125,10 @@ public class DataSeeder implements CommandLineRunner {
     }
   }
 
+  /**
+   * Seeds the database with admin users.
+   * This method is called during the application startup.
+   */
   public void seedAdminUsers() {
     if (!adminRepo.existsByUsername("admin")) {
       adminRepo.save(new Admin("admin", hasher.hashPassword("admin123"), false));
@@ -109,6 +138,10 @@ public class DataSeeder implements CommandLineRunner {
     }
   }
 
+  /**
+   * Seeds the database with household data.
+   * This method is called during the application startup.
+   */
   private void seedHouseholdOne() {
     User testUser = createVerifiedUser("test@example.com", "test123", "Test", "Bruker", "12345678");
     User albert = createVerifiedUser("albert@example.com", "password123", "Albert", "Zindel", "98765432");
@@ -122,6 +155,10 @@ public class DataSeeder implements CommandLineRunner {
     householdRepo.save(household);
   }
 
+  /**
+   * Seeds the database with household data.
+   * This method is called during the application startup.
+   */
   private void seedHouseholdTwo() {
     User krekar = createVerifiedUser("krekar@gmail.com", "test123", "Krekar", "Design", "11111111");
 
@@ -133,6 +170,10 @@ public class DataSeeder implements CommandLineRunner {
     householdRepo.save(household);
   }
 
+  /**
+   * Seeds the database with household data.
+   * This method is called during the application startup.
+   */
   private void seedHouseholdThree() {
     User kalle = createVerifiedUser("kalle@gmail.com", "test123", "Kalle", "Kontainer", "2222222");
 
@@ -144,6 +185,10 @@ public class DataSeeder implements CommandLineRunner {
     householdRepo.save(household);
   }
 
+  /**
+   * Seeds the database with household data.
+   * This method is called during the application startup.
+   */
   private void seedHouseholdFour() {
     User kare = createVerifiedUser("kare@gmail.com", "test123", "Kåre", "Kakkelovn", "33333333");
 
@@ -155,6 +200,16 @@ public class DataSeeder implements CommandLineRunner {
     householdRepo.save(household);
   }
 
+  /**
+   * Creates a verified user with the given details.
+   *
+   * @param email       The email of the user
+   * @param password    The password of the user
+   * @param firstName   The first name of the user
+   * @param lastName    The last name of the user
+   * @param phoneNumber The phone number of the user
+   * @return The created and verified user
+   */
   private User createVerifiedUser(String email, String password, String firstName, String lastName, String phoneNumber) {
     User user = new User(
         email,
@@ -167,6 +222,14 @@ public class DataSeeder implements CommandLineRunner {
     return userRepo.save(user);
   }
 
+  /**
+   * Creates a household with the given details.
+   *
+   * @param name      The name of the household
+   * @param latitude  The latitude of the household
+   * @param longitude The longitude of the household
+   * @return The created household
+   */
   private Household createHousehold(String name, double latitude, double longitude) {
     Household household = new Household();
     household.setName(name);
@@ -177,12 +240,24 @@ public class DataSeeder implements CommandLineRunner {
     return householdRepo.save(household);
   }
 
+  /**
+   * Adds a household member to the given household.
+   *
+   * @param household The household to add the member to
+   * @param user      The user to add as a member
+   * @param isAdmin   Whether the user is an admin
+   */
   private void addHouseholdMember(Household household, User user, boolean isAdmin) {
     HouseholdMembers member = new HouseholdMembers(user, household, isAdmin);
     householdMembersRepo.save(member);
     household.getMembers().add(member);
   }
 
+  /**
+   * Creates items for household one.
+   *
+   * @return List of created items
+   */
   private List<Item> createItemsForHouseholdOne() {
     Date now = new Date();
     Calendar cal = Calendar.getInstance();
@@ -216,6 +291,11 @@ public class DataSeeder implements CommandLineRunner {
     return itemRepo.saveAll(items);
   }
 
+  /**
+   * Creates items for household two.
+   *
+   * @return List of created items
+   */
   private List<Item> createItemsForHouseholdTwo() {
     Date now = new Date();
     Calendar cal = Calendar.getInstance();
@@ -236,6 +316,11 @@ public class DataSeeder implements CommandLineRunner {
     return itemRepo.saveAll(items);
   }
 
+  /**
+   * Creates items for household three.
+   *
+   * @return List of created items
+   */
   private List<Item> createItemsForHouseholdThree() {
     Date now = new Date();
     Calendar cal = Calendar.getInstance();
@@ -256,6 +341,11 @@ public class DataSeeder implements CommandLineRunner {
     return itemRepo.saveAll(items);
   }
 
+  /**
+   * Creates items for household four.
+   *
+   * @return List of created items
+   */
   private List<Item> createItemsForHouseholdFour() {
     Date now = new Date();
     Calendar cal = Calendar.getInstance();
@@ -286,6 +376,14 @@ public class DataSeeder implements CommandLineRunner {
     return itemRepo.saveAll(items);
   }
 
+  /**
+   * Gets a future date by adding the specified amount to the given field.
+   *
+   * @param cal    The calendar instance
+   * @param field  The field to add to (e.g., Calendar.MONTH)
+   * @param amount The amount to add
+   * @return The future date
+   */
   private Date getFutureDate(Calendar cal, int field, int amount) {
     cal.add(field, amount);
     Date futureDate = cal.getTime();
@@ -293,6 +391,10 @@ public class DataSeeder implements CommandLineRunner {
     return futureDate;
   }
 
+  /**
+   * Seeds the database with emergency services and their types.
+   * This method is called during the application startup.
+   */
   public void seedEmergencyServicesWithTypes() {
     Type shelter = typeRepo.findByName("Shelter").orElseGet(() -> typeRepo.save(new Type("Shelter")));
     Type hospital = typeRepo.findByName("Hospital").orElseGet(() -> typeRepo.save(new Type("Hospital")));
