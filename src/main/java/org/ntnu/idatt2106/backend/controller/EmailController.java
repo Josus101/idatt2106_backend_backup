@@ -56,7 +56,7 @@ public class EmailController {
   /**
    * Endpoint for sending a password reset email to a user.
    *
-   * @param userId the ID of the user to send the password reset email to
+   * @param email the ID of the user to send the password reset email to
    * @return a response entity indicating the result of the operation
    */
   @Operation(
