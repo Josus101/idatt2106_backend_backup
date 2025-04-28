@@ -23,10 +23,10 @@ public class ItemCreateRequest {
   private String name;
   @Schema(description = "Amount of the item", example = "10.0")
   private double amount;
-  @Schema(description = "The category id of the item", example = "1")
-  private int categoryId;
   @Schema(description = "The unit id of the item", example = "3")
     private int unitId;
+  @Schema(description = "The category id of the item", example = "1")
+  private int categoryId;
   @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
   @Schema(description = "Expiration date of the item", example = "2025-04-25")
   private Date expirationDate;

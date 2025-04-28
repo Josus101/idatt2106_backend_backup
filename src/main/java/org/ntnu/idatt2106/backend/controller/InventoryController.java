@@ -15,6 +15,7 @@ import org.ntnu.idatt2106.backend.service.CategoryService;
 import org.ntnu.idatt2106.backend.service.ItemService;
 import org.ntnu.idatt2106.backend.service.UnitService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -94,6 +95,7 @@ public class InventoryController {
           example = "1") @PathVariable int id) {
     try {
       return ResponseEntity.ok(itemService.getItemById(id));
+
     } catch (EntityNotFoundException e) {
       return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: " + e.getMessage());
     }
@@ -111,7 +113,7 @@ public class InventoryController {
   )
   @ApiResponses(value = {
           @ApiResponse(
-                  responseCode = "200",
+                  responseCode = "201",
                   description = "Item added successfully",
                   content = @Content(
                           schema = @Schema(example = "Item added successfully")
@@ -134,10 +136,9 @@ public class InventoryController {
   })
   public ResponseEntity<?> addItem(@RequestBody ItemCreateRequest itemCreateRequest) {
     try {
-      itemService.addItem(itemCreateRequest);
-      return ResponseEntity.ok("Item added successfully");
+      return ResponseEntity.status(HttpStatus.CREATED).body(itemService.addItem(itemCreateRequest));
 
-    } catch (IllegalArgumentException e) {
+    } catch (EntityNotFoundException e) {
       return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: " + e.getMessage());
     }
   }
@@ -177,14 +178,13 @@ public class InventoryController {
   })
   public ResponseEntity<?> updateItem(@RequestBody ItemGenericDTO itemData) {
     try {
-      itemService.updateItem(itemData);
-      return ResponseEntity.ok("Item updated successfully");
+      return ResponseEntity.status(HttpStatus.OK).body(itemService.updateItem(itemData));
 
     } catch (EntityNotFoundException e) {
-      return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Item not found");
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: " + e.getMessage());
 
     } catch (IllegalArgumentException e) {
-      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid item data");
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: " + e.getMessage());
     }
   }
 
@@ -214,7 +214,7 @@ public class InventoryController {
                   )
           )
   })
-  public ResponseEntity<?> deleteItem(
+  public ResponseEntity<String> deleteItem(
           @Parameter(
                   description = "The id of the item to be deleted",
                   example = "1") @PathVariable int id
@@ -268,74 +268,6 @@ public class InventoryController {
       return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: " + e.getMessage());
     }
   }
-
-  /**
-   * Endpoint for retrieving all categories.
-   * @return a response entity containing the list of categories
-   */
-  @GetMapping("/categories")
-  @Operation(
-          summary = "Get all categories",
-          description = "Endpoint for retrieving all categories"
-  )
-  @ApiResponses(value = {
-          @ApiResponse(
-                  responseCode = "200",
-                  description = "Categories retrieved successfully",
-                  content = @Content(
-                          schema = @Schema(implementation = ItemGenericDTO.class)
-                  )
-          ),
-          @ApiResponse(
-                  responseCode = "404",
-                  description = "No categories found",
-                  content = @Content(
-                          schema = @Schema(example = "Error: No categories found")
-                  )
-          )
-  })
-  public ResponseEntity<?> getCategories() {
-    List<CategoryGetResponse> categories = categoryService.getAllCategories();
-    if (categories.isEmpty()) {
-      return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No categories found.");
-    }
-    return ResponseEntity.ok(categories);
-  }
-
-  /**
-   * Endpoint for retrieving all units of measurement.
-   * @return a response entity containing the list of units
-   */
-  @GetMapping("/units")
-  @Operation(
-          summary = "Get all units",
-          description = "Endpoint for retrieving all units of measurement"
-  )
-  @ApiResponses(value = {
-          @ApiResponse(
-                  responseCode = "200",
-                  description = "Units retrieved successfully",
-                  content = @Content(
-                          schema = @Schema(implementation = UnitGetResponse.class)
-                  )
-          ),
-          @ApiResponse(
-                  responseCode = "404",
-                  description = "No units found",
-                  content = @Content(
-                          schema = @Schema(example = "Error: No units found")
-                  )
-          )
-  })
-  public ResponseEntity<?> getUnits() {
-    List<UnitGetResponse> units = unitService.getAllUnits();
-    if (units.isEmpty()) {
-      return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No units found.");
-    }
-    return ResponseEntity.ok(units);
-  }
-
-
 
   // TODO: Maybe move to household controller
   /**

@@ -47,5 +47,17 @@ public class Category {
     this.kcalPerUnit = kcalPerUnit;
     this.isEssential = isEssential;
   }
+
+  /**
+   * Constructor for the Category model
+   * @param name of the category
+   * @param kcalPerUnit of the category (nullable)
+   * @param isEssential whether the category is essential
+   */
+  public Category(String name, Integer kcalPerUnit, Boolean isEssential) { // Changed int to Integer
+    this.name = name;
+    this.kcalPerUnit = kcalPerUnit;
+    this.isEssential = isEssential;
+  }
 }
 

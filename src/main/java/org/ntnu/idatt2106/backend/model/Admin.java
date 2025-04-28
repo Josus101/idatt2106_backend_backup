@@ -46,6 +46,10 @@ public class Admin {
     this.isSuperUser = isSuperUser;
   }
 
+  /**
+   * Get the id of the admin as a string.
+   * @return the id of the admin as a string
+   */
   public String getStringId() {
     return String.valueOf(id);
   }

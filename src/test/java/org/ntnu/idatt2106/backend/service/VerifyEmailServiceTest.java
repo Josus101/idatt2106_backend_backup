@@ -7,6 +7,7 @@ import org.mockito.*;
 import org.ntnu.idatt2106.backend.exceptions.TokenExpiredException;
 import org.ntnu.idatt2106.backend.exceptions.UserNotFoundException;
 import org.ntnu.idatt2106.backend.model.EmailVerifyToken;
+import org.ntnu.idatt2106.backend.model.ResetPasswordToken;
 import org.ntnu.idatt2106.backend.model.User;
 import org.ntnu.idatt2106.backend.repo.EmailVerificationTokenRepo;
 import org.ntnu.idatt2106.backend.repo.UserRepo;
@@ -100,5 +101,20 @@ class VerifyEmailServiceTest {
     });
 
     verify(loginService, never()).verifyEmail(any());
+  }
+
+  @Test
+  @DisplayName("Should throw UserNotFoundException when user is null")
+  void testVerifyEmailWhenUserNull() {
+    String token = "valid-token";
+    String newPassword = "newPassword123";
+
+    EmailVerifyToken mockToken = mock(EmailVerifyToken.class);
+    when(mockToken.getExpirationDate()).thenReturn(new Date(System.currentTimeMillis() + 10000)); // not expired
+    when(mockToken.getUser()).thenReturn(null); // simulate missing user
+
+    when(emailVerificationTokenRepo.findByToken(token)).thenReturn(Optional.of(mockToken));
+
+    assertThrows(UserNotFoundException.class, () -> verifyEmailService.verifyEmail(token));
   }
 }
