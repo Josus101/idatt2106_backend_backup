@@ -4,7 +4,6 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import java.io.Console;
 import org.ntnu.idatt2106.backend.dto.user.UserLoginRequest;
 import org.ntnu.idatt2106.backend.dto.user.UserRegisterRequest;
 import org.ntnu.idatt2106.backend.dto.user.UserTokenResponse;
@@ -148,7 +147,7 @@ public class UserController {
    * @param newPassword the new password for the user
    * @return a response entity indicating the result of the operation
    */
-  @GetMapping("/reset-password/{token}")
+  @PutMapping("/reset-password/{token}")
   @Operation(
       summary = "Reset password",
       description = "Resets the password for the user with the given token"
