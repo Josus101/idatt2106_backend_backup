@@ -66,7 +66,7 @@ public class UserController {
           )
       ),
       @ApiResponse(
-          responseCode = "409",
+          responseCode = "400",
           description = "Email already in use",
           content = @Content(
               schema = @Schema(example = "Email already in use")
@@ -82,7 +82,7 @@ public class UserController {
     catch (IllegalArgumentException e) {
       return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid user data");
     } catch (AlreadyInUseException e) {
-      return ResponseEntity.status(HttpStatus.IM_USED).body("Email already in use");
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Email already in use");
     } catch (MailSendingFailedException e) {
       System.out.println("Failed to send verification email. Either mail is invalid, or you're "
           + "missing .env file " + e.getMessage());
