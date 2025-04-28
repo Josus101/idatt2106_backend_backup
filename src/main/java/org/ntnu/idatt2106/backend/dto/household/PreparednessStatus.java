@@ -5,6 +5,12 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * Data Transfer Object representing the preparedness level of a household.
+ * This class is used to transfer preparedness data between the client and server.
+ * @Author Erlend Eide Zindel
+ * @since 0.1
+ */
 @AllArgsConstructor
 @Getter
 @Setter

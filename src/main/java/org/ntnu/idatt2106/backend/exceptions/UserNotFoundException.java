@@ -7,6 +7,11 @@ package org.ntnu.idatt2106.backend.exceptions;
  * @since 0.1
  */
 public class UserNotFoundException extends RuntimeException {
+
+    /**
+     * Constructor for UserNotFoundException.
+     * @param message The message to be displayed when the exception is thrown.
+     */
     public UserNotFoundException(String message) {
         super(message);
     }
