@@ -50,6 +50,7 @@ public class EmergencyService {
    * @param description of the emergencyService
    * @param latitude of the emergencyService
    * @param longitude of the emergencyService
+   * @param localID of the emergencyService
    * @param type of the emergencyService
    */
   public EmergencyService(String name, String description, Double latitude, Double longitude, String localID, Type type) {
