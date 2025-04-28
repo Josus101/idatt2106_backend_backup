@@ -86,14 +86,14 @@ public class DataSeeder implements CommandLineRunner {
     seedHouseholdThree();
     seedHouseholdFour();
     seedEmergencyServicesWithTypes();
-    System.out.println("\nSeeding complete.\n");
+    System.out.println("\nSeeding complete.\nZ");
   }
 
   /**
    * Seeds the database with categories and units.
    * This method is called during the application startup.
    */
-  private void seedCategoriesAndUnits() {
+  public void seedCategoriesAndUnits() {
     if (categoryRepo.count() == 0) {
       List<Category> categories = List.of(
           new Category("Water", 0, true),
@@ -142,7 +142,7 @@ public class DataSeeder implements CommandLineRunner {
    * Seeds the database with household data.
    * This method is called during the application startup.
    */
-  private void seedHouseholdOne() {
+  public void seedHouseholdOne() {
     User testUser = createVerifiedUser("test@example.com", "test123", "Test", "Bruker", "12345678");
     User albert = createVerifiedUser("albert@example.com", "password123", "Albert", "Zindel", "98765432");
     Household household = createHousehold("Test Household", 59.9139, 10.7522);
@@ -159,7 +159,7 @@ public class DataSeeder implements CommandLineRunner {
    * Seeds the database with household data.
    * This method is called during the application startup.
    */
-  private void seedHouseholdTwo() {
+  public void seedHouseholdTwo() {
     User krekar = createVerifiedUser("krekar@gmail.com", "test123", "Krekar", "Design", "11111111");
 
     Household household = createHousehold("Krekar's Household", 60.3913, 5.3221);
@@ -174,9 +174,9 @@ public class DataSeeder implements CommandLineRunner {
    * Seeds the database with household data.
    * This method is called during the application startup.
    */
-  private void seedHouseholdThree() {
+  public void seedHouseholdThree() {
     User kalle = createVerifiedUser("kalle@gmail.com", "test123", "Kalle", "Kontainer", "2222222");
-
+    System.out.println(kalle);
     Household household = createHousehold("Kalle's Container", 58.9690, 5.7331);
     addHouseholdMember(household, kalle, true);
 
@@ -189,7 +189,7 @@ public class DataSeeder implements CommandLineRunner {
    * Seeds the database with household data.
    * This method is called during the application startup.
    */
-  private void seedHouseholdFour() {
+  public void seedHouseholdFour() {
     User kare = createVerifiedUser("kare@gmail.com", "test123", "Kåre", "Kakkelovn", "33333333");
 
     Household household = createHousehold("Kåre's Fireplace", 59.9139, 10.7522);
@@ -210,7 +210,7 @@ public class DataSeeder implements CommandLineRunner {
    * @param phoneNumber The phone number of the user
    * @return The created and verified user
    */
-  private User createVerifiedUser(String email, String password, String firstName, String lastName, String phoneNumber) {
+  public User createVerifiedUser(String email, String password, String firstName, String lastName, String phoneNumber) {
     User user = new User(
         email,
         hasher.hashPassword(password),
@@ -219,7 +219,8 @@ public class DataSeeder implements CommandLineRunner {
         phoneNumber
     );
     loginService.verifyEmail(user);
-    return userRepo.save(user);
+    userRepo.save(user);
+    return user;
   }
 
   /**
@@ -230,14 +231,15 @@ public class DataSeeder implements CommandLineRunner {
    * @param longitude The longitude of the household
    * @return The created household
    */
-  private Household createHousehold(String name, double latitude, double longitude) {
+  public Household createHousehold(String name, double latitude, double longitude) {
     Household household = new Household();
     household.setName(name);
     household.setLatitude(latitude);
     household.setLongitude(longitude);
     household.setMembers(new ArrayList<>());
     household.setInventory(new ArrayList<>());
-    return householdRepo.save(household);
+    householdRepo.save(household);
+    return household;
   }
 
   /**
@@ -247,10 +249,18 @@ public class DataSeeder implements CommandLineRunner {
    * @param user      The user to add as a member
    * @param isAdmin   Whether the user is an admin
    */
-  private void addHouseholdMember(Household household, User user, boolean isAdmin) {
+  public void addHouseholdMember(Household household, User user, boolean isAdmin) {
+    if (user == null) {
+      throw new IllegalArgumentException("User cannot be null");
+    } else if (household == null) {
+      throw new IllegalArgumentException("Household cannot be null");
+    }
     HouseholdMembers member = new HouseholdMembers(user, household, isAdmin);
-    householdMembersRepo.save(member);
+    if (household.getMembers() == null) {
+      household.setMembers(new ArrayList<>());
+    }
     household.getMembers().add(member);
+    householdMembersRepo.save(member);
   }
 
   /**
@@ -258,7 +268,7 @@ public class DataSeeder implements CommandLineRunner {
    *
    * @return List of created items
    */
-  private List<Item> createItemsForHouseholdOne() {
+  public List<Item> createItemsForHouseholdOne() {
     Date now = new Date();
     Calendar cal = Calendar.getInstance();
     cal.setTime(now);
@@ -296,7 +306,7 @@ public class DataSeeder implements CommandLineRunner {
    *
    * @return List of created items
    */
-  private List<Item> createItemsForHouseholdTwo() {
+  public List<Item> createItemsForHouseholdTwo() {
     Date now = new Date();
     Calendar cal = Calendar.getInstance();
     cal.setTime(now);
@@ -321,7 +331,7 @@ public class DataSeeder implements CommandLineRunner {
    *
    * @return List of created items
    */
-  private List<Item> createItemsForHouseholdThree() {
+  public List<Item> createItemsForHouseholdThree() {
     Date now = new Date();
     Calendar cal = Calendar.getInstance();
     cal.setTime(now);
@@ -346,7 +356,7 @@ public class DataSeeder implements CommandLineRunner {
    *
    * @return List of created items
    */
-  private List<Item> createItemsForHouseholdFour() {
+  public List<Item> createItemsForHouseholdFour() {
     Date now = new Date();
     Calendar cal = Calendar.getInstance();
     cal.setTime(now);
@@ -384,7 +394,7 @@ public class DataSeeder implements CommandLineRunner {
    * @param amount The amount to add
    * @return The future date
    */
-  private Date getFutureDate(Calendar cal, int field, int amount) {
+  public Date getFutureDate(Calendar cal, int field, int amount) {
     cal.add(field, amount);
     Date futureDate = cal.getTime();
     cal.add(field, -amount);
