@@ -174,7 +174,7 @@ public class UserController {
    * @param token the token for email verification
    * @return a response entity indicating the result of the operation
    */
-  @GetMapping("/verify/{token}")
+  @PutMapping("/verify/{token}")
   @Operation(
       summary = "Verify email",
       description = "Verifies the email for the user with the given token"
@@ -190,16 +190,26 @@ public class UserController {
           content = @Content(
               schema = @Schema(implementation = String.class)
           )
+      ),
+      @ApiResponse(
+          responseCode = "400",
+          description = "Invalid token",
+          content = @Content(
+              schema = @Schema(implementation = String.class)
+          )
       )
   })
   public ResponseEntity<String> verifyEmail(
       @PathVariable String token) {
     try {
       verifyEmailService.verifyEmail(token);
+      System.out.println("Email verified successfully");
       return ResponseEntity.ok("Email verified successfully");
     } catch (UserNotFoundException e) {
+      System.out.println("User not found with given token");
       return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found with given token");
     } catch (IllegalArgumentException e) {
+      System.out.println("Invalid token");
       return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid token");
     }
   }

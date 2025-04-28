@@ -45,8 +45,7 @@ public class EmailService {
   @Value("${mail.from}")
   private String fromEmail;
 
-  //TODO change this to front end url when front end supports this
-  private static final String BASE_URL = "http://localhost:8080/";
+  private static final String BASE_URL = "http://localhost:5173/";
 
   /**
    * Sends an email verification link to the user.
@@ -61,7 +60,7 @@ public class EmailService {
     }
     String token = generateEmailVerifyToken(user);
     String encodedToken = URLEncoder.encode(token, StandardCharsets.UTF_8);
-    String verificationUrl = BASE_URL + "api/users/verify/" + encodedToken;
+    String verificationUrl = BASE_URL + "email-verification/" + encodedToken;
 
     String htmlContent = buildEmailTemplate(
         "Verify Your Email Address",
