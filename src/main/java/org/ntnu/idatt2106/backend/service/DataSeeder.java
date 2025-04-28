@@ -15,6 +15,9 @@ import java.util.Date;
 /**
  * DataSeeder is a component that seeds the database with initial data.
  * It implements CommandLineRunner to run the seed method after the application starts.
+ *
+ * @Author Konrad Seime
+ * @since 0.1
  */
 @Component
 public class DataSeeder implements CommandLineRunner {
