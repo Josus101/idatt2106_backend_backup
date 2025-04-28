@@ -78,9 +78,9 @@ class EmailControllerTest {
   @Test
   @DisplayName("Should return 200 when reset password email is sent successfully")
   void shouldSendResetPasswordEmail() throws Exception {
-    when(userRepo.findById(1)).thenReturn(Optional.of(testUser));
+    when(userRepo.findByEmail("")).thenReturn(Optional.of(testUser));
 
-    ResponseEntity<String> response = emailController.sendResetPassword(1);
+    ResponseEntity<String> response = emailController.sendResetPassword("");
 
     assertEquals(200, response.getStatusCode().value());
     assertEquals("Reset password email sent.", response.getBody());
@@ -90,9 +90,9 @@ class EmailControllerTest {
   @Test
   @DisplayName("Should return 404 when user not found for password reset")
   void shouldReturnNotFoundForResetPassword() throws MessagingException {
-    when(userRepo.findById(1)).thenReturn(Optional.empty());
+    when(userRepo.findByEmail("")).thenReturn(Optional.empty());
 
-    ResponseEntity<String> response = emailController.sendResetPassword(1);
+    ResponseEntity<String> response = emailController.sendResetPassword("");
 
     assertEquals(404, response.getStatusCode().value());
     verify(emailService, never()).sendResetPasswordEmail(any());
@@ -124,7 +124,7 @@ class EmailControllerTest {
   @Test
   @DisplayName("Should throw RuntimeException when MessagingException occurs in test email")
   void shouldThrowRuntimeExceptionForMessagingExceptionInTest() throws MessagingException {
-    when(userRepo.findById(1)).thenReturn(Optional.of(testUser));
+    when(userRepo.findByEmail("")).thenReturn(Optional.of(testUser));
     doThrow(new MessagingException("Failed to send")).when(emailService).
         sendTestEmail(testUser.getEmail(), "Test Email",
             "This is a test email from EmailService.");
@@ -141,11 +141,11 @@ class EmailControllerTest {
   @Test
   @DisplayName("Should throw RuntimeException when MessagingException occurs in reset password email")
   void shouldThrowRuntimeExceptionForResetPasswordMessagingException() throws Exception {
-    when(userRepo.findById(1)).thenReturn(Optional.of(testUser));
+    when(userRepo.findByEmail("")).thenReturn(Optional.of(testUser));
     doThrow(new MessagingException("Failed to send")).when(emailService).sendResetPasswordEmail(testUser);
 
     RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-      emailController.sendResetPassword(1);
+      emailController.sendResetPassword("");
     });
 
     assertEquals("jakarta.mail.MessagingException: Failed to send", exception.getMessage());

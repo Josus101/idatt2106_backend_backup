@@ -44,6 +44,9 @@ public class HouseholdMembers {
    * @param isAdmin flag to set a member as the household creator/admin
    */
   public HouseholdMembers(User user, Household household, boolean isAdmin) {
+    if (user == null || household == null) {
+      throw new IllegalArgumentException("User or Household cannot be null");
+    }
     this.user = user;
     this.household = household;
     this.id = new HouseholdMembersId(user.getId(), household.getId());
