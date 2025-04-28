@@ -46,11 +46,15 @@ public class VerifyEmailService {
    * @param token The token to verify the email address.
    */
   public void verifyEmail(String token) {
-    User user = findUserByToken(token);
-    if (user != null) {
-      loginService.verifyEmail(user);
-    } else {
-      throw new UserNotFoundException("User not found");
+    try {
+      User user = findUserByToken(token);
+      if (user != null) {
+        loginService.verifyEmail(user);
+      } else {
+        throw new UserNotFoundException("User not found");
+      }
+    } catch (TokenExpiredException e) {
+      throw new TokenExpiredException("Token expired");
     }
   }
 }

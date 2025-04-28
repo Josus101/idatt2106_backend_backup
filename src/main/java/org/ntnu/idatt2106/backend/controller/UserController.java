@@ -9,6 +9,7 @@ import org.ntnu.idatt2106.backend.dto.user.UserRegisterRequest;
 import org.ntnu.idatt2106.backend.dto.user.UserTokenResponse;
 import org.ntnu.idatt2106.backend.exceptions.AlreadyInUseException;
 import org.ntnu.idatt2106.backend.exceptions.MailSendingFailedException;
+import org.ntnu.idatt2106.backend.exceptions.TokenExpiredException;
 import org.ntnu.idatt2106.backend.exceptions.UserNotFoundException;
 import org.ntnu.idatt2106.backend.service.LoginService;
 import org.ntnu.idatt2106.backend.service.ResetPasswordService;
@@ -141,12 +142,6 @@ public class UserController {
     return ResponseEntity.ok(token);
   }
 
-  /**
-   * Endpoint for resetting the password of a user.
-   * @param token the token for password reset
-   * @param newPassword the new password for the user
-   * @return a response entity indicating the result of the operation
-   */
   @PutMapping("/reset-password/{token}")
   @Operation(
       summary = "Reset password",
@@ -158,25 +153,41 @@ public class UserController {
           description = "Password reset successfully"
       ),
       @ApiResponse(
+          responseCode = "400",
+          description = "Invalid password or token",
+          content = @Content(schema = @Schema(implementation = String.class))
+      ),
+      @ApiResponse(
           responseCode = "404",
           description = "User not found with given token",
-          content = @Content(
-              schema = @Schema(implementation = String.class)
-          )
+          content = @Content(schema = @Schema(implementation = String.class))
+      ),
+      @ApiResponse(
+          responseCode = "500",
+          description = "Internal server error",
+          content = @Content(schema = @Schema(implementation = String.class))
       )
   })
   public ResponseEntity<String> resetPassword(
       @PathVariable String token,
-      @RequestParam String newPassword) {
+      @RequestBody String password) {
+
     try {
-      resetPasswordService.resetPassword(token, newPassword);
+      resetPasswordService.resetPassword(token, password);
       return ResponseEntity.ok("Password reset successfully");
     } catch (UserNotFoundException e) {
-      return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found with given token");
+      return ResponseEntity.status(HttpStatus.NOT_FOUND)
+          .body("User not found with given token");
     } catch (IllegalArgumentException e) {
-      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid password");
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+          .body(e.getMessage());
+    } catch (Exception e) {
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+          .body("An unexpected error occurred during password reset");
     }
   }
+
+
 
   /**
    * Endpoint for verifying the email of a user.
@@ -220,6 +231,12 @@ public class UserController {
     } catch (IllegalArgumentException e) {
       System.out.println("Invalid token");
       return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid token");
+    } catch (TokenExpiredException e) {
+      System.out.println("Token expired");
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Token expired");
+    } catch (Exception e) {
+      System.out.println("An error occurred during email verification: " + e.getMessage());
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred during email verification");
     }
   }
 }

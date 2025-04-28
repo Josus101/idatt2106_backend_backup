@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.*;
 import org.ntnu.idatt2106.backend.dto.user.UserRegisterRequest;
 import org.ntnu.idatt2106.backend.dto.user.UserTokenResponse;
+import org.ntnu.idatt2106.backend.exceptions.AlreadyInUseException;
 import org.ntnu.idatt2106.backend.exceptions.TokenExpiredException;
 import org.ntnu.idatt2106.backend.exceptions.UserNotFoundException;
 import org.ntnu.idatt2106.backend.model.User;
@@ -106,7 +107,8 @@ public class LoginServiceTest {
   void testAuthenticateSuccess() {
     when(userRepo.findByEmail("test@example.com")).thenReturn(Optional.of(testUser));
     when(jwt.generateJwtToken((User) any())).thenReturn(new UserTokenResponse("token", System.currentTimeMillis()));
-
+    testUser.setVerified(true);
+    when(hasher.checkPassword("securePassword", testUser.getPassword())).thenReturn(true);
     UserTokenResponse token = loginService.authenticate("test@example.com", "securePassword");
 
     assertNotNull(token);
@@ -177,7 +179,7 @@ public class LoginServiceTest {
   @DisplayName("Should fail authentication with wrong password")
   void testAuthenticateWrongPassword() {
     when(userRepo.findByEmail("test@example.com")).thenReturn(Optional.of(testUser));
-
+    testUser.setVerified(true);
     assertThrows(IllegalArgumentException.class, () -> {
       loginService.authenticate("test@example.com", "wrongPassword");
     });
@@ -205,7 +207,7 @@ public class LoginServiceTest {
 
     when(userRepo.findByEmail(dto.getEmail())).thenReturn(Optional.of(testUser));
 
-    assertThrows(IllegalArgumentException.class, () -> loginService.register(dto));
+    assertThrows(AlreadyInUseException.class, () -> loginService.register(dto));
   }
 
   @Test
@@ -216,7 +218,7 @@ public class LoginServiceTest {
     when(userRepo.findByEmail(dto.getEmail())).thenReturn(Optional.empty());
     when(userRepo.findByPhoneNumber(dto.getPhoneNumber())).thenReturn(Optional.of(testUser));
 
-    assertThrows(IllegalArgumentException.class, () -> loginService.register(dto));
+    assertThrows(AlreadyInUseException.class, () -> loginService.register(dto));
   }
 
   @Test

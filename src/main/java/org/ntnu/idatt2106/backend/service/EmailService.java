@@ -83,7 +83,7 @@ public class EmailService {
   public void sendResetPasswordEmail(User user) throws MessagingException {
     String token = generateResetPasswordToken(user);
     String encodedToken = URLEncoder.encode(token, StandardCharsets.UTF_8);
-    String resetUrl = BASE_URL + "api/users/reset-password/" + encodedToken;
+    String resetUrl = BASE_URL + "password-reset/" + encodedToken;
 
     String htmlContent = buildEmailTemplate(
         "Reset Your Password",

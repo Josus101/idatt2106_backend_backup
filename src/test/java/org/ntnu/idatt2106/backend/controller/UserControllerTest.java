@@ -7,6 +7,7 @@ import org.mockito.*;
 import org.ntnu.idatt2106.backend.dto.user.UserLoginRequest;
 import org.ntnu.idatt2106.backend.dto.user.UserRegisterRequest;
 import org.ntnu.idatt2106.backend.dto.user.UserTokenResponse;
+import org.ntnu.idatt2106.backend.exceptions.AlreadyInUseException;
 import org.ntnu.idatt2106.backend.exceptions.UserNotFoundException;
 import org.ntnu.idatt2106.backend.service.LoginService;
 import org.ntnu.idatt2106.backend.service.ResetPasswordService;
@@ -63,6 +64,32 @@ class UserControllerTest {
 
     assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     assertEquals("Invalid user data", response.getBody());
+  }
+
+  @Test
+  @DisplayName("Test register method returns IM_Used with already used email")
+  void testImUsedWithUsedEmail() {
+    UserRegisterRequest invalidUser = new UserRegisterRequest("taken-email", "password123", "John", "Doe", "123");
+
+    doThrow(new AlreadyInUseException("Invalid user data")).when(loginService).register(invalidUser);
+
+    ResponseEntity<String> response = userController.registerUser(invalidUser);
+
+    assertEquals(HttpStatus.IM_USED, response.getStatusCode());
+    assertEquals("Email already in use", response.getBody());
+  }
+
+  @Test
+  @DisplayName("Test register method returns IM_Used with already used phone number")
+  void testImUsedWithUsedNumber() {
+    UserRegisterRequest invalidUser = new UserRegisterRequest("email", "password123", "John", "Doe", "taken");
+
+    doThrow(new AlreadyInUseException("Invalid user data")).when(loginService).register(invalidUser);
+
+    ResponseEntity<String> response = userController.registerUser(invalidUser);
+
+    assertEquals(HttpStatus.IM_USED, response.getStatusCode());
+    assertEquals("Email already in use", response.getBody());
   }
 
   @Test
