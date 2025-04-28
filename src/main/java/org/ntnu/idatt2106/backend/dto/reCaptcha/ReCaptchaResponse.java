@@ -7,30 +7,24 @@ import lombok.Setter;
 
 import java.util.List;
 
+/**
+ * Data Transfer Object for the response from Google's reCAPTCHA verification.
+ * This class contains the fields returned by Google after verifying the reCAPTCHA response.
+ * @Author Jonas Reiher
+ * @since 0.1
+ */
 @AllArgsConstructor
 @Getter
 @Setter
 @Schema(description = "Response object for Google's reCAPTCHA verification.")
 public class ReCaptchaResponse {
 
-  @Schema(
-          description = "True if the CAPTCHA was successfully validated by Google.",
-          example = "true"
-  )
+  @Schema(description = "True if the CAPTCHA was successfully validated by Google.", example = "true")
   private boolean success;
-
-  @Schema(
-          description = "Timestamp of the challenge load (in ISO 8601 format).",
-          example = "2025-04-23T12:34:56Z"
-  )
+  @Schema(description = "Timestamp of the challenge load (in ISO 8601 format).", example = "2025-04-23T12:34:56Z")
   private String challenge_ts;
-
-  @Schema(
-          description = "The hostname of the site where the reCAPTCHA was solved.",
-          example = "yourdomain.com"
-  )
+  @Schema(description = "The hostname of the site where the reCAPTCHA was solved.", example = "yourdomain.com")
   private String hostname;
-
   @Schema(
           description = "Optional list of error codes if the CAPTCHA validation fails. " +
                   "Possible values include:\n" +
@@ -41,6 +35,5 @@ public class ReCaptchaResponse {
                   "- bad-request: The request is invalid or malformed.\n" +
                   "- timeout-or-duplicate: The response is no longer valid: either is too old or has been used previously.",
           example = "[\"invalid-input-response\"]"
-  )
-  private List<String> errorCodes;
+  ) private List<String> errorCodes;
 }

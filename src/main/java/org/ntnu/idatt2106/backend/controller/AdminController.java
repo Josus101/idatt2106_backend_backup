@@ -33,6 +33,13 @@ public class AdminController {
   @Autowired
   private AdminService adminService;
 
+
+  /**
+   * Endpoint for creating a new admin user.
+   * @param admin the admin user to be created
+   * @param authorizationHeader the authorization header containing the JWT token
+   * @return a response entity containing the result of the operation
+   */
   @PostMapping("/createAdmin")
   @Operation(
       summary = "Create a new admin user",
@@ -77,6 +84,12 @@ public class AdminController {
     return ResponseEntity.ok(true);
   }
 
+  /**
+   * Endpoint for elevating an admin user to a superuser.
+   * @param id the ID of the admin user to be elevated
+   * @param authorizationHeader the authorization header containing the JWT token
+   * @return a response entity containing the result of the operation
+   */
   @PostMapping("/elevate/{id}")
   @Operation(
       summary = "Elevates an admin user to a superuseer",
@@ -122,6 +135,11 @@ public class AdminController {
     return ResponseEntity.ok(true);
   }
 
+  /**
+   * Endpoint for logging in an admin user.
+   * @param adminLogin the login request containing the username and password
+   * @return a response entity containing the JWT token if successful
+   */
   @PostMapping("/login")
   @Operation(
       summary = "Admin login",
@@ -162,6 +180,12 @@ public class AdminController {
     }
   }
 
+  /**
+   * Endpoint for deleting an admin user.
+   * @param id the ID of the admin user to be deleted
+   * @param authorizationHeader the authorization header containing the JWT token
+   * @return a response entity containing the result of the operation
+   */
   @PostMapping("/delete/{id}")
   @Operation(
       summary = "Delete an admin user",

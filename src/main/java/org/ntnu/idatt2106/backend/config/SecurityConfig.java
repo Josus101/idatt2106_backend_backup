@@ -42,7 +42,8 @@ public class SecurityConfig {
                 "/api/email/reset-password/**",
                 "/api/users/reset-password/**",
                 "/api/users/verify/**",
-                "/api/households/**")
+                "/api/households/**",
+                "/api/emergency/items/**") // TODO: ONLY FOR TESTING REMOVE LATER
             .permitAll()
             .anyRequest().permitAll() //TODO: switch to authenticated users only
         );

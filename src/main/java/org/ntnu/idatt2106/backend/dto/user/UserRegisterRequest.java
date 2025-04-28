@@ -6,8 +6,10 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * Data Transfer Object used for registering a new user.
- * Contains essential user information like email, password, and contact details.
+ * Data Transfer Object used for user registration.
+ * Contains essential user information like email, password, first name, last name, and phone number.
+ * @Author Konrad Seime
+ * @since 0.1
  */
 @AllArgsConstructor
 @Getter
