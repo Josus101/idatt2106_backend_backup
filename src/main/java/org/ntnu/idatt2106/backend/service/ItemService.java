@@ -17,6 +17,10 @@ import java.util.List;
 /**
  * Service class for handling item-related operations.
  * This class is responsible for the business logic related to items.
+ *
+ * @author Jonas Reiher
+ * @since 0.1
+ * @version 0.1
  */
 @Service
 public class ItemService {

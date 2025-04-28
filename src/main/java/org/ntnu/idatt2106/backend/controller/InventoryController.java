@@ -230,11 +230,11 @@ public class InventoryController {
   }
 
   /**
-   * Endpoint for retrieving a category by its ID
+   * Endpoint for retrieving all items associated with a category.
    * @param id the ID of the category
-   * @return a response entity containing the list of items
+   * @return a response entity containing the list of items associated with the category
    */
-  @GetMapping("/category/{id}")
+  @GetMapping("/categories/{id}")
   @Operation(
           summary = "Get all items associated with a category",
           description = "Endpoint for retrieving all items associated with a category"

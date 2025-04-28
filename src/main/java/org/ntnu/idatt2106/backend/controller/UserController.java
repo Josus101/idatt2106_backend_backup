@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.*;
  *
  * @version 1.0
  * @since 1.0
- * @Author Jonas Reiher
+ * @Author Konrad Seime
  */
 @RestController
 @RequestMapping("/api/users")
