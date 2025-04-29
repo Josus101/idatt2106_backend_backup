@@ -38,15 +38,14 @@ public class PreparednessService {
             return new PreparednessStatus(0, true, "Ingen medlemmer i husstanden");
         }
 
-        // Krav for 3 og 7 dager
+        // Krav
         double kcal3 = numPeople * 3 * 2000;
         double kcal7 = numPeople * 7 * 2000;
         double water3 = numPeople * 3 * 3;
         double water7 = numPeople * 7 * 3;
 
-        double totalKcal = 0;
         double totalWater = 0;
-        Set<String> essentials = new HashSet<>();
+        double totalKcal = 0;
 
         Date today = Date.from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant());
 
@@ -56,35 +55,31 @@ public class PreparednessService {
             Category category = item.getCategory();
             double amount = item.getAmount();
             String unit = item.getUnit().getName().toLowerCase();
+            String catName = category.getName().toLowerCase();
 
-            if (category.getName().equalsIgnoreCase("vann") && unit.equals("l")) {
+            // Beregn vann
+            if ((catName.equals("vann") || catName.equals("water")) && unit.equals("l")) {
                 totalWater += amount;
                 continue;
             }
 
+            // Beregn kalorier (hvis tilgjengelig)
             if (category.getKcalPerUnit() != null) {
                 totalKcal += amount * category.getKcalPerUnit();
             }
-
-            if (Boolean.TRUE.equals(category.getIsEssential())) {
-                essentials.add(category.getName());
-            }
         }
 
-        boolean hasEssentials = essentials.containsAll(List.of("Førstehjelp", "Gassbrenner"));
-
-        // Beregn dekning i prosent (mot 7-dagers krav)
+        // Prosentvis dekning for mat og vann (mot 7-dagers krav)
         double kcalPercent = (totalKcal / kcal7) * 100;
         double waterPercent = (totalWater / water7) * 100;
 
-        // Samlet dekning (laveste verdi styrer)
         double preparednessPercent = Math.min(100.0, Math.min(kcalPercent, waterPercent));
 
         // Vurder nivå
         boolean below3days = totalKcal < kcal3 || totalWater < water3;
         boolean below7days = totalKcal < kcal7 || totalWater < water7;
 
-        boolean warning = below3days || !hasEssentials;
+        boolean warning = below3days;
 
         String message;
         if (below3days) {
@@ -97,6 +92,8 @@ public class PreparednessService {
 
         return new PreparednessStatus((int) preparednessPercent, warning, message);
     }
+
+
 
     /**
      * Retrieves the preparedness status for a given household by its ID.
