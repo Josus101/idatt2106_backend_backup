@@ -1,6 +1,7 @@
 package org.ntnu.idatt2106.backend.repo;
 
 import java.util.Optional;
+import org.ntnu.idatt2106.backend.model.Household;
 import org.ntnu.idatt2106.backend.model.HouseholdJoinCode;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -40,9 +41,17 @@ public interface HouseholdJoinCodeRepo extends JpaRepository<HouseholdJoinCode, 
   /**
    * Deletes tokens associated with a specific household ID.
    *
-   * @param householdId the ID of the household
+   * @param household the ID of the household
    */
   @Modifying
   @Transactional
-  void deleteAllByHouseholdId(int householdId);
+  void deleteAllByHousehold(Household household);
+
+  /**
+   * Checks if a join code token exists by its code.
+   *
+   * @param token the join code
+   * @return true if the token exists, false otherwise
+   */
+  boolean existsByCode(String token);
 }

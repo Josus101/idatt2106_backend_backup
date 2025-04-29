@@ -5,6 +5,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.util.Date;
 import lombok.AllArgsConstructor;
@@ -34,10 +35,25 @@ public class HouseholdJoinCode {
 
   @Column(nullable = false, unique = true, length = 8)
   private String code;
+
   @Column(nullable = false)
-  private int householdId;
+  @ManyToOne()
+  private Household household;
 
   @Column(nullable = false)
   private Date expirationDate;
+
+  /**
+   * Constructor for the HouseholdJoinCode model
+   *
+   * @param code the code to join the household
+   * @param household the id of the household
+   * @param expirationDate the expiration date of the code
+   */
+  public HouseholdJoinCode(String code, Household household, Date expirationDate) {
+    this.code = code;
+    this.household = household;
+    this.expirationDate = expirationDate;
+  }
 
 }
