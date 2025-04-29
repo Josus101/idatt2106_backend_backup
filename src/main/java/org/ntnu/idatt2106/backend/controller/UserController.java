@@ -4,9 +4,13 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import org.ntnu.idatt2106.backend.dto.user.PasswordResetRequest;
 import org.ntnu.idatt2106.backend.dto.user.UserLoginRequest;
 import org.ntnu.idatt2106.backend.dto.user.UserRegisterRequest;
 import org.ntnu.idatt2106.backend.dto.user.UserTokenResponse;
+import org.ntnu.idatt2106.backend.exceptions.AlreadyInUseException;
+import org.ntnu.idatt2106.backend.exceptions.MailSendingFailedException;
+import org.ntnu.idatt2106.backend.exceptions.TokenExpiredException;
 import org.ntnu.idatt2106.backend.exceptions.UserNotFoundException;
 import org.ntnu.idatt2106.backend.service.LoginService;
 import org.ntnu.idatt2106.backend.service.ReCaptchaService;
@@ -65,6 +69,13 @@ public class UserController {
                   schema = @Schema(example = "Invalid user data")
           )
       ),
+      @ApiResponse(
+          responseCode = "400",
+          description = "Email already in use",
+          content = @Content(
+              schema = @Schema(example = "Email already in use")
+          )
+      ),
   })
   public ResponseEntity<String> registerUser(
     @RequestBody UserRegisterRequest userRegister) {
@@ -78,6 +89,17 @@ public class UserController {
     }
     catch (IllegalArgumentException e) {
       return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: " + e.getMessage());
+    } catch (AlreadyInUseException e) {
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Email already in use");
+    } catch (MailSendingFailedException e) {
+      System.out.println("Failed to send verification email. Either mail is invalid, or you're "
+          + "missing .env file " + e.getMessage());
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to send verification email");
+    } catch (IllegalStateException e) {
+      System.out.println("You sure you have the .env file? " + e.getMessage());
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to send verification email");
+    } catch (Exception e) {
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred during registration");
     }
   }
 
@@ -132,10 +154,10 @@ public class UserController {
   /**
    * Endpoint for resetting the password of a user.
    * @param token the token for password reset
-   * @param newPassword the new password for the user
+   * @param password the new password for the user
    * @return a response entity indicating the result of the operation
    */
-  @GetMapping("/reset-password/{token}")
+  @PutMapping("/reset-password/{token}")
   @Operation(
       summary = "Reset password",
       description = "Resets the password for the user with the given token"
@@ -146,23 +168,37 @@ public class UserController {
           description = "Password reset successfully"
       ),
       @ApiResponse(
+          responseCode = "400",
+          description = "Invalid password or token",
+          content = @Content(schema = @Schema(implementation = String.class))
+      ),
+      @ApiResponse(
           responseCode = "404",
           description = "User not found with given token",
-          content = @Content(
-              schema = @Schema(implementation = String.class)
-          )
+          content = @Content(schema = @Schema(implementation = String.class))
+      ),
+      @ApiResponse(
+          responseCode = "500",
+          description = "Internal server error",
+          content = @Content(schema = @Schema(implementation = String.class))
       )
   })
   public ResponseEntity<String> resetPassword(
       @PathVariable String token,
-      @RequestParam String newPassword) {
+      @RequestBody PasswordResetRequest password) {
+
     try {
-      resetPasswordService.resetPassword(token, newPassword);
+      resetPasswordService.resetPassword(token, password.getPassword());
       return ResponseEntity.ok("Password reset successfully");
     } catch (UserNotFoundException e) {
-      return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found with given token");
+      return ResponseEntity.status(HttpStatus.NOT_FOUND)
+          .body("User not found with given token");
     } catch (IllegalArgumentException e) {
-      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid password");
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+          .body(e.getMessage());
+    } catch (Exception e) {
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+          .body("An unexpected error occurred during password reset");
     }
   }
 
@@ -171,7 +207,7 @@ public class UserController {
    * @param token the token for email verification
    * @return a response entity indicating the result of the operation
    */
-  @GetMapping("/verify/{token}")
+  @PutMapping("/verify/{token}")
   @Operation(
       summary = "Verify email",
       description = "Verifies the email for the user with the given token"
@@ -187,17 +223,33 @@ public class UserController {
           content = @Content(
               schema = @Schema(implementation = String.class)
           )
+      ),
+      @ApiResponse(
+          responseCode = "400",
+          description = "Invalid token",
+          content = @Content(
+              schema = @Schema(implementation = String.class)
+          )
       )
   })
   public ResponseEntity<String> verifyEmail(
       @PathVariable String token) {
     try {
       verifyEmailService.verifyEmail(token);
+      System.out.println("Email verified successfully");
       return ResponseEntity.ok("Email verified successfully");
     } catch (UserNotFoundException e) {
+      System.out.println("User not found with given token");
       return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found with given token");
     } catch (IllegalArgumentException e) {
+      System.out.println("Invalid token");
       return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid token");
+    } catch (TokenExpiredException e) {
+      System.out.println("Token expired");
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Token expired");
+    } catch (Exception e) {
+      System.out.println("An error occurred during email verification: " + e.getMessage());
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred during email verification");
     }
   }
 }

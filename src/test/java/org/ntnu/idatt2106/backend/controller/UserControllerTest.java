@@ -4,9 +4,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
+import org.ntnu.idatt2106.backend.dto.user.PasswordResetRequest;
 import org.ntnu.idatt2106.backend.dto.user.UserLoginRequest;
 import org.ntnu.idatt2106.backend.dto.user.UserRegisterRequest;
 import org.ntnu.idatt2106.backend.dto.user.UserTokenResponse;
+import org.ntnu.idatt2106.backend.exceptions.AlreadyInUseException;
 import org.ntnu.idatt2106.backend.exceptions.UserNotFoundException;
 import org.ntnu.idatt2106.backend.service.LoginService;
 import org.ntnu.idatt2106.backend.service.ReCaptchaService;
@@ -70,6 +72,32 @@ class UserControllerTest {
 
     assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     assertEquals("Error: Invalid user data", response.getBody());
+  }
+
+  @Test
+  @DisplayName("Test register method returns Bad request with already used email")
+  void testBadrequestWithUsedEmail() {
+    UserRegisterRequest invalidUser = new UserRegisterRequest("taken-email", "password123", "John", "Doe", "123", "123456789");
+
+    doThrow(new AlreadyInUseException("Invalid user data")).when(loginService).register(invalidUser);
+
+    ResponseEntity<String> response = userController.registerUser(invalidUser);
+
+    assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    assertEquals("Email already in use", response.getBody());
+  }
+
+  @Test
+  @DisplayName("Test register method returns Badrequest with already used phone number")
+  void testBadRequestWithUsedNumber() {
+    UserRegisterRequest invalidUser = new UserRegisterRequest("email", "password123", "John", "Doe", "taken", "123456789");
+
+    doThrow(new AlreadyInUseException("Invalid user data")).when(loginService).register(invalidUser);
+
+    ResponseEntity<String> response = userController.registerUser(invalidUser);
+
+    assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    assertEquals("Email already in use", response.getBody());
   }
 
   @Test
@@ -172,8 +200,10 @@ class UserControllerTest {
   void shouldReturnOkOnSuccessfulPasswordReset() {
     String token = "valid-token";
     String newPassword = "NewPassword123";
+    PasswordResetRequest password = new PasswordResetRequest(newPassword);
 
-    ResponseEntity<String> response = userController.resetPassword(token, newPassword);
+
+    ResponseEntity<String> response = userController.resetPassword(token, password);
 
     assertEquals(HttpStatus.OK, response.getStatusCode());
     assertEquals("Password reset successfully", response.getBody());
@@ -185,11 +215,12 @@ class UserControllerTest {
   void shouldReturnNotFoundWhenUserNotFoundOnPasswordReset() {
     String token = "invalid-token";
     String newPassword = "NewPassword123";
+    PasswordResetRequest password = new PasswordResetRequest(newPassword);
 
     doThrow(new UserNotFoundException("User not found")).when(resetPasswordService)
         .resetPassword(token, newPassword);
 
-    ResponseEntity<String> response = userController.resetPassword(token, newPassword);
+    ResponseEntity<String> response = userController.resetPassword(token, password);
 
     assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
     assertEquals("User not found with given token", response.getBody());
@@ -200,11 +231,12 @@ class UserControllerTest {
   void shouldReturnBadRequestOnInvalidPassword() {
     String token = "valid-token";
     String newPassword = "";
+    PasswordResetRequest password = new PasswordResetRequest(newPassword);
 
     doThrow(new IllegalArgumentException("Invalid password")).when(resetPasswordService)
         .resetPassword(token, newPassword);
 
-    ResponseEntity<String> response = userController.resetPassword(token, newPassword);
+    ResponseEntity<String> response = userController.resetPassword(token, password);
 
     assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     assertEquals("Invalid password", response.getBody());

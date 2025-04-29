@@ -4,6 +4,8 @@ import java.util.Optional;
 import org.ntnu.idatt2106.backend.model.EmailVerifyToken;
 import org.ntnu.idatt2106.backend.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * EmailVerificationTokenRepo is a repository interface for managing EmailVerifyToken entities.
@@ -26,4 +28,13 @@ public interface EmailVerificationTokenRepo extends JpaRepository<EmailVerifyTok
    * @return an Optional containing the EmailVerifyToken if found, or empty if not
    */
   Optional<EmailVerifyToken> findByUser(User user);
+
+  /**
+   * Deletes all EmailVerifyTokens associated with a user ID.
+   *
+   * @param id the ID of the user
+   */
+  @Transactional
+  @Modifying
+  void deleteAllByUserId(int id);
 }

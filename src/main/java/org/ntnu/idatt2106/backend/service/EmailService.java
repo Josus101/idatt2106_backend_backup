@@ -5,6 +5,8 @@ import jakarta.mail.internet.MimeMessage;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
+import java.util.Objects;
+import java.util.Optional;
 import org.ntnu.idatt2106.backend.model.EmailVerifyToken;
 import org.ntnu.idatt2106.backend.model.ResetPasswordToken;
 import org.ntnu.idatt2106.backend.model.User;
@@ -44,15 +46,14 @@ public class EmailService {
   @Value("${mail.from}")
   private String fromEmail;
 
-  //TODO change this to front end url when front end supports this
-  private static final String BASE_URL = "http://localhost:8080/";
+  private static final String BASE_URL = "http://localhost:5173/";
 
   /**
    * Sends an email verification link to the user.
    *
    * @param user The user to whom the email is sent.
    * @throws MessagingException If there is an error while sending the email.
-   * @throws IllegalStateException If the user is already verified.
+   * @throws IllegalStateException If the user is already verified, or if the email sender is not configured.
    */
   public void sendVerificationEmail(User user) throws MessagingException {
     if (user.isVerified()) {
@@ -60,7 +61,7 @@ public class EmailService {
     }
     String token = generateEmailVerifyToken(user);
     String encodedToken = URLEncoder.encode(token, StandardCharsets.UTF_8);
-    String verificationUrl = BASE_URL + "api/users/verify/" + encodedToken;
+    String verificationUrl = BASE_URL + "email-verification/" + encodedToken;
 
     String htmlContent = buildEmailTemplate(
         "Verify Your Email Address",
@@ -76,15 +77,17 @@ public class EmailService {
    * Sends a password reset email to the user.
    *
    * @param user The user to whom the email is sent.
+   * @throws MessagingException If there is an error while sending the email.
+   * @throws IllegalStateException If the email sender is not configured.
    */
   public void sendResetPasswordEmail(User user) throws MessagingException {
     String token = generateResetPasswordToken(user);
     String encodedToken = URLEncoder.encode(token, StandardCharsets.UTF_8);
-    String resetUrl = BASE_URL + "api/users/reset-password/" + encodedToken;
+    String resetUrl = BASE_URL + "password-reset/" + encodedToken;
 
     String htmlContent = buildEmailTemplate(
         "Reset Your Password",
-        "You've requested to reset your password. Click the button below to proceed. But since the url won't work yes, here is the token: " + encodedToken,
+        "You've requested to reset your password. Click the button below to proceed",
         resetUrl,
         "Reset Password",
         "This link is valid for 1 hour."
@@ -158,9 +161,13 @@ public class EmailService {
    * @param subject The subject of the email.
    * @param htmlContent The HTML content of the email.
    * @throws MessagingException If there is an error while sending the email.
+   * @throws IllegalStateException If the email sender is not configured.
    */
   private void sendHtmlEmail(String to, String subject, String htmlContent)
       throws MessagingException {
+    if (fromEmail.equals("I_AM_INVALID")) {
+      throw new IllegalStateException("Email sender is not configured. Make sure you have the current .env file");
+    }
     MimeMessage message = mailSender.createMimeMessage();
     MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
@@ -171,7 +178,6 @@ public class EmailService {
 
     message.addHeader("X-Mailer", "KrisefikserMailer");
     message.addHeader("X-Priority", "1");
-    message.addHeader("List-Unsubscribe", "<mailto:unsubscribe@yourdomain.com>");
 
     mailSender.send(message);
   }
@@ -220,8 +226,10 @@ public class EmailService {
    * @param to The recipient's email address.
    * @param subject The subject of the email.
    * @param text The text content of the email.
+   * @throws MessagingException If there is an error while sending the email.
+   * @throws IllegalStateException If the email sender is not configured.
    */
-  public void sendTestEmail(String to, String subject, String text) throws MessagingException {
+  public void sendTestEmail(String to, String subject, String text) throws MessagingException, IllegalStateException {
     String htmlContent = buildEmailTemplate(
         "Test Email",
         text,
@@ -230,5 +238,17 @@ public class EmailService {
         "This is a test email."
     );
     sendHtmlEmail(to, subject, htmlContent);
+  }
+
+  /**
+   * Checks if the user has a valid verification email.
+   *
+   * @param user The user to check.
+   * @return true if the user has a valid verification email, false otherwise.
+   */
+  public boolean hasValidVerificationEmail(User user) {
+    Optional<EmailVerifyToken> token = emailVerificationTokenRepo.findByUser(user);
+    return token.filter(
+        emailVerifyToken -> !emailVerifyToken.getExpirationDate().before(new Date())).isPresent();
   }
 }

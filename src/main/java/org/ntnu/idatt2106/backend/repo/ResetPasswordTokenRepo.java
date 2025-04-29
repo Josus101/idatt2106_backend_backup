@@ -4,6 +4,8 @@ import java.util.Optional;
 import org.ntnu.idatt2106.backend.model.ResetPasswordToken;
 import org.ntnu.idatt2106.backend.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * ResetPasswordTokenRepo is a repository interface for managing ResetPasswordToken entities.
@@ -26,4 +28,13 @@ public interface ResetPasswordTokenRepo extends JpaRepository<ResetPasswordToken
    * @return an Optional containing the ResetPasswordToken if found, or empty if not
    */
   Optional<ResetPasswordToken> findByUser(User user);
+
+  /**
+   * Deletes a ResetPasswordToken by its user.
+   *
+   * @param userId the user of the ResetPasswordToken
+   */
+  @Modifying
+  @Transactional
+  void deleteAllByUserId(int userId);
 }

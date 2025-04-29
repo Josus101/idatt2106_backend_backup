@@ -3,12 +3,18 @@ package org.ntnu.idatt2106.backend.service;
 import java.util.Optional;
 import org.ntnu.idatt2106.backend.dto.user.UserRegisterRequest;
 import org.ntnu.idatt2106.backend.dto.user.UserTokenResponse;
+import org.ntnu.idatt2106.backend.exceptions.AlreadyInUseException;
+import org.ntnu.idatt2106.backend.exceptions.MailSendingFailedException;
 import org.ntnu.idatt2106.backend.exceptions.TokenExpiredException;
 import org.ntnu.idatt2106.backend.exceptions.UserNotFoundException;
+import org.ntnu.idatt2106.backend.exceptions.UserNotVerifiedException;
 import org.ntnu.idatt2106.backend.model.User;
+import org.ntnu.idatt2106.backend.repo.EmailVerificationTokenRepo;
+import org.ntnu.idatt2106.backend.repo.ResetPasswordTokenRepo;
 import org.ntnu.idatt2106.backend.security.BCryptHasher;
 import org.ntnu.idatt2106.backend.security.JWT_token;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mail.MailSendException;
 import org.springframework.stereotype.Service;
 
 import org.ntnu.idatt2106.backend.repo.UserRepo;
@@ -24,6 +30,12 @@ public class LoginService {
 
     @Autowired
     private UserRepo userRepo;
+
+    @Autowired
+    private ResetPasswordTokenRepo resetPasswordRepo;
+
+    @Autowired
+    private EmailVerificationTokenRepo verifyEmailRepo;
 
     @Autowired
     private JWT_token jwt;
@@ -105,15 +117,26 @@ public class LoginService {
 
     /**
      * Authenticates a user using the provided email and password.
+     * If the user is not verified, a verification email is sent if not already sent.
      *
      * @param email The user's email.
      * @param password The user's password.
      * @return A token response object on successful authentication.
      */
-    public UserTokenResponse authenticate(String email, String password) {
+    public UserTokenResponse authenticate(String email, String password) throws IllegalArgumentException, UserNotVerifiedException, UserNotFoundException {
       Optional<User> user = userRepo.findByEmail(email);
       if (user.isEmpty()) {
         throw new UserNotFoundException("No user found with given email and password");
+      }
+      if (!user.get().isVerified()) {
+        try {
+          if (!emailService.hasValidVerificationEmail(user.get())) {
+            emailService.sendVerificationEmail(user.get());
+          }
+          throw new UserNotVerifiedException("User is not verified");
+        } catch (Exception e) {
+          throw new MailSendingFailedException("Failed to send verification email", e.getCause());
+        }
       }
       if (!hasher.checkPassword(password, user.get().getPassword())) {
         throw new IllegalArgumentException("Incorrect password for given email");
@@ -130,10 +153,10 @@ public class LoginService {
      */
     public void register(UserRegisterRequest userDTO) {
       if (!verifyEmailNotInUse(userDTO.getEmail())) {
-        throw new IllegalArgumentException("Email is already in use");
+        throw new AlreadyInUseException("Email is already in use");
       }
       if (!verifyPhoneNumberNotInUse(userDTO.getPhoneNumber())) {
-        throw new IllegalArgumentException("Phone number is already in use");
+        throw new AlreadyInUseException("Phone number is already in use");
       }
       User user = new User(
         userDTO.getEmail(),
@@ -147,11 +170,12 @@ public class LoginService {
         throw new IllegalArgumentException("Invalid user data");
       }
       user.setPassword(hasher.hashPassword(user.getPassword()));
-      userRepo.save(user);
       try {
+        userRepo.save(user);
         emailService.sendVerificationEmail(user);
-      } catch (Exception e) {
-        throw new RuntimeException("Failed to send verification email", e);
+
+      }catch (Exception e) {
+        throw new MailSendingFailedException("Failed to send verification email", e.getCause());
       }
     }
 
@@ -181,8 +205,12 @@ public class LoginService {
    * @param newPassword The new password to set
    */
   public void resetPassword(User user, String newPassword) {
+    System.out.println("Resetting password for user: " + user);
+    System.out.println("Deleted all by " + user);
     user.setPassword(hasher.hashPassword(newPassword));
     userRepo.save(user);
+    resetPasswordRepo.deleteAllByUserId(user.getId());
+
   }
 
   /**
@@ -193,6 +221,7 @@ public class LoginService {
   public void verifyEmail(User user) {
     user.setVerified(true);
     userRepo.save(user);
+    verifyEmailRepo.deleteAllByUserId(user.getId());
   }
 }
 
