@@ -46,7 +46,7 @@ class EmailControllerTest {
     ResponseEntity<String> response = emailController.sendVerification("krek@krek.krek");
 
     assertEquals(200, response.getStatusCode().value());
-    assertEquals("Verification email sent.", response.getBody());
+    assertEquals("Verification email sent", response.getBody());
     verify(emailService).sendVerificationEmail(testUser);
   }
 
@@ -71,7 +71,7 @@ class EmailControllerTest {
     ResponseEntity<String> response = emailController.sendVerification("krek@krek.krek");
 
     assertEquals(400, response.getStatusCode().value());
-    assertEquals("User is already verified.", response.getBody());
+    assertEquals("Error: User is already verified", response.getBody());
     verify(emailService).sendVerificationEmail(testUser);
   }
 
@@ -83,7 +83,7 @@ class EmailControllerTest {
     ResponseEntity<String> response = emailController.sendResetPassword("");
 
     assertEquals(200, response.getStatusCode().value());
-    assertEquals("Reset password email sent.", response.getBody());
+    assertEquals("Reset password email sent", response.getBody());
     verify(emailService).sendResetPasswordEmail(testUser);
   }
 

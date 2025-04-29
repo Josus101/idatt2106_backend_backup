@@ -44,14 +44,18 @@ public class ReCaptchaController {
   )
   @ApiResponses(value = {
           @ApiResponse(
-                  responseCode = "200",
-                  description = "reCAPTCHA token validated successfully",
-                  content = @Content(schema = @Schema(example = "Success!"))
+              responseCode = "200",
+              description = "reCAPTCHA token validated successfully",
+              content = @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(example = "Success!"))
           ),
           @ApiResponse(
-                  responseCode = "400",
-                  description = "Captcha verification failed or incorrect data format",
-                  content = @Content(schema = @Schema(example = "Captcha verification failed."))
+              responseCode = "400",
+              description = "Captcha verification failed or incorrect data format",
+              content = @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(example = "Error: Captcha verification failed"))
           )
   })
   public ResponseEntity<String> handleForm(
@@ -62,7 +66,7 @@ public class ReCaptchaController {
           @RequestParam("token") String token) {
 
     if (!reCaptchaService.verifyReCaptchaToken(token)) {
-      return ResponseEntity.badRequest().body("Captcha verification failed.");
+      return ResponseEntity.badRequest().body("Error: Captcha verification failed");
     }
 
     return ResponseEntity.ok("Success!");

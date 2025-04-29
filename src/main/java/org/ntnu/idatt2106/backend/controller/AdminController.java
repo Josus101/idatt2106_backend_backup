@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.ntnu.idatt2106.backend.dto.admin.AdminLoginRegisterRequest;
 import org.ntnu.idatt2106.backend.exceptions.UnauthorizedException;
+import org.ntnu.idatt2106.backend.exceptions.UserNotFoundException;
 import org.ntnu.idatt2106.backend.service.AdminService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -52,16 +53,33 @@ public class AdminController {
           responseCode = "200",
           description = "Admin user created successfully",
           content = @Content(
-              schema = @Schema(implementation = Boolean.class)
+              mediaType = "application/json",
+              schema = @Schema(type = "boolean", example = "true")
           )
       ),
       @ApiResponse(
           responseCode = "400",
-          description = "Invalid request"
+          description = "Invalid request",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(type = "boolean", example = "false")
+          )
       ),
       @ApiResponse(
           responseCode = "401",
-          description = "Unauthorized"
+          description = "Unauthorized",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(type = "boolean", example = "false")
+          )
+      ),
+      @ApiResponse(
+          responseCode = "401",
+          description = "Internal Server Error",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(type = "boolean", example = "false")
+          )
       )
   })
   public ResponseEntity<Boolean> addAdminUser(
@@ -77,9 +95,9 @@ public class AdminController {
     try {
       adminService.register(admin.getUsername(), admin.getPassword(), authorizationHeader);
     } catch (UnauthorizedException e) {
-      return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+      return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(false);
     } catch (Exception e) {
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(false);
     }
     return ResponseEntity.ok(true);
   }
@@ -102,35 +120,57 @@ public class AdminController {
           responseCode = "200",
           description = "Admin user elevated successfully",
           content = @Content(
-              schema = @Schema(implementation = Boolean.class)
+              mediaType = "application/json",
+              schema = @Schema(type = "boolean", example = "true")
           )
       ),
       @ApiResponse(
           responseCode = "400",
-          description = "Invalid request"
+          description = "Invalid request",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(type = "boolean", example = "false")
+          )
       ),
       @ApiResponse(
           responseCode = "401",
-          description = "Unauthorized"
+          description = "Unauthorized",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(type = "boolean", example = "false")
+          )
+      ),
+      @ApiResponse(
+          responseCode = "500",
+          description = "Internal Server Error",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(type = "boolean", example = "false")
+          )
       )
   })
   public ResponseEntity<Boolean> elevateAdminUser(
-      @Parameter(
-          name = "Authorization",
-          description = "Bearer token in the format `Bearer <JWT>`",
-          required = true,
-          example = "Bearer eyJhbGciOiJIUzI1N.iIsInR5cCI6IkpXVCJ9..."
+          @Parameter(
+              name = "id",
+              description = "The ID of the admin user to be elevated",
+              required = true,
+              example = "123")
+          @PathVariable String id,
+          @Parameter(
+              name = "authorizationHeader",
+              description = "Bearer token in the format `Bearer <JWT>`",
+              required = true,
+              example = "Bearer eyJhbGciOiJIUzI1N.iIsInR5cCI6IkpXVCJ9..."
       )
-      @PathVariable String id,
       @RequestHeader("Authorization") String authorizationHeader) {
     try {
       adminService.elevateAdmin(id, authorizationHeader);
     } catch (IllegalArgumentException e) {
-      return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(false);
     } catch (UnauthorizedException e) {
-      return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+      return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(false);
     } catch (Exception e) {
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(false);
     }
     return ResponseEntity.ok(true);
   }
@@ -146,37 +186,61 @@ public class AdminController {
       description = "Validates admin credentials and returns a JWT token on success"
   )
   @ApiResponses (value = {
-    @ApiResponse(
-        responseCode = "200",
-        description = "JWT token returned",
-        content = @Content(
-            schema = @Schema(implementation = String.class)
-        )
-    ),
-    @ApiResponse(
-        responseCode = "404",
-        description = "No admin found with given username and password",
-        content = @Content(
-            schema = @Schema(implementation = String.class)
-        )
-    ),
+      @ApiResponse(
+          responseCode = "200",
+          description = "JWT token returned upon successful authentication",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(
+                  type = "string",
+                  example = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+              )
+          )
+      ),
+      @ApiResponse(
+          responseCode = "404",
+          description = "Error: No admin found with given username and password",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(example = "Error: No admin found with given username and password")
+          )
+      ),
     @ApiResponse(
         responseCode = "400",
-        description = "Invalid admin data",
+        description = "Error: Invalid admin data",
         content = @Content(
-            schema = @Schema(implementation = String.class)
+            mediaType = "application/json",
+            schema = @Schema(example = "Error: Invalid admin data")
+        )
+    ),
+    @ApiResponse(
+        responseCode = "500",
+        description = "Error: An unexpected error occurred",
+        content = @Content(
+            mediaType = "application/json",
+            schema = @Schema(example = "Error: An unexpected error occurred")
         )
     )
   })
   public ResponseEntity<?> login(
+      @io.swagger.v3.oas.annotations.parameters.RequestBody(
+          description = "Admin login request containing username and password",
+          required = true,
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(implementation = AdminLoginRegisterRequest.class)
+          )
+      )
       @RequestBody AdminLoginRegisterRequest adminLogin) {
     try {
       String token = adminService.authenticate(adminLogin.getUsername(), adminLogin.getPassword());
       return ResponseEntity.ok(token);
     } catch (IllegalArgumentException e) {
-      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid admin data");
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: Invalid admin data");
+    } catch (UserNotFoundException e) {
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: " + e.getMessage());
     } catch (Exception e) {
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: An unexpected error occurred");
     }
   }
 
@@ -198,35 +262,57 @@ public class AdminController {
           responseCode = "200",
           description = "Admin user deleted successfully",
           content = @Content(
-              schema = @Schema(implementation = Boolean.class)
+              mediaType = "application/json",
+              schema = @Schema(type = "boolean", example = "true")
           )
       ),
       @ApiResponse(
           responseCode = "400",
-          description = "Invalid request"
+          description = "Invalid request",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(type = "boolean", example = "false")
+          )
       ),
       @ApiResponse(
           responseCode = "401",
-          description = "Unauthorized"
+          description = "Unauthorized",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(type = "boolean", example = "false")
+          )
+      ),
+      @ApiResponse(
+        responseCode = "500",
+        description = "Internal Server Error",
+        content = @Content(
+            mediaType = "application/json",
+            schema = @Schema(type = "boolean", example = "false")
+        )
       )
   })
   public ResponseEntity<?> deleteAdminUser(
+      @Parameter(
+          name = "id",
+          description = "The ID of the admin user to be deleted",
+          required = true,
+          example = "1"
+      ) @PathVariable String id,
       @Parameter(
           name = "Authorization",
           description = "Bearer token in the format `Bearer <JWT>`",
           required = true,
           example = "Bearer eyJhbGciOiJIUzI1N.iIsInR5cCI6IkpXVCJ9..."
       )
-      @PathVariable String id,
       @RequestHeader("Authorization") String authorizationHeader) {
     try {
       adminService.exterminateAdmin(id, authorizationHeader);
     } catch (IllegalArgumentException e) {
-      return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(false);
     } catch (UnauthorizedException e) {
-      return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+      return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(false);
     } catch (Exception e) {
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(false);
     }
     return ResponseEntity.ok(true);
   }
