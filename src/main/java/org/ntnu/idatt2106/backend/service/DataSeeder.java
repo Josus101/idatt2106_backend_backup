@@ -419,16 +419,16 @@ public class DataSeeder implements CommandLineRunner {
 
     if (emergencyServiceRepo.count() == 0) {
       List<EmergencyService> services = List.of(
-          new EmergencyService("Bomb Shelter - Oslo Center", 59.9139, 10.7522, shelter),
-          new EmergencyService("Community Hospital - Bergen", 60.3913, 5.3221, hospital),
-          new EmergencyService("Central Fire Station - Stavanger", 58.9690, 5.7331, fireStation),
-          new EmergencyService("City Police HQ - Trondheim", 63.4305, 10.3951, police),
-          new EmergencyService("Temporary Shelter - Tromsø", 69.6496, 18.9560, shelter),
-          new EmergencyService("Emergency Food Distribution - Drammen", 59.7439, 10.2045, foodDistribution),
-          new EmergencyService("Water Station - Kristiansand", 58.1467, 7.9956, waterStation),
-          new EmergencyService("Water Tanker - Bodø Harbor", 67.2804, 14.4049, waterStation),
-          new EmergencyService("Defibrillator - Oslo Train Station", 59.9115, 10.7553, heartStarter),
-          new EmergencyService("Defibrillator - Bergen Airport", 60.2934, 5.2181, heartStarter)
+          new EmergencyService("Bomb Shelter - Oslo Center", "Capacity: 150",59.9139, 10.7522, null,shelter),
+          new EmergencyService("Community Hospital - Bergen", "Hospital",60.3913, 5.3221, null, hospital),
+          new EmergencyService("Central Fire Station - Stavanger", "Police Station",58.9690, 5.7331, null, fireStation),
+          new EmergencyService("City Police HQ - Trondheim", "Police Station", 63.4305, 10.3951, null, police),
+          new EmergencyService("Temporary Shelter - Tromsø", "Capacity: 50", 69.6496, 18.9560, null, shelter),
+          new EmergencyService("Emergency Food Distribution - Drammen", "Food Distribution", 59.7439, 10.2045, null, foodDistribution),
+          new EmergencyService("Water Station - Kristiansand", "Water station", 58.1467, 7.9956, null, waterStation),
+          new EmergencyService("Water Tanker - Bodø Harbor", "Water tanker", 67.2804, 14.4049, null, waterStation),
+          new EmergencyService("Defibrillator - Oslo Train Station", "Defibrillator", 59.9115, 10.7553, null, heartStarter),
+          new EmergencyService("Defibrillator - Bergen Airport", "Defibrillator", 60.2934, 5.2181, null, heartStarter)
       );
       emergencyServiceRepo.saveAll(services);
     }
