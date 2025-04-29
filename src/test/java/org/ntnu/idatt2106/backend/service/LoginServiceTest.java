@@ -162,8 +162,9 @@ public class LoginServiceTest {
             "valid@example.com",  // valid email
             "securePassword",     // valid password
             "1234",               // invalid first name (numbers)
-            "Monkeyface",                // valid last name (funnier now)
-            "12345678"            // valid phone
+            "Monkeyface",         // valid last name (funnier now)
+            "12345678",           // valid phone
+            "123456789"           // valid reCaptcha token
     );
 
     when(userRepo.findByEmail(invalidUser.getEmail())).thenReturn(Optional.empty());
@@ -196,7 +197,7 @@ public class LoginServiceTest {
   @Test
   @DisplayName("Should register new valid user if parameters are valid and not in use")
   void testRegisterSuccess() throws MessagingException {
-    UserRegisterRequest dto = new UserRegisterRequest("new@example.com", "newpass", "Jane", "Doe", "87654321");
+    UserRegisterRequest dto = new UserRegisterRequest("new@example.com", "newpass", "Jane", "Doe", "87654321", "123456789");
 
     when(userRepo.findByEmail(dto.getEmail())).thenReturn(Optional.empty());
     when(userRepo.findByPhoneNumber(dto.getPhoneNumber())).thenReturn(Optional.empty());
@@ -211,7 +212,7 @@ public class LoginServiceTest {
   @Test
   @DisplayName("Should not register if email is in use")
   void testRegisterEmailInUse() {
-    UserRegisterRequest dto = new UserRegisterRequest("test@example.com", "newpass", "Jane", "Doe", "87654321");
+    UserRegisterRequest dto = new UserRegisterRequest("test@example.com", "newpass", "Jane", "Doe", "87654321", "123456789");
 
     when(userRepo.findByEmail(dto.getEmail())).thenReturn(Optional.of(testUser));
 
@@ -221,7 +222,7 @@ public class LoginServiceTest {
   @Test
   @DisplayName("Should not register if phone number is in use")
   void testRegisterPhoneInUse() {
-    UserRegisterRequest dto = new UserRegisterRequest("new@example.com", "newpass", "Jane", "Doe", "12345678");
+    UserRegisterRequest dto = new UserRegisterRequest("new@example.com", "newpass", "Jane", "Doe", "12345678", "123456789");
 
     when(userRepo.findByEmail(dto.getEmail())).thenReturn(Optional.empty());
     when(userRepo.findByPhoneNumber(dto.getPhoneNumber())).thenReturn(Optional.of(testUser));
@@ -302,7 +303,8 @@ public class LoginServiceTest {
         "password",
         "White",
         "Monster",
-        "12345678"
+        "12345678",
+        "123456789"
     );
     when(userRepo.findByEmail(userRegisterRequest.getEmail())).thenReturn(Optional.empty());
     when(userRepo.findByPhoneNumber(userRegisterRequest.getPhoneNumber())).thenReturn(Optional.empty());

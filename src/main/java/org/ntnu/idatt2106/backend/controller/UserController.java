@@ -13,6 +13,7 @@ import org.ntnu.idatt2106.backend.exceptions.MailSendingFailedException;
 import org.ntnu.idatt2106.backend.exceptions.TokenExpiredException;
 import org.ntnu.idatt2106.backend.exceptions.UserNotFoundException;
 import org.ntnu.idatt2106.backend.service.LoginService;
+import org.ntnu.idatt2106.backend.service.ReCaptchaService;
 import org.ntnu.idatt2106.backend.service.ResetPasswordService;
 import org.ntnu.idatt2106.backend.service.VerifyEmailService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +34,9 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
   @Autowired
   private LoginService loginService;
+
+  @Autowired
+  ReCaptchaService reCaptchaService;
 
   @Autowired
   private ResetPasswordService resetPasswordService;
@@ -76,11 +80,15 @@ public class UserController {
   public ResponseEntity<String> registerUser(
     @RequestBody UserRegisterRequest userRegister) {
     try {
+//      if (!reCaptchaService.verifyReCaptchaToken(userRegister.getReCaptchaToken()))  {
+//        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid Captcha token");
+//      }
+
       loginService.register(userRegister);
       return ResponseEntity.ok("User registered successfully");
     }
     catch (IllegalArgumentException e) {
-      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid user data");
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: " + e.getMessage());
     } catch (AlreadyInUseException e) {
       return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Email already in use");
     } catch (MailSendingFailedException e) {
@@ -143,6 +151,12 @@ public class UserController {
     return ResponseEntity.ok(token);
   }
 
+  /**
+   * Endpoint for resetting the password of a user.
+   * @param token the token for password reset
+   * @param password the new password for the user
+   * @return a response entity indicating the result of the operation
+   */
   @PutMapping("/reset-password/{token}")
   @Operation(
       summary = "Reset password",
@@ -187,8 +201,6 @@ public class UserController {
           .body("An unexpected error occurred during password reset");
     }
   }
-
-
 
   /**
    * Endpoint for verifying the email of a user.

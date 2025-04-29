@@ -171,8 +171,8 @@ public class LoginService {
       }
       user.setPassword(hasher.hashPassword(user.getPassword()));
       try {
-        emailService.sendVerificationEmail(user);
         userRepo.save(user);
+        emailService.sendVerificationEmail(user);
 
       }catch (Exception e) {
         throw new MailSendingFailedException("Failed to send verification email", e.getCause());
