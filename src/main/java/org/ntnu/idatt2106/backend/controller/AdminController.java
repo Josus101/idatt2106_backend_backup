@@ -74,7 +74,7 @@ public class AdminController {
           )
       ),
       @ApiResponse(
-          responseCode = "401",
+          responseCode = "500",
           description = "Internal Server Error",
           content = @Content(
               mediaType = "application/json",
@@ -198,29 +198,29 @@ public class AdminController {
           )
       ),
       @ApiResponse(
-          responseCode = "404",
-          description = "Error: No admin found with given username and password",
+          responseCode = "400",
+          description = "Error: Invalid admin data",
           content = @Content(
               mediaType = "application/json",
-              schema = @Schema(example = "Error: No admin found with given username and password")
+              schema = @Schema(example = "Error: Invalid admin data")
           )
       ),
-    @ApiResponse(
-        responseCode = "400",
-        description = "Error: Invalid admin data",
-        content = @Content(
-            mediaType = "application/json",
-            schema = @Schema(example = "Error: Invalid admin data")
-        )
-    ),
-    @ApiResponse(
-        responseCode = "500",
-        description = "Error: An unexpected error occurred",
-        content = @Content(
-            mediaType = "application/json",
-            schema = @Schema(example = "Error: An unexpected error occurred")
-        )
-    )
+      @ApiResponse(
+              responseCode = "404",
+              description = "Error: No admin found with given username and password",
+              content = @Content(
+                      mediaType = "application/json",
+                      schema = @Schema(example = "Error: No admin found with given username and password")
+              )
+      ),
+      @ApiResponse(
+          responseCode = "500",
+          description = "Error: An unexpected error occurred",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(example = "Error: An unexpected error occurred")
+          )
+      )
   })
   public ResponseEntity<?> login(
       @io.swagger.v3.oas.annotations.parameters.RequestBody(

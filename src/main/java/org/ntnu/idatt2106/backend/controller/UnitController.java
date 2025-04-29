@@ -86,12 +86,12 @@ public class UnitController {
   @ApiResponses(
       value = {
           @ApiResponse(
-                  responseCode = "200",
-                  description = "Unit retrieved successfully",
-                  content = @Content(
-                      mediaType = "application/json",
-                      schema = @Schema(implementation = UnitGetResponse.class)
-                  )
+              responseCode = "200",
+              description = "Unit retrieved successfully",
+              content = @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(implementation = UnitGetResponse.class)
+              )
           ),
           @ApiResponse(
               responseCode = "404",
@@ -104,8 +104,8 @@ public class UnitController {
       })
   public ResponseEntity<?> getUnitById(
           @Parameter(
-                  description = "The id of the unit",
-                  example = "1"
+              description = "The id of the unit",
+              example = "1"
           ) @PathVariable int id) {
     try {
       return ResponseEntity.status(HttpStatus.OK).body(unitService.getUnitById(id));

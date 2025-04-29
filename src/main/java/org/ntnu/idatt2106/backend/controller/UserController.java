@@ -83,13 +83,13 @@ public class UserController {
               }
           )
       ),
-      @ApiResponse(
-          responseCode = "418",
-          description = "Invalid Captcha token",
-          content = @Content(
-              mediaType = "application/json",
-              schema = @Schema(example = "Invalid Captcha token"))
-      )
+//      @ApiResponse(
+//          responseCode = "418",
+//          description = "Invalid Captcha token",
+//          content = @Content(
+//              mediaType = "application/json",
+//              schema = @Schema(example = "Invalid Captcha token"))
+//      )
   })
   public ResponseEntity<String> registerUser(
       @io.swagger.v3.oas.annotations.parameters.RequestBody(
