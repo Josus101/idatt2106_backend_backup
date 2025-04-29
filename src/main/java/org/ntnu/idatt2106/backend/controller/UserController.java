@@ -1,5 +1,6 @@
 package org.ntnu.idatt2106.backend.controller;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -149,6 +150,55 @@ public class UserController {
       return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No user found with given email and password");
     }
     return ResponseEntity.ok(token);
+  }
+  
+  /**
+   * Endpoint for checking if user is authenticated.
+   * @param authorizationHeader The token from the user
+   * @return a response entity containing a boolean value indicating if the user is authenticated
+   */
+  @PostMapping("/is-auth")
+  @Operation(
+      summary = "Is Authenticated",
+      description = "Checks validity of JWT token and returns boolean value"
+  )
+  @ApiResponses(value = {
+      @ApiResponse(
+          responseCode = "200",
+          description = "Valid Token - True returned",
+          content = @Content(
+              schema = @Schema(implementation = UserTokenResponse.class) //this
+          )
+      ),
+      @ApiResponse(
+          responseCode = "404",
+          description = "Invalid Token - False returned",
+          content = @Content(
+              schema = @Schema(example = "Token is invalid")
+          )
+      ),
+  })
+  public ResponseEntity<?> isAuth(
+      @Parameter(
+          name = "Authorization",
+          description = "Bearer token in the format `Bearer <JWT>`",
+          required = true,
+          example = "Bearer eyJhbGciOiJIUzI1N.iIsInR5cCI6IkpXVCJ9..."
+      )
+      @RequestHeader("Authorization") String authorizationHeader
+  )
+  {
+    boolean validity;
+    try {
+      String token = authorizationHeader.substring(7);
+      validity = loginService.validateToken(token);
+    }
+    catch (IllegalArgumentException e) {
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid user data");
+    } catch (UserNotFoundException e) {
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No user found with given email and password");
+    }
+    return ResponseEntity.ok(validity);
   }
 
   /**

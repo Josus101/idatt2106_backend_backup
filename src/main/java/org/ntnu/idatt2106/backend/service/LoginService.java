@@ -198,6 +198,26 @@ public class LoginService {
       throw new IllegalArgumentException("Error validating token");
     }
   }
+    
+    /**
+     * Validates the given token and returns boolean value.
+     *
+     * @param token The JWT token to validate.
+     * @return boolean value.
+     * @throws TokenExpiredException if the token has expired.
+     */
+    public boolean validateToken(String token) {
+        try {
+            jwt.validateJwtToken(token);
+            return true;
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid token");
+        } catch (TokenExpiredException e) {
+            throw new TokenExpiredException("Token has expired");
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Error validating token");
+        }
+    }
 
   /**
    * Resets the password for the user
