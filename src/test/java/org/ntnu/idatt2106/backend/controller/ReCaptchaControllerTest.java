@@ -31,23 +31,23 @@ class ReCaptchaControllerTest {
 
   @Test
   @DisplayName("Test handleForm returns 200 OK on successful verification")
-  void testHandleFormSuccess() {
-    when(reCaptchaService.verifyReCaptchaToken("valid-token")).thenReturn(true);
+  void testHandleFormSuccess() throws Exception {
+    when(reCaptchaService.verifyToken("valid-token")).thenReturn(true);
 
     ResponseEntity<String> response = reCaptchaController.handleForm("valid-token");
 
     assertEquals(HttpStatus.OK, response.getStatusCode());
-    assertEquals("Success!", response.getBody());
+    assertEquals("Captcha verification passed", response.getBody());
   }
 
   @Test
-  @DisplayName("Test handleForm returns 400 BAD_REQUEST on failed verification")
-  void testHandleFormFailure() {
-    when(reCaptchaService.verifyReCaptchaToken("invalid-token")).thenReturn(false);
+  @DisplayName("Test handleForm returns 403 FORBIDDEN")
+  void testHandleFormFailure() throws Exception {
+    when(reCaptchaService.verifyToken("invalid-token")).thenReturn(false);
 
     ResponseEntity<String> response = reCaptchaController.handleForm("invalid-token");
 
-    assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-    assertEquals("Captcha verification failed.", response.getBody());
+    assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
+    assertEquals("Captcha verification failed", response.getBody());
   }
 }

@@ -80,9 +80,9 @@ public class UserController {
   public ResponseEntity<String> registerUser(
     @RequestBody UserRegisterRequest userRegister) {
     try {
-//      if (!reCaptchaService.verifyReCaptchaToken(userRegister.getReCaptchaToken()))  {
-//        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid Captcha token");
-//      }
+      if (!reCaptchaService.verifyToken(userRegister.getReCaptchaToken()))  {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid Captcha token");
+      }
 
       loginService.register(userRegister);
       return ResponseEntity.ok("User registered successfully");
