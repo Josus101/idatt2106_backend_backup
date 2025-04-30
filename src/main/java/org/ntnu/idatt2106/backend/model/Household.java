@@ -1,6 +1,7 @@
 package org.ntnu.idatt2106.backend.model;
 
 import jakarta.persistence.*;
+import java.util.ArrayList;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -30,8 +31,8 @@ public class Household {
   @Column
   private double longitude;
 
-  @OneToMany(mappedBy = "household")
-  private List<HouseholdMembers> members;
+  @OneToMany(mappedBy = "household", cascade = CascadeType.ALL, orphanRemoval = true)
+  private List<HouseholdMembers> members = new ArrayList<>();
 
   @ManyToMany
   @JoinTable(

@@ -2,8 +2,10 @@ package org.ntnu.idatt2106.backend.service;
 
 import java.security.SecureRandom;
 import java.util.Date;
+import java.util.Optional;
 import org.ntnu.idatt2106.backend.model.Household;
 import org.ntnu.idatt2106.backend.model.HouseholdJoinCode;
+import org.ntnu.idatt2106.backend.model.HouseholdMembers;
 import org.ntnu.idatt2106.backend.model.User;
 import org.ntnu.idatt2106.backend.repo.HouseholdJoinCodeRepo;
 import org.ntnu.idatt2106.backend.repo.HouseholdMembersRepo;
@@ -96,7 +98,13 @@ public class HouseholdService {
    * @param user The user to be added.
    */
   private void addUserToHousehold(Household household, User user) {
-    //TODO add plz
+    HouseholdMembers householdMembers = new HouseholdMembers(user, household,false);
+    householdMembersRepo.save(householdMembers);
+    user.getHouseholdMemberships().add(householdMembers);
+    household.getMembers().add(householdMembers);
+    userRepo.save(user);
+    householdRepo.save(household);
+    System.out.println(user + " added to household " + household.getName());
   }
 
   /**
@@ -106,7 +114,14 @@ public class HouseholdService {
    * @param user The user to be removed.
    */
   private void removeUserFromHousehold(Household household, User user) {
-    //TODO add plz
+    Optional<HouseholdMembers> householdMembers = householdMembersRepo.findByUserAndHousehold(user, household);
+    if (householdMembers.isPresent()) {
+      householdMembersRepo.delete(householdMembers.get());
+      System.out.println(user + " removed from household " + household.getName());
+    } else {
+      System.out.println(user + " not found in household " + household.getName());
+    }
+
   }
 
   /**
@@ -150,14 +165,15 @@ public class HouseholdService {
    * @return The generated join code.
    */
   public String generateJoinCode(Household household) {
-    String code = "";
+    String code = null;
     for (int i = 0; i < MAX_TRIES; i++) {
-      code = generateRandomCode(JOIN_CODE_LENGTH);
-      if (verifyTokenNotTaken(code)) {
+      String candidate = generateRandomCode(JOIN_CODE_LENGTH);
+      if (verifyTokenNotTaken(candidate)) {
+        code = candidate;
         break;
       }
     }
-    if (code.isEmpty()) {
+    if (code == null) {
       throw new RuntimeException("Could not generate a unique join code after " + MAX_TRIES + " tries.");
     }
     HouseholdJoinCode joinCode = new HouseholdJoinCode(code, household,
@@ -165,6 +181,7 @@ public class HouseholdService {
     householdJoinCodeRepo.save(joinCode);
     return code;
   }
+
 
   /**
    * Joins a household using a join code.

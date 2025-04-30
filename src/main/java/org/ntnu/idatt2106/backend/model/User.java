@@ -1,5 +1,6 @@
 package org.ntnu.idatt2106.backend.model;
 
+import java.util.ArrayList;
 import java.util.List;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -44,9 +45,9 @@ public class User {
   @Column()
   private boolean verified;
 
+  @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+  private List<HouseholdMembers> householdMemberships = new ArrayList<>();
 
-  @OneToMany(mappedBy = "user")
-  private List<HouseholdMembers> householdMemberships;
 
 
   /**

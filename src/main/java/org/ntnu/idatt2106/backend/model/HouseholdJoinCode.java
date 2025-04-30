@@ -5,6 +5,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.util.Date;
@@ -36,8 +37,8 @@ public class HouseholdJoinCode {
   @Column(nullable = false, unique = true, length = 8)
   private String code;
 
-  @Column(nullable = false)
   @ManyToOne()
+  @JoinColumn(name = "household_id", nullable = false)
   private Household household;
 
   @Column(nullable = false)
