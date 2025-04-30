@@ -13,6 +13,7 @@ import org.ntnu.idatt2106.backend.exceptions.AlreadyInUseException;
 import org.ntnu.idatt2106.backend.exceptions.MailSendingFailedException;
 import org.ntnu.idatt2106.backend.exceptions.TokenExpiredException;
 import org.ntnu.idatt2106.backend.exceptions.UserNotFoundException;
+import org.ntnu.idatt2106.backend.security.JWT_token;
 import org.ntnu.idatt2106.backend.service.LoginService;
 import org.ntnu.idatt2106.backend.service.ReCaptchaService;
 import org.ntnu.idatt2106.backend.service.ResetPasswordService;
@@ -44,6 +45,9 @@ public class UserController {
 
   @Autowired
   private VerifyEmailService verifyEmailService;
+  
+  @Autowired
+  private JWT_token jwtToken;
 
   /**
    * Endpoint for registering a new user.
@@ -153,30 +157,44 @@ public class UserController {
   }
   
   /**
-   * Endpoint for checking if user is authenticated.
-   * @param authorizationHeader The token from the user
-   * @return a response entity containing a boolean value indicating if the user is authenticated
+   * Endpoint to verify if the provided JWT token is valid.
+   *
+   * This endpoint checks the validity of the JWT token. If the token is valid, it returns `true` with
+   * a 200 OK status. If the token is invalid, it returns
+   * `false` with a 401 Unauthorized status. If an error occurs, returns BadRequest with the error message.
+   *
+   * @param authorizationHeader The "Authorization" header containing the JWT token
+   *                            in the format "Bearer <JWT>".
+   * @return A ResponseEntity containing a boolean value (`true` or `false`)
+   *         indicating the validity of the token.
    */
   @PostMapping("/is-auth")
   @Operation(
       summary = "Is Authenticated",
-      description = "Checks validity of JWT token and returns boolean value"
+      description = "Validates the provided JWT token and returns a boolean value indicating its validity."
   )
   @ApiResponses(value = {
       @ApiResponse(
           responseCode = "200",
-          description = "Valid Token - True returned",
+          description = "Valid Token - `true` returned",
           content = @Content(
-              schema = @Schema(implementation = UserTokenResponse.class) //this
+              schema = @Schema(implementation = Boolean.class)
           )
       ),
       @ApiResponse(
-          responseCode = "404",
-          description = "Invalid Token - False returned",
+          responseCode = "401",
+          description = "Invalid Token - `false` returned",
           content = @Content(
-              schema = @Schema(example = "Token is invalid")
+              schema = @Schema(example = "false")
           )
       ),
+        @ApiResponse(
+            responseCode = "400",
+            description = "Bad Request - Error message returned",
+            content = @Content(
+                schema = @Schema(example = "Error occurred while validating token")
+            )
+        )
   })
   public ResponseEntity<?> isAuth(
       @Parameter(
@@ -185,20 +203,17 @@ public class UserController {
           required = true,
           example = "Bearer eyJhbGciOiJIUzI1N.iIsInR5cCI6IkpXVCJ9..."
       )
-      @RequestHeader("Authorization") String authorizationHeader
-  )
+      @RequestHeader("Authorization") String authorizationHeader)
   {
-    boolean validity;
     try {
       String token = authorizationHeader.substring(7);
-      validity = loginService.validateToken(token);
+      jwtToken.validateJwtToken(token);
+      return ResponseEntity.ok(true);
+    } catch (IllegalArgumentException | TokenExpiredException e) {
+      return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(false);
+    } catch (Exception e) {
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
     }
-    catch (IllegalArgumentException e) {
-      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid user data");
-    } catch (UserNotFoundException e) {
-      return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No user found with given email and password");
-    }
-    return ResponseEntity.ok(validity);
   }
 
   /**
