@@ -28,4 +28,13 @@ public interface HouseholdMembersRepo extends JpaRepository<HouseholdMembers, In
      * @return An Optional containing the HouseholdMember if found, or empty if not.
      */
     Optional<HouseholdMembers> findByUserAndHousehold(User user, Household household);
+
+    /**
+     * Checks if a HouseholdMember exists by its user and household.
+     *
+     * @param user The user.
+     * @param household The household.
+     * @return true if the HouseholdMember exists, false otherwise.
+     */
+    boolean existsByUserAndHousehold(User user, Household household);
 }

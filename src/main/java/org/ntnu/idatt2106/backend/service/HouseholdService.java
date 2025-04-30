@@ -3,6 +3,7 @@ package org.ntnu.idatt2106.backend.service;
 import java.security.SecureRandom;
 import java.util.Date;
 import java.util.Optional;
+import org.ntnu.idatt2106.backend.dto.household.HouseholdCreate;
 import org.ntnu.idatt2106.backend.model.Household;
 import org.ntnu.idatt2106.backend.model.HouseholdJoinCode;
 import org.ntnu.idatt2106.backend.model.HouseholdMembers;
@@ -92,19 +93,47 @@ public class HouseholdService {
   }
 
   /**
-   * Adds a user to a household.
+   * Adds a member to a household.
    *
-   * @param household The household to which the user will be added.
-   * @param user The user to be added.
+   * @param householdMembers The household member to be added.
    */
-  private void addUserToHousehold(Household household, User user) {
-    HouseholdMembers householdMembers = new HouseholdMembers(user, household,false);
+  private void addMember(HouseholdMembers householdMembers, User user, Household household) {
     householdMembersRepo.save(householdMembers);
     user.getHouseholdMemberships().add(householdMembers);
     household.getMembers().add(householdMembers);
     userRepo.save(user);
     householdRepo.save(household);
     System.out.println(user + " added to household " + household.getName());
+  }
+
+  /**
+   * Adds a user to a household.
+   *
+   * @param household The household to which the user will be added.
+   * @param user The user to be added.
+   */
+  public void addUserToHousehold(Household household, User user) {
+    if (householdMembersRepo.existsByUserAndHousehold(user, household)) {
+      System.out.println(user + " already in household " + household.getName());
+      return;
+    }
+    HouseholdMembers householdMembers = new HouseholdMembers(user, household,false);
+    addMember(householdMembers, user, household);
+  }
+
+  /**
+   * Adds a user to a household.
+   *
+   * @param household The household to which the user will be added.
+   * @param user The user to be added.
+   */
+  public void addUserToHousehold(Household household, User user, boolean isAdmin) {
+    if (householdMembersRepo.existsByUserAndHousehold(user, household)) {
+      System.out.println(user + " already in household " + household.getName());
+      return;
+    }
+    HouseholdMembers householdMembers = new HouseholdMembers(user, household,isAdmin);
+    addMember(householdMembers, user, household);
   }
 
   /**
@@ -138,6 +167,16 @@ public class HouseholdService {
     household.setLatitude(latitude);
     household.setLongitude(longitude);
     return householdRepo.save(household);
+  }
+
+  /**
+   * Creates a new household using the provided HouseholdCreate object.
+   *
+   * @param household The HouseholdCreate object containing the household's details.
+   * @return The created household.
+   */
+  public Household createHousehold(HouseholdCreate household) {
+    return createHousehold(household.getName(), household.getLatitude(), household.getLongitude());
   }
 
   /**

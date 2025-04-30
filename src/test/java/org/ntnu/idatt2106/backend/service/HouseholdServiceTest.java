@@ -2,6 +2,7 @@ package org.ntnu.idatt2106.backend.service;
 
 import org.junit.jupiter.api.*;
 import org.mockito.*;
+import org.ntnu.idatt2106.backend.dto.household.HouseholdCreate;
 import org.ntnu.idatt2106.backend.model.*;
 import org.ntnu.idatt2106.backend.repo.*;
 
@@ -52,6 +53,19 @@ class HouseholdServiceTest {
   }
 
   @Test
+  @DisplayName("Should create a new household with dto constructor")
+  void testCreateHouseholdWithDTO() {
+    when(householdRepo.save(any(Household.class))).thenReturn(testHousehold);
+
+    HouseholdCreate dto = new HouseholdCreate("TestHouse", 10.0, 20.0);
+    Household result = householdService.createHousehold(dto);
+
+    assertNotNull(result);
+    assertEquals("TestHouse", result.getName());
+    verify(householdRepo).save(any(Household.class));
+  }
+
+  @Test
   @DisplayName("Should generate a valid join code")
   void testGenerateJoinCode() {
     when(householdJoinCodeRepo.existsByCode(anyString())).thenReturn(false);
@@ -88,6 +102,19 @@ class HouseholdServiceTest {
     when(householdJoinCodeRepo.findByCode("XYZ999")).thenReturn(Optional.of(expiredCode));
 
     Household result = householdService.joinHousehold("XYZ999", testUser);
+
+    assertNull(result);
+  }
+
+  @Test
+  @DisplayName("Should not join with empty join code")
+  void testJoinHouseholdWithEmptyCode() {
+    when(householdJoinCodeRepo.findByCode("")).thenReturn(Optional.empty());
+    when(householdJoinCodeRepo.findByCode(null)).thenReturn(Optional.empty());
+    when(householdJoinCodeRepo.findByCode(" ")).thenReturn(Optional.empty());
+    when(householdJoinCodeRepo.findByCode("  ")).thenReturn(Optional.empty());
+
+    Household result = householdService.joinHousehold("", testUser);
 
     assertNull(result);
   }
@@ -159,6 +186,22 @@ class HouseholdServiceTest {
   }
 
   @Test
+  @DisplayName("Should update the users memberships when adding admin to household")
+  void testUpdateUserMembershipsWhenAdmin() {
+    testUser.setHouseholdMemberships(new ArrayList<>());
+    testHousehold.setMembers(new ArrayList<>());
+
+    TestUtils.callPrivateMethod(householdService,
+        new Class[]{Household.class, User.class, boolean.class},
+        new Object[]{testHousehold, testUser, true},
+        "addUserToHousehold");
+
+    verify(userRepo).save(testUser);
+    assertEquals(1, testUser.getHouseholdMemberships().size());
+    assertEquals(testUser.getHouseholdMemberships().get(0).getHousehold(), testHousehold);
+  }
+
+  @Test
   @DisplayName("Should update the users memberships when adding to household")
   void testUpdateUserMemberships() {
     testUser.setHouseholdMemberships(new ArrayList<>());
@@ -171,7 +214,7 @@ class HouseholdServiceTest {
 
     verify(userRepo).save(testUser);
     assertEquals(1, testUser.getHouseholdMemberships().size());
-    assertTrue(testUser.getHouseholdMemberships().get(0).getHousehold().equals(testHousehold));
+    assertEquals(testUser.getHouseholdMemberships().get(0).getHousehold(), testHousehold);
   }
 
   @Test
@@ -188,6 +231,72 @@ class HouseholdServiceTest {
     verify(userRepo).save(testUser);
     assertEquals(1, testHousehold.getMembers().size());
     assertTrue(testHousehold.getMembers().get(0).getUser().equals(testUser));
+  }
+
+  @Test
+  @DisplayName("Should update the household members when adding an admin user")
+  void testUpdateMembersWhenAddingAdminUser() {
+    testUser.setHouseholdMemberships(new ArrayList<>());
+    testHousehold.setMembers(new ArrayList<>());
+
+    TestUtils.callPrivateMethod(householdService,
+        new Class[]{Household.class, User.class, boolean.class},
+        new Object[]{testHousehold, testUser, true},
+        "addUserToHousehold");
+
+    verify(userRepo).save(testUser);
+    assertEquals(1, testHousehold.getMembers().size());
+    assertTrue(testHousehold.getMembers().get(0).getUser().equals(testUser));
+  }
+
+  @Test
+  @DisplayName("Should not update the household members when adding a user that already exists")
+  void testUpdateMembersWhenAddingExistingUser() {
+    testUser.setHouseholdMemberships(new ArrayList<>());
+    testHousehold.setMembers(new ArrayList<>());
+
+    when(householdMembersRepo.existsByUserAndHousehold(testUser, testHousehold))
+        .thenReturn(true);
+    HouseholdMembers existingMember = new HouseholdMembers(testUser, testHousehold, false);
+    testHousehold.getMembers().add(existingMember);
+
+    TestUtils.callPrivateMethod(householdService,
+        new Class[]{Household.class, User.class},
+        new Object[]{testHousehold, testUser},
+        "addUserToHousehold");
+
+    verify(userRepo, never()).save(testUser);
+    assertEquals(1, testHousehold.getMembers().size());
+  }
+
+  @Test
+  @DisplayName("Should not update the household members when adding an admin user that already exists")
+  void testUpdateMembersWhenAddingExistingAdminUser() {
+    testUser.setHouseholdMemberships(new ArrayList<>());
+    testHousehold.setMembers(new ArrayList<>());
+
+    when(householdMembersRepo.existsByUserAndHousehold(testUser, testHousehold))
+        .thenReturn(true);
+    HouseholdMembers existingMember = new HouseholdMembers(testUser, testHousehold, true);
+    testHousehold.getMembers().add(existingMember);
+
+    TestUtils.callPrivateMethod(householdService,
+        new Class[]{Household.class, User.class, boolean.class},
+        new Object[]{testHousehold, testUser, true},
+        "addUserToHousehold");
+
+    verify(userRepo, never()).save(testUser);
+    assertEquals(1, testHousehold.getMembers().size());
+  }
+
+  @Test
+  @DisplayName("Added admin user should have isAdmin set to true")
+  void testAdminUserIsAdmin(){
+    HouseholdMembers member = new HouseholdMembers(testUser, testHousehold, true);
+    when(householdMembersRepo.save(any(HouseholdMembers.class))).thenReturn(member);
+    householdService.addUserToHousehold(testHousehold, testUser, true);
+    assertTrue(member.isAdmin());
+    assertTrue(testHousehold.getMembers().get(0).isAdmin());
   }
 
 }

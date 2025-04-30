@@ -1,12 +1,18 @@
 package org.ntnu.idatt2106.backend.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import org.ntnu.idatt2106.backend.dto.household.HouseholdCreate;
 import org.ntnu.idatt2106.backend.dto.household.PreparednessStatus;
+import org.ntnu.idatt2106.backend.model.Household;
+import org.ntnu.idatt2106.backend.model.User;
 import org.ntnu.idatt2106.backend.repo.HouseholdRepo;
+import org.ntnu.idatt2106.backend.security.JWT_token;
+import org.ntnu.idatt2106.backend.service.HouseholdService;
 import org.ntnu.idatt2106.backend.service.PreparednessService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -30,7 +36,13 @@ public class HouseholdController {
     private HouseholdRepo householdRepo;
 
     @Autowired
+    private HouseholdService householdService;
+
+    @Autowired
     private PreparednessService preparednessService;
+
+    @Autowired
+    private JWT_token jwtTokenService;
 
     /**
      * Endpoint for calculating the preparedness status of a household.
@@ -63,6 +75,165 @@ public class HouseholdController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Household not found");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Could not fetch preparedness status");
+        }
+    }
+
+    /**
+     * Endpoint for creating a household.
+     *
+     * @param household The household object to be created.
+     */
+    @PostMapping
+    @Operation(
+            summary = "Create a new household",
+            description = "Creates a new household with the given details"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "201",
+                    description = "Household successfully created"
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Invalid household details",
+                    content = @Content(schema = @Schema(example = "Invalid household details"))
+            )
+    })
+    public ResponseEntity<?> createHousehold(
+        @Parameter(
+            name = "Authorization",
+            description = "Bearer token in the format Bearer <JWT>",
+            required = true,
+            example = "Bearer eyJhbGciOiJIUzI1N.iIsInR5cCI6IkpXVCJ9..."
+        ) @RequestHeader("Authorization") String authorizationHeader,
+        @Parameter(
+            name = "household",
+            description = "Household object to be created",
+            required = true,
+            schema = @Schema(implementation = HouseholdCreate.class)
+
+        ) @RequestBody HouseholdCreate household) {
+        try {
+            if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+                String token = authorizationHeader.substring(7);
+                User user = jwtTokenService.getUserByToken(token);
+                if (user != null) {
+                    Household createdHousehold = householdService.createHousehold(household);
+                    householdService.addUserToHousehold(createdHousehold, user, true);
+                    return ResponseEntity.status(HttpStatus.CREATED).body("Household successfully created");
+                }
+            }
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid household details");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Could not create household");
+        }
+    }
+
+    /**
+     * Endpoint for creating an invite to a household.
+     * Returns the join code for the household.
+     *
+     * @param id The ID of the household.
+     */
+    @GetMapping("/{id}/invite")
+    @Operation(
+            summary = "Create an invite to a household",
+            description = "Creates an invite to the household and returns the join code"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Join code successfully created"
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Household not found",
+                    content = @Content(schema = @Schema(example = "Household not found"))
+            )
+    })
+    public ResponseEntity<?> createInvite(
+        @Parameter(
+            name = "Authorization",
+            description = "Bearer token in the format Bearer <JWT>",
+            required = true,
+            example = "Bearer eyJhbGciOiJIUzI1N.iIsInR5cCI6IkpXVCJ9..."
+        ) @RequestHeader("Authorization") String authorizationHeader,
+        @Parameter(
+            name = "id",
+            description = "ID of the household to create an invite for",
+            required = true
+        ) @PathVariable int id) {
+        try {
+            if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+                String token = authorizationHeader.substring(7);
+                User user = jwtTokenService.getUserByToken(token);
+                if (user != null) {
+                    Household household = householdRepo.findById(id).orElseThrow();
+                    String joinCode = householdService.generateJoinCode(household);
+                    return ResponseEntity.ok(joinCode);
+                }
+            }
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized");
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Household not found");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Could not create invite");
+        }
+    }
+
+    /**
+     * Endpoint for joining a household using a join code.
+     *
+     * @param authorizationHeader The authorization header containing the JWT token.
+     * @param joinCode The join code for the household.
+     */
+    @PostMapping("/{joinCode}/join")
+    @Operation(
+            summary = "Join a household using a join code",
+            description = "Joins the household using the provided join code"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Successfully joined the household"
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Invalid join code",
+                    content = @Content(schema = @Schema(example = "Invalid join code"))
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Household not found",
+                    content = @Content(schema = @Schema(example = "Household not found"))
+            )
+    })
+    public void joinHouseHold(
+        @Parameter(
+            name = "Authorization",
+            description = "Bearer token in the format Bearer <JWT>",
+            required = true,
+            example = "Bearer eyJhbGciOiJIUzI1N.iIsInR5cCI6IkpXVCJ9..."
+        ) @RequestHeader("Authorization") String authorizationHeader,
+        @Parameter(
+            name = "joinCode",
+            description = "The join code for the household to join",
+            required = true
+        ) @PathVariable String joinCode) {
+        try {
+            if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+                String token = authorizationHeader.substring(7);
+                User user = jwtTokenService.getUserByToken(token);
+                if (user != null) {
+                    householdService.joinHousehold(joinCode, user);
+                }
+            }
+        } catch (NoSuchElementException e) {
+            ResponseEntity.status(HttpStatus.NOT_FOUND).body("Household not found");
+        } catch (Exception e) {
+            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Could not join household");
         }
     }
 }
