@@ -46,6 +46,7 @@ class AdminControllerTest {
 
     ResponseEntity<Boolean> response = adminController.addAdminUser(dto, "Bearer token");
 
+    assertFalse(response.getBody());
     assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
   }
 
@@ -57,6 +58,7 @@ class AdminControllerTest {
 
     ResponseEntity<Boolean> response = adminController.addAdminUser(dto, "Bearer token");
 
+    assertFalse(response.getBody());
     assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
   }
 
@@ -78,6 +80,7 @@ class AdminControllerTest {
     ResponseEntity<Boolean> response = adminController.elevateAdminUser("invalid", "Bearer token");
 
     assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    assertFalse(response.getBody());
   }
 
   @Test
@@ -88,6 +91,7 @@ class AdminControllerTest {
     ResponseEntity<Boolean> response = adminController.elevateAdminUser("123", "Bearer token");
 
     assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    assertFalse(response.getBody());
   }
 
   @Test
@@ -98,6 +102,7 @@ class AdminControllerTest {
     ResponseEntity<Boolean> response = adminController.elevateAdminUser("123", "Bearer token");
 
     assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+    assertFalse(response.getBody());
   }
 
   @Test
@@ -122,7 +127,7 @@ class AdminControllerTest {
     ResponseEntity<?> response = adminController.login(loginDTO);
 
     assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-    assertEquals("Invalid admin data", response.getBody());
+    assertEquals("Error: Invalid admin data", response.getBody());
   }
 
   @Test
@@ -135,6 +140,7 @@ class AdminControllerTest {
     ResponseEntity<?> response = adminController.login(loginDTO);
 
     assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+    assertEquals("Error: An unexpected error occurred", response.getBody());
   }
 
   @Test
@@ -154,6 +160,7 @@ class AdminControllerTest {
 
     ResponseEntity<?> response = adminController.deleteAdminUser("invalid", "Bearer token");
 
+    assertEquals(false, response.getBody());
     assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
   }
 
@@ -164,6 +171,7 @@ class AdminControllerTest {
 
     ResponseEntity<?> response = adminController.deleteAdminUser("123", "Bearer token");
 
+    assertEquals(false, response.getBody());
     assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
   }
 
@@ -174,6 +182,7 @@ class AdminControllerTest {
 
     ResponseEntity<?> response = adminController.deleteAdminUser("123", "Bearer token");
 
+    assertEquals(false, response.getBody());
     assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
   }
 }

@@ -45,14 +45,17 @@ public class ReCaptchaController {
   )
   @ApiResponses(value = {
           @ApiResponse(
-                  responseCode = "200",
-                  description = "reCAPTCHA token validated successfully",
-                  content = @Content(schema = @Schema(example = "Success!"))
+              responseCode = "200",
+              description = "reCAPTCHA token validated successfully",
+              content = @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(example = "Success!"))
           ),
           @ApiResponse(
                   responseCode = "403",
                   description = "Captcha verification failed or incorrect data format",
                   content = @Content(schema = @Schema(example = "Captcha verification failed."))
+
           )
   })
   public ResponseEntity<String> handleForm(
