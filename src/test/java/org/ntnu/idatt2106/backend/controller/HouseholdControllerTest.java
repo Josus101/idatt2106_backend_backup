@@ -8,7 +8,9 @@ import org.mockito.*;
 import org.ntnu.idatt2106.backend.dto.household.HouseholdCreate;
 import org.ntnu.idatt2106.backend.dto.household.PreparednessStatus;
 import org.ntnu.idatt2106.backend.model.Household;
+import org.ntnu.idatt2106.backend.model.HouseholdMembers;
 import org.ntnu.idatt2106.backend.model.User;
+import org.ntnu.idatt2106.backend.repo.HouseholdMembersRepo;
 import org.ntnu.idatt2106.backend.repo.HouseholdRepo;
 import org.ntnu.idatt2106.backend.security.JWT_token;
 import org.ntnu.idatt2106.backend.service.HouseholdService;
@@ -37,6 +39,9 @@ class HouseholdControllerTest {
 
     @Mock
     private JWT_token jwtTokenService;
+
+    @Mock
+    private HouseholdMembersRepo householdMembersRepo;
 
     @BeforeEach
     void setUp() {
@@ -142,7 +147,8 @@ class HouseholdControllerTest {
         Household household = new Household();
         when(jwtTokenService.getUserByToken("abc.token")).thenReturn(user);
         when(householdRepo.findById(1)).thenReturn(Optional.of(household));
-        when(householdService.generateJoinCode(household)).thenReturn("JOIN123");
+        when(householdMembersRepo.existsByUserAndHousehold(user, household)).thenReturn(true);
+        when(householdService.generateJoinCode(household,user)).thenReturn("JOIN123");
 
         ResponseEntity<?> response = householdController.createInvite(token, 1);
 

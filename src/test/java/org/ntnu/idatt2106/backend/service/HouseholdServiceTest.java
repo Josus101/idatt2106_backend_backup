@@ -69,12 +69,23 @@ class HouseholdServiceTest {
   @DisplayName("Should generate a valid join code")
   void testGenerateJoinCode() {
     when(householdJoinCodeRepo.existsByCode(anyString())).thenReturn(false);
-
-    String code = householdService.generateJoinCode(testHousehold);
+    when(householdMembersRepo.existsByUserAndHousehold(any(), any())).thenReturn(true);
+    String code = householdService.generateJoinCode(testHousehold, testUser);
 
     assertNotNull(code);
     assertEquals(8, code.length());
     verify(householdJoinCodeRepo).save(any(HouseholdJoinCode.class));
+  }
+
+  @Test
+  @DisplayName("Should not generate a join code if user is not a member")
+  void testGenerateJoinCodeForNonMember() {
+    when(householdMembersRepo.existsByUserAndHousehold(any(), any())).thenReturn(false);
+
+    assertThrows(IllegalArgumentException.class, () -> {
+      householdService.generateJoinCode(testHousehold, testUser);
+    });
+    verify(householdJoinCodeRepo, never()).save(any(HouseholdJoinCode.class));
   }
 
   @Test
@@ -176,9 +187,10 @@ class HouseholdServiceTest {
   @DisplayName("Should fail generating join code after max tries")
   void testGenerateJoinCodeFailsAfterMaxTries() {
     when(householdJoinCodeRepo.existsByCode(anyString())).thenReturn(true);
+    when(householdMembersRepo.existsByUserAndHousehold(any(), any())).thenReturn(true);
 
     RuntimeException exception = assertThrows(RuntimeException.class, () ->
-        householdService.generateJoinCode(testHousehold)
+        householdService.generateJoinCode(testHousehold, testUser)
     );
 
     assertTrue(exception.getMessage().contains("Could not generate a unique join code"));
@@ -196,7 +208,6 @@ class HouseholdServiceTest {
         new Object[]{testHousehold, testUser, true},
         "addUserToHousehold");
 
-    verify(userRepo).save(testUser);
     assertEquals(1, testUser.getHouseholdMemberships().size());
     assertEquals(testUser.getHouseholdMemberships().get(0).getHousehold(), testHousehold);
   }
@@ -212,7 +223,6 @@ class HouseholdServiceTest {
         new Object[]{testHousehold, testUser},
         "addUserToHousehold");
 
-    verify(userRepo).save(testUser);
     assertEquals(1, testUser.getHouseholdMemberships().size());
     assertEquals(testUser.getHouseholdMemberships().get(0).getHousehold(), testHousehold);
   }
@@ -228,7 +238,6 @@ class HouseholdServiceTest {
         new Object[]{testHousehold, testUser},
         "addUserToHousehold");
 
-    verify(userRepo).save(testUser);
     assertEquals(1, testHousehold.getMembers().size());
     assertTrue(testHousehold.getMembers().get(0).getUser().equals(testUser));
   }
@@ -244,7 +253,6 @@ class HouseholdServiceTest {
         new Object[]{testHousehold, testUser, true},
         "addUserToHousehold");
 
-    verify(userRepo).save(testUser);
     assertEquals(1, testHousehold.getMembers().size());
     assertTrue(testHousehold.getMembers().get(0).getUser().equals(testUser));
   }

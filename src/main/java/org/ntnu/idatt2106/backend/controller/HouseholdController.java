@@ -142,14 +142,16 @@ public class HouseholdController {
             }
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized");
         } catch (IllegalArgumentException e) {
+            System.out.println(e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid household details");
         } catch (Exception e) {
+            System.out.println(e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Could not create household");
         }
     }
 
     /**
-     * Endpoint for creating an invite to a household.
+     * Endpoint for creating an invitation to a household.
      * Returns the join code for the household.
      *
      * @param id The ID of the household.
@@ -188,7 +190,7 @@ public class HouseholdController {
                 User user = jwtTokenService.getUserByToken(token);
                 if (user != null) {
                     Household household = householdRepo.findById(id).orElseThrow();
-                    String joinCode = householdService.generateJoinCode(household);
+                    String joinCode = householdService.generateJoinCode(household, user);
                     return ResponseEntity.ok(joinCode);
                 }
             }

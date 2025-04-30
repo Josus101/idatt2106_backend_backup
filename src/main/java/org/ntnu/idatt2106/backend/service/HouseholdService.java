@@ -101,8 +101,6 @@ public class HouseholdService {
     householdMembersRepo.save(householdMembers);
     user.getHouseholdMemberships().add(householdMembers);
     household.getMembers().add(householdMembers);
-    userRepo.save(user);
-    householdRepo.save(household);
     System.out.println(user + " added to household " + household.getName());
   }
 
@@ -201,9 +199,16 @@ public class HouseholdService {
    * The join code is valid for 24 hours.
    *
    * @param household The household for which the join code will be generated.
+   * @param user The user who is generating the join code.
    * @return The generated join code.
    */
-  public String generateJoinCode(Household household) {
+  public String generateJoinCode(Household household, User user) {
+    if (household == null || user == null) {
+      throw new IllegalArgumentException("Household and user cannot be null");
+    }
+    if (!householdMembersRepo.existsByUserAndHousehold(user, household)) {
+      throw new IllegalArgumentException("User is not a member of the household");
+    }
     String code = null;
     for (int i = 0; i < MAX_TRIES; i++) {
       String candidate = generateRandomCode(JOIN_CODE_LENGTH);
