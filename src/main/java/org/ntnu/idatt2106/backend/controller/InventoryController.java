@@ -3,9 +3,11 @@ package org.ntnu.idatt2106.backend.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.EntityNotFoundException;
 import org.ntnu.idatt2106.backend.dto.category.CategoryGetResponse;
 import org.ntnu.idatt2106.backend.dto.item.ItemCreateRequest;
@@ -79,6 +81,7 @@ public class InventoryController {
           responseCode = "200",
           description = "Item retrieved successfully",
           content = @Content(
+              mediaType = "application/json",
               schema = @Schema(implementation = ItemGenericDTO.class)
           )
       ),
@@ -86,6 +89,7 @@ public class InventoryController {
           responseCode = "404",
           description = "Item not found",
           content = @Content(
+              mediaType = "application/json",
               schema = @Schema(example = "Error: Item not found")
           )
       )
@@ -112,27 +116,39 @@ public class InventoryController {
       description = "Endpoint for adding a new item to the inventory"
   )
   @ApiResponses(value = {
-          @ApiResponse(
-                  responseCode = "201",
-                  description = "Item added successfully",
-                  content = @Content(
-                          schema = @Schema(example = "Item added successfully")
-                  )
-          ),
-          @ApiResponse(
-                  responseCode = "400",
-                  description = "Invalid item data",
-                  content = @Content(
-                          schema = @Schema(example = "Invalid item data")
-                  )
-          ),
-          @ApiResponse(
-                  responseCode = "401",
-                  description = "Unauthorized",
-                  content = @Content(
-                          schema = @Schema(example = "Unauthorized")
-                  )
+      @ApiResponse(
+          responseCode = "201",
+          description = "Item added successfully",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(example = "Item added successfully")
           )
+      ),
+      @ApiResponse(
+          responseCode = "400",
+          description = "Invalid item data",
+          content = @Content(
+              mediaType = "application/json",
+              examples = {
+                  @ExampleObject(
+                      name = "Invalid category ID",
+                      value = "Error: Category not found"
+                  ),
+                  @ExampleObject(
+                      name = "Invalid unit ID",
+                      value = "Error: Unit not found"
+                  )
+              }
+          )
+      ),
+      @ApiResponse(
+          responseCode = "401",
+          description = "Unauthorized",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(example = "Error: Unauthorized")
+          )
+      )
   })
   public ResponseEntity<?> addItem(@RequestBody ItemCreateRequest itemCreateRequest) {
     try {
@@ -158,21 +174,37 @@ public class InventoryController {
           responseCode = "200",
           description = "Item updated successfully",
           content = @Content(
+              mediaType = "application/json",
               schema = @Schema(example = "Item updated successfully")
           )
       ),
       @ApiResponse(
           responseCode = "404",
-          description = "Item not found",
+          description = "Could not find item, category or unit",
           content = @Content(
-              schema = @Schema(example = "Item not found")
+              mediaType = "application/json",
+              examples = {
+                  @ExampleObject(
+                      name = "Item not found",
+                      value = "Error: Item not found"
+                  ),
+                  @ExampleObject(
+                      name = "Invalid category ID",
+                      value = "Error: Category not found"
+                  ),
+                  @ExampleObject(
+                      name = "Invalid unit ID",
+                      value = "Error: Unit not found"
+                  )
+              }
           )
       ),
       @ApiResponse(
           responseCode = "400",
           description = "Invalid item data",
           content = @Content(
-              schema = @Schema(example = "Invalid item data")
+              mediaType = "application/json",
+              schema = @Schema(example = "Error: Invalid item data")
           )
       )
   })
@@ -195,31 +227,33 @@ public class InventoryController {
    */
   @DeleteMapping("/{id}")
   @Operation(
-          summary = "Deleting an Item",
-          description = "Endpoint for deleting an existing item in the inventory"
+      summary = "Deleting an Item",
+      description = "Endpoint for deleting an existing item in the inventory"
   )
   @ApiResponses(value = {
-          @ApiResponse(
-                  responseCode = "200",
-                  description = "Item deleted successfully",
-                  content = @Content(
-                      schema = @Schema(example = "Item deleted successfully")
-                  )
-          ),
-          @ApiResponse(
-                  responseCode = "404",
-                  description = "Item not found",
-                  content = @Content(
-                      schema = @Schema(example = "Item not found")
-                  )
+      @ApiResponse(
+          responseCode = "200",
+          description = "Item deleted successfully",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(example = "Item deleted successfully")
           )
+      ),
+      @ApiResponse(
+          responseCode = "404",
+          description = "Item not found",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(example = "Error: Item not found")
+          )
+      )
   })
   public ResponseEntity<String> deleteItem(
-          @Parameter(
-                  description = "The id of the item to be deleted",
-                  example = "1") @PathVariable int id
-  )
-  {
+      @Parameter(
+          description = "The id of the item to be deleted",
+          example = "1"
+      ) @PathVariable int id
+  ){
     try {
       itemService.deleteItem(id);
       return ResponseEntity.ok("Item deleted successfully");
@@ -236,29 +270,40 @@ public class InventoryController {
    */
   @GetMapping("/categories/{id}")
   @Operation(
-          summary = "Get all items associated with a category",
-          description = "Endpoint for retrieving all items associated with a category"
+      summary = "Get all items associated with a category",
+      description = "Endpoint for retrieving all items associated with a category"
   )
   @ApiResponses(value = {
-          @ApiResponse(
-                  responseCode = "200",
-                  description = "Items retrieved successfully",
-                  content = @Content(
-                          schema = @Schema(implementation = ItemGenericDTO.class)
-                  )
-          ),
-          @ApiResponse(
-                  responseCode = "404",
-                  description = "No items found for this category",
-                  content = @Content(
-                          schema = @Schema(example = "Error: No items found for this category")
-                  )
+      @ApiResponse(
+          responseCode = "200",
+          description = "Items retrieved successfully",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(implementation = ItemGenericDTO.class)
           )
+      ),
+      @ApiResponse(
+          responseCode = "404",
+          description = "No items found for this category",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(example = "Error: No items found for this category")
+          )
+      ),
+      @ApiResponse(
+          responseCode = "400",
+          description = "Invalid category ID",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(example = "Error: Category does not exist")
+          )
+      )
   })
   public ResponseEntity<?> getItemsByCategory(
-          @Parameter(
-                  description = "The id of the category@PathVariable String id",
-                  example = "1") @PathVariable int id
+      @Parameter(
+          description = "The id of the category@PathVariable String id",
+          example = "1"
+      ) @PathVariable int id
   )
   {
     try {
@@ -266,6 +311,8 @@ public class InventoryController {
 
     } catch (EntityNotFoundException e) {
       return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: " + e.getMessage());
+    } catch (IllegalArgumentException e) {
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: " + e.getMessage());
     }
   }
 
@@ -277,24 +324,26 @@ public class InventoryController {
    */
   @GetMapping("/household/{id}")
   @Operation(
-          summary = "Get all items associated with a household",
-          description = "Endpoint for retrieving all items associated with a household"
+      summary = "Get all items associated with a household",
+      description = "Endpoint for retrieving all items associated with a household"
   )
   @ApiResponses(value = {
-          @ApiResponse(
-                  responseCode = "200",
-                  description = "Items retrieved successfully",
-                  content = @Content(
-                          schema = @Schema(implementation = ItemGenericDTO.class)
-                  )
-          ),
-          @ApiResponse(
-                  responseCode = "404",
-                  description = "No items found for this household",
-                  content = @Content(
-                          schema = @Schema(example = "Error: No items found for this household")
-                  )
+      @ApiResponse(
+          responseCode = "200",
+          description = "Items retrieved successfully",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(implementation = ItemGenericDTO.class)
           )
+      ),
+      @ApiResponse(
+          responseCode = "404",
+          description = "No items found for this household",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(example = "Error: No items found for this household")
+          )
+      )
   })
   public ResponseEntity<?> getInventoryForHousehold(
           @Parameter(

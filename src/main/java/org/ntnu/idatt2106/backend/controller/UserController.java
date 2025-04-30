@@ -1,6 +1,8 @@
 package org.ntnu.idatt2106.backend.controller;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -59,48 +61,67 @@ public class UserController {
           responseCode = "200",
           description = "User registered successfully",
           content = @Content(
-              schema = @Schema(example = "User registered successfully")
-          )
+              mediaType = "application/json",
+              schema = @Schema(example = "User registered successfully"))
       ),
       @ApiResponse(
           responseCode = "400",
           description = "Invalid user data",
           content = @Content(
-                  schema = @Schema(example = "Invalid user data")
+              mediaType = "application/json",
+              examples = {
+                  @ExampleObject(
+                      name = "InvalidUserData",
+                      summary = "Invalid user data",
+                      value = "Invalid user data"
+                  ),
+                  @ExampleObject(
+                      name = "EmailAlreadyInUse",
+                      summary = "Email already in use",
+                      value = "Email already in use"
+                  )
+              }
           )
       ),
-      @ApiResponse(
-          responseCode = "400",
-          description = "Email already in use",
-          content = @Content(
-              schema = @Schema(example = "Email already in use")
-          )
-      ),
+//      @ApiResponse(
+//          responseCode = "418",
+//          description = "Invalid Captcha token",
+//          content = @Content(
+//              mediaType = "application/json",
+//              schema = @Schema(example = "Invalid Captcha token"))
+//      )
   })
   public ResponseEntity<String> registerUser(
-    @RequestBody UserRegisterRequest userRegister) {
-    try {
-//      if (!reCaptchaService.verifyReCaptchaToken(userRegister.getReCaptchaToken()))  {
-//        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid Captcha token");
-//      }
+      @io.swagger.v3.oas.annotations.parameters.RequestBody(
+          description = "User registration request containing email and password",
+          required = true,
+          content = @Content(
+              schema = @Schema(implementation = UserRegisterRequest.class)
+          )
+      ) @RequestBody UserRegisterRequest userRegister
+  ){
+      try {
+//          if (!reCaptchaService.verifyReCaptchaToken(userRegister.getReCaptchaToken()))  {
+//            return ResponseEntity.status(HttpStatus.I_AM_A_TEAPOT).body("Invalid Captcha token");
+//          }
 
-      loginService.register(userRegister);
-      return ResponseEntity.ok("User registered successfully");
-    }
-    catch (IllegalArgumentException e) {
-      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: " + e.getMessage());
-    } catch (AlreadyInUseException e) {
-      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Email already in use");
-    } catch (MailSendingFailedException e) {
-      System.out.println("Failed to send verification email. Either mail is invalid, or you're "
-          + "missing .env file " + e.getMessage());
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to send verification email");
-    } catch (IllegalStateException e) {
-      System.out.println("You sure you have the .env file? " + e.getMessage());
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to send verification email");
-    } catch (Exception e) {
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred during registration");
-    }
+          loginService.register(userRegister);
+          return ResponseEntity.ok("User registered successfully");
+      }
+      catch (IllegalArgumentException e) {
+          return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: " + e.getMessage());
+      } catch (AlreadyInUseException e) {
+          return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Email already in use");
+      } catch (MailSendingFailedException e) {
+          System.out.println("Failed to send verification email. Either mail is invalid, or you're "
+              + "missing .env file " + e.getMessage());
+          return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to send verification email");
+      } catch (IllegalStateException e) {
+          System.out.println("You sure you have the .env file? " + e.getMessage());
+          return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to send verification email");
+      } catch (Exception e) {
+          return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred during registration");
+      }
   }
 
   /**
@@ -118,27 +139,33 @@ public class UserController {
           responseCode = "200",
           description = "JWT token returned",
           content = @Content(
-              schema = @Schema(implementation = UserTokenResponse.class)
-          )
+              mediaType = "application/json",
+              schema = @Schema(implementation = UserTokenResponse.class))
       ),
       @ApiResponse(
           responseCode = "404",
           description = "No user found with given email and password",
           content = @Content(
-                  schema = @Schema(example = "Invalid user data")
-          )
+              mediaType = "application/json",
+              schema = @Schema(example = "Invalid user data"))
       ),
       @ApiResponse(
           responseCode = "400",
           description = "Invalid user data",
           content = @Content(
-              schema = @Schema(example = "No user found with given email and password")
-          )
+              mediaType = "application/json",
+              schema = @Schema(example = "No user found with given email and password"))
       )
   })
   public ResponseEntity<?> login(
-      @RequestBody UserLoginRequest userLogin)
-  {
+      @io.swagger.v3.oas.annotations.parameters.RequestBody(
+          description = "User login request containing email and password",
+          required = true,
+          content = @Content(
+              schema = @Schema(implementation = UserLoginRequest.class)
+          )
+      ) @RequestBody UserLoginRequest userLogin
+  ){
     UserTokenResponse token;
     try {
       token = loginService.authenticate(userLogin.getEmail(), userLogin.getPassword());
@@ -165,28 +192,44 @@ public class UserController {
   @ApiResponses(value = {
       @ApiResponse(
           responseCode = "200",
-          description = "Password reset successfully"
+          description = "Password reset successfully",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(example = "Password reset successfully"))
       ),
       @ApiResponse(
           responseCode = "400",
           description = "Invalid password or token",
-          content = @Content(schema = @Schema(implementation = String.class))
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(example = "rawPassword cannot be null"))
       ),
       @ApiResponse(
           responseCode = "404",
           description = "User not found with given token",
-          content = @Content(schema = @Schema(implementation = String.class))
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(example = "User not found with given token"))
       ),
       @ApiResponse(
           responseCode = "500",
           description = "Internal server error",
-          content = @Content(schema = @Schema(implementation = String.class))
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(example = "An unexpected error occurred during password reset"))
       )
   })
   public ResponseEntity<String> resetPassword(
+      @Parameter(description = "Token for password reset", example = "1234567890abcdef")
       @PathVariable String token,
-      @RequestBody PasswordResetRequest password) {
-
+      @io.swagger.v3.oas.annotations.parameters.RequestBody(
+          description = "New password for the user",
+          required = true,
+          content = @Content(
+              schema = @Schema(implementation = PasswordResetRequest.class)
+          )
+      ) @RequestBody PasswordResetRequest password
+  ){
     try {
       resetPasswordService.resetPassword(token, password.getPassword());
       return ResponseEntity.ok("Password reset successfully");
@@ -215,25 +258,43 @@ public class UserController {
   @ApiResponses(value = {
       @ApiResponse(
           responseCode = "200",
-          description = "Email verified successfully"
-      ),
+          description = "Email verified successfully",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(example = "Email verified successfully"))),
       @ApiResponse(
           responseCode = "404",
           description = "User not found with given token",
           content = @Content(
-              schema = @Schema(implementation = String.class)
-          )
+              mediaType = "application/json",
+              schema = @Schema(example = "User not found with given token"))
       ),
       @ApiResponse(
           responseCode = "400",
           description = "Invalid token",
           content = @Content(
-              schema = @Schema(implementation = String.class)
+              mediaType = "application/json",
+              examples = {
+                  @ExampleObject(
+                      name = "InvalidToken",
+                      summary = "Token not valid",
+                      value = "Invalid token"
+                  ),
+                  @ExampleObject(
+                      name = "ExpiredToken",
+                      summary = "Token expired",
+                      value = "Token expired"
+                  )
+              }
           )
       )
   })
   public ResponseEntity<String> verifyEmail(
-      @PathVariable String token) {
+      @Parameter(
+              description = "Token for email verification",
+              example = "1234567890abcdef"
+      ) @PathVariable String token
+  ){
     try {
       verifyEmailService.verifyEmail(token);
       System.out.println("Email verified successfully");

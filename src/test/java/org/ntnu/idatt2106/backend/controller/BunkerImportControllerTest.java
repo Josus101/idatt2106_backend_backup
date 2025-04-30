@@ -31,7 +31,7 @@ class BunkerImportControllerTest {
         ResponseEntity<String> response = bunkerImportController.importBunkerData();
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals("Bunker data imported successfully.", response.getBody());
+        assertEquals("Bunker data imported successfully", response.getBody());
         verify(bunkerImportService, times(1))
                 .importBunkerDataFromJson("Samfunnssikkerhet_0000_Norge_25833_TilfluktsromOffentlige_GeoJSON.json");
     }

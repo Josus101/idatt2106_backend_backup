@@ -48,6 +48,6 @@ class ReCaptchaControllerTest {
     ResponseEntity<String> response = reCaptchaController.handleForm("invalid-token");
 
     assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-    assertEquals("Captcha verification failed.", response.getBody());
+    assertEquals("Error: Captcha verification failed", response.getBody());
   }
 }
