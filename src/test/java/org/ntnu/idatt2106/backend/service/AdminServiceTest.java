@@ -5,6 +5,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
 import org.ntnu.idatt2106.backend.exceptions.UnauthorizedException;
+import org.ntnu.idatt2106.backend.exceptions.UserNotFoundException;
 import org.ntnu.idatt2106.backend.model.Admin;
 import org.ntnu.idatt2106.backend.repo.AdminRepo;
 import org.ntnu.idatt2106.backend.security.BCryptHasher;
@@ -113,7 +114,7 @@ public class AdminServiceTest {
   void testAuthenticateUsernameNotFound() {
     when(adminRepo.findByUsername("admin")).thenReturn(Optional.empty());
 
-    assertThrows(IllegalArgumentException.class, () -> {
+    assertThrows(UserNotFoundException.class, () -> {
       adminService.authenticate("admin", "password");
     });
   }

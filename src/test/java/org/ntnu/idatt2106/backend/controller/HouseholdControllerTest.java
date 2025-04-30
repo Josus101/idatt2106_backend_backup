@@ -52,7 +52,7 @@ class HouseholdControllerTest {
         ResponseEntity<?> response = householdController.getPreparednessStatus(householdId);
 
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        assertEquals("Household not found", response.getBody());
+        assertEquals("Error: Household not found", response.getBody());
     }
 
     @Test
@@ -66,6 +66,6 @@ class HouseholdControllerTest {
         ResponseEntity<?> response = householdController.getPreparednessStatus(householdId);
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-        assertEquals("Could not fetch preparedness status", response.getBody());
+        assertEquals("Error: Could not fetch preparedness status", response.getBody());
     }
 }

@@ -44,20 +44,28 @@ public class CategoryController {
    */
   @GetMapping("/{id}")
   @Operation(
-          summary = "Get category by ID",
-          description = "Retrieves a category by its ID."
+      summary = "Get category by ID",
+      description = "Retrieves a category by its ID."
   )
   @ApiResponses(
-          value = {
-                  @ApiResponse(
-                          responseCode = "200",
-                          description = "Category retrieved successfully"
-                  ),
-                  @ApiResponse(
-                          responseCode = "404",
-                          description = "Category not found"
-                  )
-          })
+      value = {
+          @ApiResponse(
+              responseCode = "200",
+              description = "Category retrieved successfully",
+              content = @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(implementation = CategoryGetResponse.class)
+              )
+          ),
+          @ApiResponse(
+              responseCode = "404",
+              description = "Category not found",
+              content = @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(example = "Error: Category not found")
+              )
+          )
+      })
   public ResponseEntity<?> getCategoryById(
           @Parameter(
                   description = "The id of the category",
@@ -80,20 +88,22 @@ public class CategoryController {
           description = "Endpoint for retrieving all categories"
   )
   @ApiResponses(value = {
-          @ApiResponse(
-                  responseCode = "200",
-                  description = "Categories retrieved successfully",
-                  content = @Content(
-                          schema = @Schema(implementation = ItemGenericDTO.class)
-                  )
-          ),
-          @ApiResponse(
-                  responseCode = "404",
-                  description = "No categories found",
-                  content = @Content(
-                          schema = @Schema(example = "Error: No categories found")
-                  )
+      @ApiResponse(
+          responseCode = "200",
+          description = "Categories retrieved successfully",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(implementation = CategoryGetResponse.class)
           )
+      ),
+      @ApiResponse(
+          responseCode = "404",
+          description = "No categories found",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(example = "Error: No categories found")
+          )
+      )
   })
   public ResponseEntity<?> getCategories() {
     List<CategoryGetResponse> categories = categoryService.getAllCategories();
