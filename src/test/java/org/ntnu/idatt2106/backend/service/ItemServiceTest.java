@@ -108,7 +108,7 @@ public class ItemServiceTest {
 
   @Test
   @DisplayName("getItemByHouseholdId should return list of items with requested household id")
-  void testGetItemByHouseholdIdSuccess() {
+  void testGetItemsByHouseholdIdSuccess() {
     List<ItemGenericDTO> itemDTOList = new ArrayList<>();
     itemDTOList.add(testItemDTO);
 
@@ -122,16 +122,16 @@ public class ItemServiceTest {
   }
 
   @Test
-  @DisplayName("getItemByHouseholdId should throw EntityNotFoundException if no items for given household exists")
-  void getItemByHouseholdIdNotFound() {
+  @DisplayName("getItemsByHouseholdId should throw EntityNotFoundException if no items for given household exists")
+  void getItemsByHouseholdIdNotFound() {
     when(itemRepo.findByHousehold_Id(1)).thenReturn(Optional.empty());
 
     assertThrows(EntityNotFoundException.class, () -> itemService.getItemsByHouseholdId(1));
   }
 
   @Test
-  @DisplayName("getItemByCategoryId should return list of items with requested category id")
-  void getItemByCategoryIdSuccess() {
+  @DisplayName("getItemsByCategoryId should return list of items with requested category id")
+  void getItemsByCategoryIdSuccess() {
     List<ItemGenericDTO> itemDTOList = new ArrayList<>();
     itemDTOList.add(testItemDTO);
 
@@ -139,17 +139,28 @@ public class ItemServiceTest {
     itemList.add(testItem);
 
     when(itemRepo.findByCategory_Id(1)).thenReturn(Optional.of(itemList));
+    when(categoryRepo.existsById(1)).thenReturn(true);
 
     assertEquals(1, itemService.getItemsByCategoryId(1).size());
     assertEquals(itemDTOList.get(0).getId(), itemService.getItemsByCategoryId(1).get(0).getId());
   }
 
   @Test
-  @DisplayName("getItemByCategoryId should throw EntityNotFoundException if no items for given category exists")
-  void getItemByCategoryIdNotFound() {
+  @DisplayName("getItemsByCategoryId should throw EntityNotFoundException if no items for given category exists")
+  void getItemsByCategoryIdNotFound() {
+    when(categoryRepo.existsById(1)).thenReturn(true);
     when(itemRepo.findByCategory_Id(1)).thenReturn(Optional.empty());
 
     assertThrows(EntityNotFoundException.class, () -> itemService.getItemsByCategoryId(1));
+  }
+
+  @Test
+  @DisplayName("getItemsByCategoryId should throw IllegalArgumentException if category does not exist")
+  void getItemsByCategoryIdCategoryBadRequest() {
+    when(itemRepo.findByCategory_Id(1)).thenReturn(Optional.empty());
+    when(categoryRepo.existsById(1)).thenReturn(false);
+
+    assertThrows(IllegalArgumentException.class, () -> itemService.getItemsByCategoryId(1));
   }
 
   @Test

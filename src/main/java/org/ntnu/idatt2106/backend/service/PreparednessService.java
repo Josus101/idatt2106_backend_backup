@@ -57,7 +57,7 @@ public class PreparednessService {
             double amount = item.getAmount();
             String unit = item.getUnit().getName().toLowerCase();
 
-            if (category.getName().equalsIgnoreCase("vann") && unit.equals("l")) {
+            if (category.getName().equalsIgnoreCase("vann") && unit.equalsIgnoreCase("L")) {
                 totalWater += amount;
                 continue;
             }

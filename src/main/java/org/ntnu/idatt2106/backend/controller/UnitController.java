@@ -42,26 +42,28 @@ public class UnitController {
    */
   @GetMapping("")
   @Operation(
-          summary = "Get all units",
-          description = "Retrieves all units."
+      summary = "Get all units",
+      description = "Retrieves all units."
   )
   @ApiResponses(
-          value = {
-                  @ApiResponse(
-                          responseCode = "200",
-                          description = "Units retrieved successfully",
-                          content = @Content(
-                                  schema = @Schema(implementation = UnitGetResponse.class)
-                          )
-                  ),
-                  @ApiResponse(
-                          responseCode = "404",
-                          description = "No units found",
-                          content = @Content(
-                                  schema = @Schema(example = "Error: No units found")
-                          )
-                  )
-          })
+      value = {
+          @ApiResponse(
+              responseCode = "200",
+              description = "Units retrieved successfully",
+              content = @Content(
+                  mediaType =  "application/json",
+                  schema = @Schema(implementation = UnitGetResponse.class)
+              )
+          ),
+          @ApiResponse(
+              responseCode = "404",
+              description = "No units found",
+              content = @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(example = "Error: No units found")
+              )
+          )
+      })
   public ResponseEntity<?> getAllUnits() {
     List<UnitGetResponse> units = unitService.getAllUnits();
     if (units.isEmpty()) {
@@ -78,24 +80,32 @@ public class UnitController {
    */
   @GetMapping("/{id}")
   @Operation(
-          summary = "Get unit by ID",
-          description = "Retrieves a unit by its ID."
+      summary = "Get unit by ID",
+      description = "Retrieves a unit by its ID."
   )
   @ApiResponses(
-          value = {
-                  @ApiResponse(
-                          responseCode = "200",
-                          description = "Unit retrieved successfully"
-                  ),
-                  @ApiResponse(
-                          responseCode = "404",
-                          description = "Unit not found"
-                  )
-          })
+      value = {
+          @ApiResponse(
+              responseCode = "200",
+              description = "Unit retrieved successfully",
+              content = @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(implementation = UnitGetResponse.class)
+              )
+          ),
+          @ApiResponse(
+              responseCode = "404",
+              description = "Unit not found",
+              content = @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(example = "Error: Unit not found")
+              )
+          )
+      })
   public ResponseEntity<?> getUnitById(
           @Parameter(
-                  description = "The id of the unit",
-                  example = "1"
+              description = "The id of the unit",
+              example = "1"
           ) @PathVariable int id) {
     try {
       return ResponseEntity.status(HttpStatus.OK).body(unitService.getUnitById(id));

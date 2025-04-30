@@ -1,6 +1,9 @@
 package org.ntnu.idatt2106.backend.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.ntnu.idatt2106.backend.service.BunkerImportService;
@@ -40,18 +43,35 @@ public class BunkerImportController {
     )
     @ApiResponses(value = {
             @ApiResponse(
-                    responseCode = "200",
-                    description = "Bunker data imported successfully"
+                responseCode = "200",
+                description = "Bunker data imported successfully",
+                content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(example = "Bunker data imported successfully"))
             ),
             @ApiResponse(
-                    responseCode = "500",
-                    description = "Import failed"
+                responseCode = "500",
+                description = "Import failed",
+                content = @Content(
+                    mediaType = "application/json",
+                        examples = {
+                            @ExampleObject(
+                                name = "Import failed IO exception",
+                                summary = "Import failed due to IO error",
+                                value = "Import failed due to IO error: <error message>"
+                            ),
+                            @ExampleObject(
+                                name = "Import failed",
+                                summary = "Import failed",
+                                value = "Import failed: <error message>"
+                            )
+                      })
             )
     })
     public ResponseEntity<String> importBunkerData() {
         try {
             bunkerImportService.importBunkerDataFromJson("Samfunnssikkerhet_0000_Norge_25833_TilfluktsromOffentlige_GeoJSON.json");
-            return ResponseEntity.ok("Bunker data imported successfully.");
+            return ResponseEntity.ok("Bunker data imported successfully");
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Import failed due to IO error: " + e.getMessage());
         } catch (Exception e) {

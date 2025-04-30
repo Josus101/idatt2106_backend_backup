@@ -57,24 +57,41 @@ public class HouseholdController {
     )
     @ApiResponses(value = {
             @ApiResponse(
-                    responseCode = "200",
-                    description = "Preparedness status successfully retrieved",
-                    content = @Content(schema = @Schema(implementation = PreparednessStatus.class))
+                responseCode = "200",
+                description = "Preparedness status successfully retrieved",
+                content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = PreparednessStatus.class))
             ),
             @ApiResponse(
-                    responseCode = "404",
-                    description = "Household not found",
-                    content = @Content(schema = @Schema(example = "Household not found"))
+                responseCode = "404",
+                description = "Household not found",
+                content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(example = "Error: Household not found"))
+            ),
+            @ApiResponse(
+                responseCode = "500",
+                description = "Internal server error",
+                content = @Content(
+                    mediaType = "application/json",
+                    schema =  @Schema(example = "Error: Could not fetch preparedness status"))
             )
     })
-    public ResponseEntity<?> getPreparednessStatus(@PathVariable int id) {
+    public ResponseEntity<?> getPreparednessStatus(
+            @Parameter(
+                description = "ID of the household to retrieve preparedness status for",
+                required = true,
+                example = "1"
+            ) @PathVariable int id
+    ){
         try {
             PreparednessStatus status = preparednessService.getPreparednessStatusByHouseholdId(id);
             return ResponseEntity.ok(status);
         } catch (NoSuchElementException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Household not found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: Household not found");
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Could not fetch preparedness status");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: Could not fetch preparedness status");
         }
     }
 

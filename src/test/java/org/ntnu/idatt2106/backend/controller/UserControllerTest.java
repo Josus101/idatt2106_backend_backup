@@ -52,7 +52,7 @@ class UserControllerTest {
   void testRegisterUserSuccess() {
     UserRegisterRequest validUser = new UserRegisterRequest("test@example.com", "password123", "John", "Doe", "12345678", "123456789");
 
-    when(reCaptchaService.verifyReCaptchaToken(anyString())).thenReturn(true);
+    when(reCaptchaService.verifyToken(anyString())).thenReturn(true);
 
     ResponseEntity<String> response = userController.registerUser(validUser);
 
@@ -66,7 +66,7 @@ class UserControllerTest {
     UserRegisterRequest invalidUser = new UserRegisterRequest("invalid-email", "password123", "John", "Doe", "123", "123456789");
 
     doThrow(new IllegalArgumentException("Invalid user data")).when(loginService).register(invalidUser);
-    when(reCaptchaService.verifyReCaptchaToken(anyString())).thenReturn(true);
+    when(reCaptchaService.verifyToken(anyString())).thenReturn(true);
 
     ResponseEntity<String> response = userController.registerUser(invalidUser);
 
@@ -81,6 +81,7 @@ class UserControllerTest {
 
     doThrow(new AlreadyInUseException("Invalid user data")).when(loginService).register(invalidUser);
 
+    when(reCaptchaService.verifyToken(anyString())).thenReturn(true);
     ResponseEntity<String> response = userController.registerUser(invalidUser);
 
     assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
@@ -93,7 +94,7 @@ class UserControllerTest {
     UserRegisterRequest invalidUser = new UserRegisterRequest("email", "password123", "John", "Doe", "taken", "123456789");
 
     doThrow(new AlreadyInUseException("Invalid user data")).when(loginService).register(invalidUser);
-
+    when(reCaptchaService.verifyToken(anyString())).thenReturn(true);
     ResponseEntity<String> response = userController.registerUser(invalidUser);
 
     assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
@@ -148,7 +149,7 @@ class UserControllerTest {
     UserRegisterRequest userWithDuplicateEmail = new UserRegisterRequest("test@example.com", "password123", "John", "Doe", "12345678", "123456789");
 
     doThrow(new IllegalArgumentException("Email is already in use")).when(loginService).register(userWithDuplicateEmail);
-    when(reCaptchaService.verifyReCaptchaToken(anyString())).thenReturn(true);
+    when(reCaptchaService.verifyToken(anyString())).thenReturn(true);
 
     ResponseEntity<String> response = userController.registerUser(userWithDuplicateEmail);
 
@@ -173,7 +174,7 @@ class UserControllerTest {
     UserRegisterRequest userWithEmptyPassword = new UserRegisterRequest("new@example.com", "", "Jane", "Doe", "87654321", "123456789");
 
     doThrow(new IllegalArgumentException("Invalid user data")).when(loginService).register(userWithEmptyPassword);
-    when(reCaptchaService.verifyReCaptchaToken(anyString())).thenReturn(true);
+    when(reCaptchaService.verifyToken(anyString())).thenReturn(true);
 
     ResponseEntity<String> response = userController.registerUser(userWithEmptyPassword);
 
@@ -187,7 +188,7 @@ class UserControllerTest {
     UserRegisterRequest userWithInvalidPhoneNumber = new UserRegisterRequest("new@example.com", "securePassword", "Jane", "Doe", "123", "123456789");
 
     doThrow(new IllegalArgumentException("Invalid user data")).when(loginService).register(userWithInvalidPhoneNumber);
-    when(reCaptchaService.verifyReCaptchaToken(anyString())).thenReturn(true);
+    when(reCaptchaService.verifyToken(anyString())).thenReturn(true);
 
     ResponseEntity<String> response = userController.registerUser(userWithInvalidPhoneNumber);
 

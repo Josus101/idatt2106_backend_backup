@@ -2,6 +2,7 @@ package org.ntnu.idatt2106.backend.service;
 
 import java.util.Optional;
 import org.ntnu.idatt2106.backend.exceptions.UnauthorizedException;
+import org.ntnu.idatt2106.backend.exceptions.UserNotFoundException;
 import org.ntnu.idatt2106.backend.model.Admin;
 import org.ntnu.idatt2106.backend.repo.AdminRepo;
 import org.ntnu.idatt2106.backend.security.BCryptHasher;
@@ -102,7 +103,7 @@ public class AdminService {
   public String authenticate(String username, String password) {
     Optional<Admin> admin = adminRepo.findByUsername(username);
     if (admin.isEmpty()) {
-      throw new IllegalArgumentException("No admin found with given username and password");
+      throw new UserNotFoundException("No admin found with given username and password");
     }
     if (!hasher.checkPassword(password, admin.get().getPassword())) {
       throw new IllegalArgumentException("Incorrect password for given username");
