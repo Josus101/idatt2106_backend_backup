@@ -96,18 +96,11 @@ public class UserController {
 //      )
   })
   public ResponseEntity<String> registerUser(
-      @io.swagger.v3.oas.annotations.parameters.RequestBody(
-          description = "User registration request containing email and password",
-          required = true,
-          content = @Content(
-              schema = @Schema(implementation = UserRegisterRequest.class)
-          )
-      ) @RequestBody UserRegisterRequest userRegister
-  ){
-      try {
-//          if (!reCaptchaService.verifyReCaptchaToken(userRegister.getReCaptchaToken()))  {
-//            return ResponseEntity.status(HttpStatus.I_AM_A_TEAPOT).body("Invalid Captcha token");
-//          }
+    @RequestBody UserRegisterRequest userRegister) {
+    try {
+      if (!reCaptchaService.verifyToken(userRegister.getReCaptchaToken()))  {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: Invalid Captcha token");
+      }
 
           loginService.register(userRegister);
           return ResponseEntity.ok("User registered successfully");
