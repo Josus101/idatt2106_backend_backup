@@ -13,6 +13,10 @@ import org.springframework.web.client.RestTemplate;
 
 /**
  * Service class for verifying reCAPTCHA tokens.
+ *
+ * @author Sigurd Spook
+ * @version 0.2
+ * @since 0.1
  */
 @Service
 public class ReCaptchaService {

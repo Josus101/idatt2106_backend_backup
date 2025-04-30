@@ -52,7 +52,7 @@ public class ReCaptchaController {
           @ApiResponse(
                   responseCode = "403",
                   description = "Captcha verification failed or incorrect data format",
-                  content = @Content(schema = @Schema(example = "Captcha verification failed."))
+                  content = @Content(schema = @Schema(example = "Error: Captcha verification failed."))
           )
   })
   public ResponseEntity<String> handleForm(
@@ -66,7 +66,7 @@ public class ReCaptchaController {
     if (isValid) {
       return ResponseEntity.ok("Captcha verification passed");
     } else {
-      return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Captcha verification failed");
+      return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Error: Captcha verification failed");
     }
   }
 }

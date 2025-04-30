@@ -81,7 +81,7 @@ public class UserController {
     @RequestBody UserRegisterRequest userRegister) {
     try {
       if (!reCaptchaService.verifyToken(userRegister.getReCaptchaToken()))  {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid Captcha token");
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: Invalid Captcha token");
       }
 
       loginService.register(userRegister);
