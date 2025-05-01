@@ -250,11 +250,11 @@ class HouseholdControllerTest {
         when(jwtTokenService.getUserByToken("valid.token")).thenReturn(new User());
         when(householdRepo.findById(1)).thenReturn(Optional.of(new Household()));
         when(householdMembersRepo.existsByUserAndHousehold(any(), any())).thenReturn(false);
-        doThrow(new UnauthorizedException("User not found in household")).when(householdService).leaveHousehold(eq(1), any());
+        doThrow(new NoSuchElementException("User not found in household")).when(householdService).leaveHousehold(eq(1), any());
 
         ResponseEntity<?> response = householdController.getMeOutOfThisHousehold("Bearer valid.token", 1);
-        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
-        assertEquals("User not a member of this household", response.getBody());
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertEquals("Matching user and household not found", response.getBody());
     }
     @Test
     @DisplayName("User cannot leave household if household does not exist")
@@ -265,7 +265,7 @@ class HouseholdControllerTest {
 
         ResponseEntity<?> response = householdController.getMeOutOfThisHousehold("Bearer valid.token", 1);
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        assertEquals("Household not found", response.getBody());
+        assertEquals("Matching user and household not found", response.getBody());
     }
 
     @Test
@@ -330,6 +330,36 @@ class HouseholdControllerTest {
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertEquals("Invalid household ID or user ID", response.getBody());
     }
+
+    @Test
+    @DisplayName("User cannot leave non existent household")
+    void testUserCannotLeaveNonExistentHousehold() {
+        when(jwtTokenService.getUserByToken("valid.token")).thenReturn(new User());
+        doThrow(new NoSuchElementException("Household not found"))
+            .when(householdService).leaveHousehold(eq(1), any());
+        ResponseEntity<?> response = householdController.getMeOutOfThisHousehold("Bearer valid.token", 1);
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertEquals("Matching user and household not found", response.getBody());
+    }
+
+    @Test
+    @DisplayName("User cannot leave household with invalid token")
+    void testUserCannotLeaveInvalidToken() {
+        when(jwtTokenService.getUserByToken("valid.token")).thenReturn(null);
+        ResponseEntity<?> response = householdController.getMeOutOfThisHousehold("Bearer valid.token", 1);
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertEquals("User not found", response.getBody());
+    }
+
+    @Test
+    @DisplayName("User cannot leave household with no token")
+    void testUserCannotLeaveNoToken() {
+        when(jwtTokenService.getUserByToken("")).thenReturn(null);
+        ResponseEntity<?> response = householdController.getMeOutOfThisHousehold("", 1);
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertEquals("Could not leave household", response.getBody());
+    }
+
 
 
 }

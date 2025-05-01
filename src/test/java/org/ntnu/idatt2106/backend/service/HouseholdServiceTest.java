@@ -19,7 +19,7 @@ class HouseholdServiceTest {
   private HouseholdService householdService;
 
   @Mock
-  private HouseholdJoinCodeRepo householdJoinCodeRepo;
+  private HouseholdJoinCodeRepo joinCodeRepo;
 
   @Mock
   private HouseholdRepo householdRepo;
@@ -69,13 +69,13 @@ class HouseholdServiceTest {
   @Test
   @DisplayName("Should generate a valid join code")
   void testGenerateJoinCode() {
-    when(householdJoinCodeRepo.existsByCode(anyString())).thenReturn(false);
+    when(joinCodeRepo.existsByCode(anyString())).thenReturn(false);
     when(householdMembersRepo.existsByUserAndHousehold(any(), any())).thenReturn(true);
     String code = householdService.generateJoinCode(testHousehold, testUser);
 
     assertNotNull(code);
     assertEquals(8, code.length());
-    verify(householdJoinCodeRepo).save(any(HouseholdJoinCode.class));
+    verify(joinCodeRepo).save(any(HouseholdJoinCode.class));
   }
 
   @Test
@@ -86,7 +86,7 @@ class HouseholdServiceTest {
     assertThrows(UnauthorizedException.class, () -> {
       householdService.generateJoinCode(testHousehold, testUser);
     });
-    verify(householdJoinCodeRepo, never()).save(any(HouseholdJoinCode.class));
+    verify(joinCodeRepo, never()).save(any(HouseholdJoinCode.class));
   }
 
   @Test
@@ -95,7 +95,7 @@ class HouseholdServiceTest {
     HouseholdJoinCode joinCode = new HouseholdJoinCode("ABC123", testHousehold,
         new Date(System.currentTimeMillis() + 10000));
 
-    when(householdJoinCodeRepo.findByCode("ABC123")).thenReturn(Optional.of(joinCode));
+    when(joinCodeRepo.findByCode("ABC123")).thenReturn(Optional.of(joinCode));
     when(householdMembersRepo.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
     Household result = householdService.joinHousehold("ABC123", testUser);
@@ -111,7 +111,7 @@ class HouseholdServiceTest {
     HouseholdJoinCode expiredCode = new HouseholdJoinCode("XYZ999", testHousehold,
         new Date(System.currentTimeMillis() - 1000));
 
-    when(householdJoinCodeRepo.findByCode("XYZ999")).thenReturn(Optional.of(expiredCode));
+    when(joinCodeRepo.findByCode("XYZ999")).thenReturn(Optional.of(expiredCode));
 
     Household result = householdService.joinHousehold("XYZ999", testUser);
 
@@ -121,10 +121,10 @@ class HouseholdServiceTest {
   @Test
   @DisplayName("Should not join with empty join code")
   void testJoinHouseholdWithEmptyCode() {
-    when(householdJoinCodeRepo.findByCode("")).thenReturn(Optional.empty());
-    when(householdJoinCodeRepo.findByCode(null)).thenReturn(Optional.empty());
-    when(householdJoinCodeRepo.findByCode(" ")).thenReturn(Optional.empty());
-    when(householdJoinCodeRepo.findByCode("  ")).thenReturn(Optional.empty());
+    when(joinCodeRepo.findByCode("")).thenReturn(Optional.empty());
+    when(joinCodeRepo.findByCode(null)).thenReturn(Optional.empty());
+    when(joinCodeRepo.findByCode(" ")).thenReturn(Optional.empty());
+    when(joinCodeRepo.findByCode("  ")).thenReturn(Optional.empty());
 
     Household result = householdService.joinHousehold("", testUser);
 
@@ -134,7 +134,7 @@ class HouseholdServiceTest {
   @Test
   @DisplayName("Should not join with invalid join code")
   void testJoinHouseholdWithInvalidCode() {
-    when(householdJoinCodeRepo.findByCode("INVALID")).thenReturn(Optional.empty());
+    when(joinCodeRepo.findByCode("INVALID")).thenReturn(Optional.empty());
 
     Household result = householdService.joinHousehold("INVALID", testUser);
 
@@ -147,7 +147,7 @@ class HouseholdServiceTest {
     HouseholdJoinCode joinCode = new HouseholdJoinCode("ABC123", testHousehold,
         new Date(System.currentTimeMillis() + 10000));
 
-    when(householdJoinCodeRepo.findByCode("ABC123")).thenReturn(Optional.of(joinCode));
+    when(joinCodeRepo.findByCode("ABC123")).thenReturn(Optional.of(joinCode));
 
     householdService.joinHousehold("ABC123", testUser);
 
@@ -187,7 +187,7 @@ class HouseholdServiceTest {
   @Test
   @DisplayName("Should fail generating join code after max tries")
   void testGenerateJoinCodeFailsAfterMaxTries() {
-    when(householdJoinCodeRepo.existsByCode(anyString())).thenReturn(true);
+    when(joinCodeRepo.existsByCode(anyString())).thenReturn(true);
     when(householdMembersRepo.existsByUserAndHousehold(any(), any())).thenReturn(true);
 
     RuntimeException exception = assertThrows(RuntimeException.class, () ->
@@ -195,7 +195,7 @@ class HouseholdServiceTest {
     );
 
     assertTrue(exception.getMessage().contains("Could not generate a unique join code"));
-    verify(householdJoinCodeRepo, never()).save(any());
+    verify(joinCodeRepo, never()).save(any());
   }
 
   @Test
@@ -306,6 +306,289 @@ class HouseholdServiceTest {
     householdService.addUserToHousehold(testHousehold, testUser, true);
     assertTrue(member.isAdmin());
     assertTrue(testHousehold.getMembers().get(0).isAdmin());
+  }
+
+  @Test
+  @DisplayName("Private verifyTokenNotTaken should return true for unused code")
+  void testPrivateVerifyTokenNotTaken() {
+    when(joinCodeRepo.existsByCode("UNUSED")).thenReturn(false);
+
+    boolean result = TestUtils.callPrivateMethod(householdService,
+        new Class[]{String.class},
+        new Object[]{"UNUSED"},
+        "verifyTokenNotTaken");
+
+    assertTrue(result);
+  }
+
+  @Test
+  @DisplayName("Private verifyTokenNotTaken should return false for used code")
+  void testPrivateVerifyTokenIsTaken() {
+    when(joinCodeRepo.existsByCode("USED")).thenReturn(true);
+
+    boolean result = TestUtils.callPrivateMethod(householdService,
+        new Class[]{String.class},
+        new Object[]{"USED"},
+        "verifyTokenNotTaken");
+
+    assertFalse(result);
+  }
+
+  @Test
+  @DisplayName("Private verifyTokenNotExpired should return true for valid token")
+  void testPrivateVerifyTokenNotExpired() {
+    HouseholdJoinCode validCode = new HouseholdJoinCode("VALID", testHousehold,
+        new Date(System.currentTimeMillis() + 10000));
+
+    boolean result = TestUtils.callPrivateMethod(householdService,
+        new Class[]{HouseholdJoinCode.class},
+        new Object[]{validCode},
+        "verifyTokenNotExpired");
+
+    assertTrue(result);
+  }
+
+  @Test
+  @DisplayName("Private verifyTokenNotExpired should return false for expired token")
+  void testPrivateVerifyTokenExpired() {
+    HouseholdJoinCode expiredCode = new HouseholdJoinCode("EXPIRED", testHousehold,
+        new Date(System.currentTimeMillis() - 10000));
+
+    boolean result = TestUtils.callPrivateMethod(householdService,
+        new Class[]{HouseholdJoinCode.class},
+        new Object[]{expiredCode},
+        "verifyTokenNotExpired");
+
+    assertFalse(result);
+  }
+
+  @Test
+  @DisplayName("Private verifyTokenNotExpired should return false for null token")
+  void testPrivateVerifyTokenNull() {
+    boolean result = TestUtils.callPrivateMethod(householdService,
+        new Class[]{String.class},
+        new Object[]{null},
+        "verifyTokenNotExpired");
+
+    assertFalse(result);
+  }
+
+  @Test
+  @DisplayName("Private getHouseholdByCode should return household for valid code")
+  void testPrivateGetHouseholdByValidCode() {
+    HouseholdJoinCode joinCode = new HouseholdJoinCode("VALID", testHousehold,
+        new Date(System.currentTimeMillis() + 10000));
+    when(joinCodeRepo.findByCode("VALID")).thenReturn(Optional.of(joinCode));
+
+    Household result = TestUtils.callPrivateMethod(householdService,
+        new Class[]{String.class},
+        new Object[]{"VALID"},
+        "getHouseholdByCode");
+
+    assertEquals(testHousehold, result);
+  }
+
+  @Test
+  @DisplayName("Private getHouseholdByCode should return null for invalid code")
+  void testPrivateGetHouseholdByInvalidCode() {
+    when(joinCodeRepo.findByCode("INVALID")).thenReturn(Optional.empty());
+
+    Household result = TestUtils.callPrivateMethod(householdService,
+        new Class[]{String.class},
+        new Object[]{"INVALID"},
+        "getHouseholdByCode");
+
+    assertNull(result);
+  }
+
+  @Test
+  @DisplayName("Private removeUserFromHousehold should remove existing member")
+  void testPrivateRemoveUserFromHousehold() {
+    HouseholdMembers member = new HouseholdMembers(testUser, testHousehold, false);
+    when(householdMembersRepo.findByUserAndHousehold(testUser, testHousehold))
+        .thenReturn(Optional.of(member));
+
+    TestUtils.callPrivateMethod(householdService,
+        new Class[]{Household.class, User.class},
+        new Object[]{testHousehold, testUser},
+        "removeUserFromHousehold");
+
+    verify(householdMembersRepo).delete(member);
+  }
+
+  @Test
+  @DisplayName("Private removeUserFromHousehold should handle non-existent member")
+  void testPrivateRemoveNonExistentMember() {
+    when(householdMembersRepo.findByUserAndHousehold(testUser, testHousehold))
+        .thenReturn(Optional.empty());
+
+    TestUtils.callPrivateMethod(householdService,
+        new Class[]{Household.class, User.class},
+        new Object[]{testHousehold, testUser},
+        "removeUserFromHousehold");
+
+    verify(householdMembersRepo, never()).delete(any());
+  }
+
+  @Test
+  @DisplayName("Private verifyUserInHousehold should pass for existing member")
+  void testPrivateVerifyUserInHousehold() {
+    when(householdMembersRepo.existsByUserAndHousehold(testUser, testHousehold))
+        .thenReturn(true);
+
+    assertDoesNotThrow(() -> {
+      TestUtils.callPrivateMethod(householdService,
+          new Class[]{Household.class, User.class},
+          new Object[]{testHousehold, testUser},
+          "verifyUserInHousehold");
+    });
+  }
+
+  @Test
+  @DisplayName("Private generateRandomCode should generate code of correct length")
+  void testPrivateGenerateRandomCodeLength() {
+    String code = TestUtils.callPrivateMethod(householdService,
+        new Class[]{int.class},
+        new Object[]{8},
+        "generateRandomCode");
+
+    assertNotNull(code);
+    assertEquals(8, code.length());
+  }
+
+  @Test
+  @DisplayName("Private generateRandomCode should generate alphanumeric code")
+  void testPrivateGenerateRandomCodeCharacters() {
+    String code = TestUtils.callPrivateMethod(householdService,
+        new Class[]{int.class},
+        new Object[]{8},
+        "generateRandomCode");
+
+    assertTrue(code.matches("[A-Z0-9]+"));
+  }
+
+  @Test
+  @DisplayName("Should allow regular user to leave household")
+  void testLeaveHouseholdRegularUser() {
+    HouseholdMembers member = new HouseholdMembers(testUser, testHousehold, false);
+    when(householdMembersRepo.existsByUserAndHousehold(testUser, testHousehold))
+        .thenReturn(true);
+    when(householdMembersRepo.findByUserAndHousehold(testUser, testHousehold))
+        .thenReturn(Optional.of(member));
+
+    householdService.leaveHousehold(testHousehold, testUser);
+
+    verify(householdMembersRepo).delete(member);
+    verify(householdRepo).save(testHousehold);
+  }
+
+  @Test
+  @DisplayName("Should prevent admin from leaving household")
+  void testLeaveHouseholdAdminUser() {
+    HouseholdMembers adminMember = new HouseholdMembers(testUser, testHousehold, true);
+    when(householdMembersRepo.existsByUserAndHousehold(testUser, testHousehold))
+        .thenReturn(true);
+    when(householdMembersRepo.findByUserAndHousehold(testUser, testHousehold))
+        .thenReturn(Optional.of(adminMember));
+
+    assertThrows(IllegalArgumentException.class, () -> {
+      householdService.leaveHousehold(testHousehold, testUser);
+    });
+
+    verify(householdMembersRepo, never()).delete(any());
+  }
+
+  @Test
+  @DisplayName("Should throw when user not in household tries to leave")
+  void testLeaveHouseholdNonMember() {
+    when(householdMembersRepo.findByUserAndHousehold(testUser, testHousehold))
+        .thenReturn(Optional.empty());
+
+    assertThrows(NoSuchElementException.class, () -> {
+      householdService.leaveHousehold(testHousehold, testUser);
+    });
+  }
+
+  @Test
+  @DisplayName("Should allow admin to kick user by IDs")
+  void testKickUserFromHouseholdByIds() {
+    User adminUser = new User(2, "admin@test.com", "password", "Admin", "User", "12345678");
+    User targetUser = new User(3, "target@test.com", "password", "Target", "User", "87654321");
+
+    when(householdRepo.findById(1)).thenReturn(Optional.of(testHousehold));
+    when(userRepo.findById(3)).thenReturn(Optional.of(targetUser));
+    when(userRepo.findById(2)).thenReturn(Optional.of(adminUser));
+    when(householdMembersRepo.existsByUserAndHousehold(adminUser, testHousehold)).thenReturn(true);
+    when(householdMembersRepo.existsByUserAndHousehold(targetUser, testHousehold)).thenReturn(true);
+    when(householdMembersRepo.findByUserAndHousehold(adminUser, testHousehold))
+        .thenReturn(Optional.of(new HouseholdMembers(adminUser, testHousehold, true)));
+    when(householdMembersRepo.findByUserAndHousehold(targetUser, testHousehold))
+        .thenReturn(Optional.of(new HouseholdMembers(targetUser, testHousehold, false)));
+
+    householdService.kickUserFromHousehold(1, 3, adminUser);
+
+    verify(householdMembersRepo).delete(any(HouseholdMembers.class));
+  }
+
+  @Test
+  @DisplayName("Should throw when household not found by ID")
+  void testKickUserFromNonExistentHousehold() {
+    when(householdRepo.findById(9)).thenReturn(Optional.empty());
+
+    assertThrows(NoSuchElementException.class, () -> {
+      householdService.kickUserFromHousehold(9, 1, testUser);
+    });
+  }
+
+  @Test
+  @DisplayName("Should throw when target user not found by ID")
+  void testKickNonExistentUser() {
+    when(householdRepo.findById(1)).thenReturn(Optional.of(testHousehold));
+    when(userRepo.findById(9)).thenReturn(Optional.empty());
+
+    assertThrows(NoSuchElementException.class, () -> {
+      householdService.kickUserFromHousehold(1, 9, testUser);
+    });
+  }
+
+  @Test
+  @DisplayName("Should verify admin can kick user")
+  void testVerifyCanKickUserAdmin() {
+    User adminUser = new User("admin@test.com", "password", "Admin", "User", "12345678");
+    HouseholdMembers adminMember = new HouseholdMembers(adminUser, testHousehold, true);
+    HouseholdMembers targetMember = new HouseholdMembers(testUser, testHousehold, false);
+
+    when(householdMembersRepo.existsByUserAndHousehold(testUser, testHousehold)).thenReturn(true);
+    when(householdMembersRepo.findByUserAndHousehold(adminUser, testHousehold))
+        .thenReturn(Optional.of(adminMember));
+
+    assertDoesNotThrow(() -> {
+      TestUtils.callPrivateMethod(householdService,
+          new Class[]{Household.class, User.class, User.class},
+          new Object[]{testHousehold, testUser, adminUser},
+          "verifyCanKickUserFromHousehold");
+    });
+  }
+
+  @Test
+  @DisplayName("Should allow admin to kick user")
+  void testKickUserFromHousehold() {
+    User adminUser = new User("admin@test.com", "password", "Admin", "User", "12345678");
+    HouseholdMembers adminMember = new HouseholdMembers(adminUser, testHousehold, true);
+    HouseholdMembers targetMember = new HouseholdMembers(testUser, testHousehold, false);
+
+    when(householdMembersRepo.existsByUserAndHousehold(testUser, testHousehold)).thenReturn(true);
+    when(householdMembersRepo.existsByUserAndHousehold(adminUser, testHousehold)).thenReturn(true);
+
+    when(householdMembersRepo.findByUserAndHousehold(adminUser, testHousehold))
+        .thenReturn(Optional.of(adminMember));
+    when(householdMembersRepo.findByUserAndHousehold(testUser, testHousehold))
+        .thenReturn(Optional.of(targetMember));
+
+    householdService.kickUserFromHousehold(testHousehold, testUser, adminUser);
+
+    verify(householdMembersRepo).delete(targetMember);
+    verify(householdRepo).save(testHousehold);
   }
 
 }

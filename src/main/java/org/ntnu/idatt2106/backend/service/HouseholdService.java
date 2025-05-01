@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import org.ntnu.idatt2106.backend.dto.household.HouseholdCreate;
+import org.ntnu.idatt2106.backend.exceptions.JoinCodeException;
 import org.ntnu.idatt2106.backend.exceptions.UnauthorizedException;
 import org.ntnu.idatt2106.backend.model.Household;
 import org.ntnu.idatt2106.backend.model.HouseholdJoinCode;
@@ -29,7 +30,7 @@ import org.springframework.stereotype.Service;
 public class HouseholdService {
 
   @Autowired
-  HouseholdJoinCodeRepo householdJoinCodeRepo;
+  HouseholdJoinCodeRepo joinCodeRepo;
 
   @Autowired
   HouseholdRepo householdRepo;
@@ -54,7 +55,7 @@ public class HouseholdService {
    * @return true if the token is not taken, false otherwise.
    */
   private boolean verifyTokenNotTaken(String token) {
-    return !householdJoinCodeRepo.existsByCode(token);
+    return !joinCodeRepo.existsByCode(token);
   }
 
   /**
@@ -74,7 +75,7 @@ public class HouseholdService {
    * @return true if the token is valid and not expired, false otherwise.
    */
   private boolean verifyTokenNotExpired(String token) {
-    return householdJoinCodeRepo.findByCode(token)
+    return joinCodeRepo.findByCode(token)
         .map(this::verifyTokenNotExpired)
         .orElse(false);
   }
@@ -89,20 +90,9 @@ public class HouseholdService {
     if (code == null || code.isEmpty() || !verifyTokenNotExpired(code)) {
       return null;
     }
-    return householdJoinCodeRepo.findByCode(code)
+    return joinCodeRepo.findByCode(code)
         .map(HouseholdJoinCode::getHousehold)
         .orElse(null);
-  }
-
-  /**
-   * Adds a member to a household.
-   *
-   * @param householdMembers The household member to be added.
-   */
-  private void addMember(HouseholdMembers householdMembers, User user, Household household) {
-    householdMembersRepo.save(householdMembers);
-    user.getHouseholdMemberships().add(householdMembers);
-    household.getMembers().add(householdMembers);
   }
 
   /**
@@ -117,8 +107,9 @@ public class HouseholdService {
       return;
     }
     HouseholdMembers householdMembers = new HouseholdMembers(user, household,false);
-    addMember(householdMembers, user, household);
-  }
+    householdMembersRepo.save(householdMembers);
+    user.getHouseholdMemberships().add(householdMembers);
+    household.getMembers().add(householdMembers);  }
 
   /**
    * Adds a user to a household.
@@ -132,28 +123,9 @@ public class HouseholdService {
       return;
     }
     HouseholdMembers householdMembers = new HouseholdMembers(user, household,isAdmin);
-    addMember(householdMembers, user, household);
-  }
-
-  /**
-   * Removes a user from a household.
-   *
-   * @param household The household from which the user will be removed.
-   * @param user The user to be removed.
-   */
-  private void removeUserFromHousehold(Household household, User user) {
-    Optional<HouseholdMembers> householdMembers = householdMembersRepo.findByUserAndHousehold(user, household);
-    if (householdMembers.isEmpty()) {
-      System.out.println(user + " not found in household " + household.getName());
-      return;
-    }
-    householdMembersRepo.delete(householdMembers.get());
-    user.getHouseholdMemberships().remove(householdMembers.get());
-    household.getMembers().remove(householdMembers.get());
-    System.out.println(user + " removed from household " + household.getName());
-    householdRepo.save(household);
-
-  }
+    householdMembersRepo.save(householdMembers);
+    user.getHouseholdMemberships().add(householdMembers);
+    household.getMembers().add(householdMembers);  }
 
   /**
    * Verifies that a user is in the household.
@@ -169,6 +141,27 @@ public class HouseholdService {
   }
 
   /**
+   * Removes a user from a household.
+   *
+   * @param household The household from which the user will be removed.
+   * @param user The user to be removed.
+   * @throws NoSuchElementException if the user is not found in the household.
+   */
+  private void removeUserFromHousehold(Household household, User user) {
+    Optional<HouseholdMembers> householdMembers = householdMembersRepo.findByUserAndHousehold(user, household);
+    if (householdMembers.isEmpty()) {
+      System.out.println(user + " not found in household " + household.getName());
+      return;
+    }
+    householdMembersRepo.delete(householdMembers.get());
+    user.getHouseholdMemberships().remove(householdMembers.get());
+    household.getMembers().remove(householdMembers.get());
+    householdRepo.save(household);
+    System.out.println(user + " removed from household " + household.getName());
+
+  }
+
+  /**
    * Lets a user leave a household.
    *
    * @param household The household from which the user will leave.
@@ -177,20 +170,15 @@ public class HouseholdService {
    * @throws IllegalArgumentException if the user is the admin of the household.
    */
   public void leaveHousehold(Household household, User user) {
-    try {
-      verifyUserInHousehold(household, user);
-      if (householdMembersRepo.findByUserAndHousehold(user, household).isEmpty()) {
-        throw new NoSuchElementException("User not found in household");
-      }
-      if (householdMembersRepo.findByUserAndHousehold(user, household).get().isAdmin()) {
-        throw new IllegalArgumentException("User is the admin of the household. Cannot leave.");
-      }
-      removeUserFromHousehold(household, user);
-    } catch (NoSuchElementException e) {
+    verifyUserInHousehold(household, user);
+    Optional<HouseholdMembers> householdMember = householdMembersRepo.findByUserAndHousehold(user, household);
+    if (householdMember.isEmpty()) {
       throw new NoSuchElementException("User not found in household");
-    } catch (IllegalArgumentException e) {
+    }
+    if (householdMember.get().isAdmin()) {
       throw new IllegalArgumentException("User is the admin of the household. Cannot leave.");
     }
+    removeUserFromHousehold(household, user);
   }
 
   /**
@@ -204,7 +192,7 @@ public class HouseholdService {
     if (household.isPresent()) {
       leaveHousehold(household.get(), user);
     } else {
-      throw new IllegalArgumentException("Household not found");
+      throw new NoSuchElementException("Household not found");
     }
   }
 
@@ -216,9 +204,7 @@ public class HouseholdService {
    * @param admin The admin who is kicking the user.
    */
   private void verifyCanKickUserFromHousehold(Household household, User user, User admin) {
-    if (!householdMembersRepo.existsByUserAndHousehold(user, household)) {
-      throw new NoSuchElementException("User not found in household");
-    }
+   verifyUserInHousehold(household, user);
     Optional<HouseholdMembers> adminMember = householdMembersRepo.findByUserAndHousehold(admin, household);
     if (adminMember.isEmpty() || !adminMember.get().isAdmin()) {
       throw new UnauthorizedException("Admin does not have authority to kick user");
@@ -232,18 +218,12 @@ public class HouseholdService {
    * @param household The household from which the user will be kicked.
    * @param user The user who is being kicked from the household.
    * @param admin The admin who is kicking the user.
+   * @throws NoSuchElementException if the user is not found in the household.
+   * @throws UnauthorizedException if the admin does not have authority to kick the user.
    */
   public void kickUserFromHousehold(Household household, User user, User admin) {
-    try {
-      verifyCanKickUserFromHousehold(household, user, admin);
-      removeUserFromHousehold(household, user);
-    } catch (NoSuchElementException e) {
-      System.out.println("User not found in household " + household.getName());
-      throw new NoSuchElementException("User not found in household");
-    } catch (UnauthorizedException e) {
-      System.out.println("Admin does not have authority to kick user");
-      throw new UnauthorizedException("Admin does not have authority to kick user");
-    }
+    verifyCanKickUserFromHousehold(household, user, admin);
+    removeUserFromHousehold(household, user);
   }
 
   /**
@@ -253,6 +233,8 @@ public class HouseholdService {
    * @param householdId The id of the household from which the user will be kicked.
    * @param userId The id of the user who is being kicked from the household.
    * @param admin The admin who is kicking the user.
+   * @throws NoSuchElementException if the household or user is not found.
+   * @throws UnauthorizedException if the admin does not have authority to kick the user.
    */
   public void kickUserFromHousehold(int householdId, int userId, User admin) {
     Optional<Household> household = householdRepo.findById(householdId);
@@ -262,7 +244,6 @@ public class HouseholdService {
     }
     kickUserFromHousehold(household.get(), user.get(), admin);
   }
-
 
   /**
    * Creates a new household.
@@ -330,11 +311,11 @@ public class HouseholdService {
       }
     }
     if (code == null) {
-      throw new RuntimeException("Could not generate a unique join code after " + MAX_TRIES + " tries.");
+      throw new JoinCodeException("Could not generate a unique join code after " + MAX_TRIES + " tries.");
     }
     HouseholdJoinCode joinCode = new HouseholdJoinCode(code, household,
         new Date(System.currentTimeMillis() + EXPIRATION_TIME));
-    householdJoinCodeRepo.save(joinCode);
+    joinCodeRepo.save(joinCode);
     return code;
   }
 

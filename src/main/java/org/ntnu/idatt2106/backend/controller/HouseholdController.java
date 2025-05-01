@@ -253,12 +253,13 @@ public class HouseholdController {
                     return ResponseEntity.ok("Successfully joined the household");
                 }
             }
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid join code");
+
         } catch (NoSuchElementException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Household not found");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Could not join household");
         }
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid join code");
     }
 
     /**
@@ -310,24 +311,19 @@ public class HouseholdController {
                 String token = authorizationHeader.substring(7);
                 User user = jwtTokenService.getUserByToken(token);
                 if (user != null) {
-                    System.out.println("User from token: " + user);
-                    System.out.println("Leaving household with ID: " + id);
-                    System.out.println("Authorization header: " + authorizationHeader);
                     householdService.leaveHousehold(id, user);
                     return ResponseEntity.ok("Successfully left the household");
                 }
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
             }
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Could not leave household");
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid household ID");
         } catch (NoSuchElementException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Household not found");
-        } catch (UnauthorizedException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User not a member of this household");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Matching user and household not found");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Could not leave household");
         }
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Could not leave household");
     }
 
     /**
@@ -390,16 +386,15 @@ public class HouseholdController {
                 householdService.kickUserFromHousehold(householdId, userId, user);
                 return ResponseEntity.ok("User successfully kicked from the household");
             }
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User not authorized to kick this user from the household");
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid household ID or user ID");
         } catch (NoSuchElementException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Household or user not found");
         } catch (UnauthorizedException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User not authorized to kick this user from the household");
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Could not kick user from household");
         }
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User not authorized to kick this user from the household");
     }
 }
