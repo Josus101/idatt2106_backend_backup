@@ -9,6 +9,8 @@ import org.mockito.MockitoAnnotations;
 import org.ntnu.idatt2106.backend.dto.news.NewsCreateRequest;
 import org.ntnu.idatt2106.backend.dto.news.NewsGetResponse;
 import org.ntnu.idatt2106.backend.exceptions.AlreadyInUseException;
+import org.ntnu.idatt2106.backend.model.Admin;
+import org.ntnu.idatt2106.backend.security.JWT_token;
 import org.ntnu.idatt2106.backend.service.NewsService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,6 +28,9 @@ class NewsControllerTest {
 
   @Mock
   private NewsService newsService;
+
+  @Mock
+  private JWT_token jwt;
 
   private NewsGetResponse newsResponse;
 
@@ -110,8 +115,9 @@ class NewsControllerTest {
   void testAddNewsSuccess() {
     NewsCreateRequest request = new NewsCreateRequest("Title", "Content", 10.0, 20.0, "Oslo");
     doNothing().when(newsService).addNews(request);
+    when(jwt.getAdminUserByToken(anyString())).thenReturn(new Admin());
 
-    ResponseEntity<?> response = newsController.addNews(request);
+    ResponseEntity<?> response = newsController.addNews("valid-token", request);
 
     assertEquals(HttpStatus.OK, response.getStatusCode());
     assertEquals("News added successfully", response.getBody());
@@ -123,11 +129,25 @@ class NewsControllerTest {
     NewsCreateRequest request = new NewsCreateRequest("", "Content", 10.0, 20.0, "Oslo");
     doThrow(new IllegalArgumentException("Title, content and district cannot be empty"))
             .when(newsService).addNews(request);
+    when(jwt.getAdminUserByToken(anyString())).thenReturn(new Admin());
 
-    ResponseEntity<?> response = newsController.addNews(request);
+    ResponseEntity<?> response = newsController.addNews("valid-token", request);
 
     assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     assertEquals("Error: Title, content and district cannot be empty", response.getBody());
+  }
+
+  @Test
+  @DisplayName("addNews returns 401 - Unauthorized when user is not admin")
+  void testAddNewsUnauthorized() {
+    NewsCreateRequest request = new NewsCreateRequest("Title", "Content", 10.0, 20.0, "Oslo");
+    doThrow(new SecurityException("Unauthorized"))
+            .when(newsService).addNews(request);
+
+    ResponseEntity<?> response = newsController.addNews("invalid-token", request);
+
+    assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    assertEquals("Error: Unauthorized", response.getBody());
   }
 
   @Test
@@ -136,8 +156,9 @@ class NewsControllerTest {
     NewsCreateRequest request = new NewsCreateRequest("Title", "Content", 10.0, 20.0, "Oslo");
     doThrow(new AlreadyInUseException("News with the same title and date already exists"))
             .when(newsService).addNews(request);
+    when(jwt.getAdminUserByToken(anyString())).thenReturn(new Admin());
 
-    ResponseEntity<?> response = newsController.addNews(request);
+    ResponseEntity<?> response = newsController.addNews("valid-token", request);
 
     assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
     assertEquals("Error: News with the same title and date already exists", response.getBody());
@@ -149,8 +170,9 @@ class NewsControllerTest {
     NewsCreateRequest request = new NewsCreateRequest("Title", "Content", 10.0, 20.0, "Oslo");
     doThrow(new RuntimeException("Unexpected error"))
             .when(newsService).addNews(request);
+    when(jwt.getAdminUserByToken(anyString())).thenReturn(new Admin());
 
-    ResponseEntity<?> response = newsController.addNews(request);
+    ResponseEntity<?> response = newsController.addNews("valid-token", request);
 
     assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
     assertEquals("Error: Error adding news", response.getBody());
