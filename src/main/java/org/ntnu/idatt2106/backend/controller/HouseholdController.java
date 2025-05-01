@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.ntnu.idatt2106.backend.dto.household.HouseholdCreate;
 import org.ntnu.idatt2106.backend.dto.household.PreparednessStatus;
+import org.ntnu.idatt2106.backend.exceptions.UnauthorizedException;
 import org.ntnu.idatt2106.backend.model.Household;
 import org.ntnu.idatt2106.backend.model.User;
 import org.ntnu.idatt2106.backend.repo.HouseholdRepo;
@@ -229,7 +230,7 @@ public class HouseholdController {
                     content = @Content(schema = @Schema(example = "Household not found"))
             )
     })
-    public void joinHouseHold(
+    public ResponseEntity<?> joinHouseHold(
         @Parameter(
             name = "Authorization",
             description = "Bearer token in the format Bearer <JWT>",
@@ -246,13 +247,159 @@ public class HouseholdController {
                 String token = authorizationHeader.substring(7);
                 User user = jwtTokenService.getUserByToken(token);
                 if (user != null) {
-                    householdService.joinHousehold(joinCode, user);
+                    if (householdService.joinHousehold(joinCode, user) == null) {
+                        throw new NoSuchElementException("Household not found");
+                    }
+                    return ResponseEntity.ok("Successfully joined the household");
                 }
             }
         } catch (NoSuchElementException e) {
-            ResponseEntity.status(HttpStatus.NOT_FOUND).body("Household not found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Household not found");
         } catch (Exception e) {
-            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Could not join household");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Could not join household");
         }
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid join code");
+    }
+
+    /**
+     * Endpoint for leaving a household.
+     *
+     * @param authorizationHeader The authorization header containing the JWT token.
+     * @param id The ID of the household to leave.
+     */
+    @DeleteMapping("/{id}/leave")
+    @Operation(
+            summary = "Leave a household",
+            description = "Leaves the household with the given ID"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Successfully left the household"
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Invalid household ID",
+                    content = @Content(schema = @Schema(example = "Invalid household ID"))
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "User not a member of this household",
+                    content = @Content(schema = @Schema(example = "User not a member of this household"))
+            ),
+            @ApiResponse(
+                responseCode = "404",
+                description = "Household not found",
+                content = @Content(schema = @Schema(example = "Household not found"))
+            )
+    })
+    public ResponseEntity<?> getMeOutOfThisHousehold(
+        @Parameter(
+            name = "Authorization",
+            description = "Bearer token in the format Bearer <JWT>",
+            required = true,
+            example = "Bearer eyJhbGciOiJIUzI1N.iIsInR5cCI6IkpXVCJ9..."
+        ) @RequestHeader("Authorization") String authorizationHeader,
+        @Parameter(
+            name = "id",
+            description = "The id of the household to leave",
+            required = true
+        ) @PathVariable int id) {
+        try {
+            if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+                String token = authorizationHeader.substring(7);
+                User user = jwtTokenService.getUserByToken(token);
+                if (user != null) {
+                    System.out.println("User from token: " + user);
+                    System.out.println("Leaving household with ID: " + id);
+                    System.out.println("Authorization header: " + authorizationHeader);
+                    householdService.leaveHousehold(id, user);
+                    return ResponseEntity.ok("Successfully left the household");
+                }
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+            }
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid household ID");
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Household not found");
+        } catch (UnauthorizedException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User not a member of this household");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Could not leave household");
+        }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Could not leave household");
+    }
+
+    /**
+     * Endpoint for kicking a user from a household.
+     *
+     * @param authorizationHeader The authorization header containing the JWT token.
+     * @param userId The ID of the user to be kicked.
+     * @param householdId The ID of the household from which the user will be kicked.
+     */
+    @DeleteMapping("/{householdId}/kick/{userId}")
+    @Operation(
+        summary = "Kicks a user from a household",
+        description = "Kicks the user with the given ID from the household with the given ID"
+    )
+    @ApiResponses(value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "User successfully kicked from the household"
+        ),
+        @ApiResponse(
+            responseCode = "400",
+            description = "Invalid household ID or user ID",
+            content = @Content(schema = @Schema(example = "Invalid household ID or user ID"))
+        ),
+        @ApiResponse(
+            responseCode = "401",
+            description = "User not authorized to kick this user from the household",
+            content = @Content(schema = @Schema(example = "User not authorized to kick this user from the household"))
+        ),
+        @ApiResponse(
+            responseCode = "404",
+            description = "Household or user not found",
+            content = @Content(schema = @Schema(example = "Household or user not found"))
+        )
+    })
+    public ResponseEntity<?> getOutOfMyHouse(
+        @Parameter(
+            name = "Authorization",
+            description = "Bearer token in the format Bearer <JWT>",
+            required = true,
+            example = "Bearer eyJhbGciOiJIUzI1N.iIsInR5cCI6IkpXVCJ9..."
+        ) @RequestHeader("Authorization") String authorizationHeader,
+        @Parameter(
+            name = "householdId",
+            description = "The id of the household to kick someone from",
+            required = true
+        ) @PathVariable int householdId,
+        @Parameter(
+            name = "userId",
+            description = "The id of the user to kick from the household",
+            required = true
+        ) @PathVariable int userId) {
+        try {
+            if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+                String token = authorizationHeader.substring(7);
+                User user = jwtTokenService.getUserByToken(token);
+                if (user == null) {
+                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User not found from token");
+                }
+                householdService.kickUserFromHousehold(householdId, userId, user);
+                return ResponseEntity.ok("User successfully kicked from the household");
+            }
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid household ID or user ID");
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Household or user not found");
+        } catch (UnauthorizedException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User not authorized to kick this user from the household");
+        }
+        catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Could not kick user from household");
+        }
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User not authorized to kick this user from the household");
     }
 }

@@ -3,6 +3,7 @@ package org.ntnu.idatt2106.backend.service;
 import org.junit.jupiter.api.*;
 import org.mockito.*;
 import org.ntnu.idatt2106.backend.dto.household.HouseholdCreate;
+import org.ntnu.idatt2106.backend.exceptions.UnauthorizedException;
 import org.ntnu.idatt2106.backend.model.*;
 import org.ntnu.idatt2106.backend.repo.*;
 
@@ -82,7 +83,7 @@ class HouseholdServiceTest {
   void testGenerateJoinCodeForNonMember() {
     when(householdMembersRepo.existsByUserAndHousehold(any(), any())).thenReturn(false);
 
-    assertThrows(IllegalArgumentException.class, () -> {
+    assertThrows(UnauthorizedException.class, () -> {
       householdService.generateJoinCode(testHousehold, testUser);
     });
     verify(householdJoinCodeRepo, never()).save(any(HouseholdJoinCode.class));
