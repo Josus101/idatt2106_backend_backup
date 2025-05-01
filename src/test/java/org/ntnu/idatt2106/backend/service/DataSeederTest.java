@@ -69,6 +69,61 @@ class DataSeederTest {
   }
 
   @Test
+  @DisplayName("Test run method when no users exist — all seed methods should be called")
+  void testRun_WhenNoUsersExist_ShouldCallAllSeedMethods() throws Exception {
+    // Given
+    when(userRepo.count()).thenReturn(0L);
+
+    // Spy so we can verify internal method calls
+    DataSeeder spySeeder = spy(dataSeeder);
+
+    // Use doNothing to avoid actual execution of methods (optional but clean)
+    doNothing().when(spySeeder).seedCategoriesAndUnits();
+    doNothing().when(spySeeder).seedAdminUsers();
+    doNothing().when(spySeeder).seedHouseholdOne();
+    doNothing().when(spySeeder).seedHouseholdTwo();
+    doNothing().when(spySeeder).seedHouseholdThree();
+    doNothing().when(spySeeder).seedHouseholdFour();
+    doNothing().when(spySeeder).seedEmergencyServicesWithTypes();
+
+    // When
+    spySeeder.run();
+
+    // Then
+    verify(userRepo).count();
+    verify(spySeeder).seedCategoriesAndUnits();
+    verify(spySeeder).seedAdminUsers();
+    verify(spySeeder).seedHouseholdOne();
+    verify(spySeeder).seedHouseholdTwo();
+    verify(spySeeder).seedHouseholdThree();
+    verify(spySeeder).seedHouseholdFour();
+    verify(spySeeder).seedEmergencyServicesWithTypes();
+  }
+
+  @Test
+  @DisplayName("Test run method skips seeding if users already exist")
+  void testRun_WhenUsersExist_ShouldSkipSeeding() throws Exception {
+    when(userRepo.count()).thenReturn(5L);
+
+    DataSeeder spySeeder = spy(dataSeeder);
+
+    // Prevent seeding methods from being accidentally called
+    lenient().doThrow(new RuntimeException("Should not be called")).when(spySeeder).seedCategoriesAndUnits();
+
+    spySeeder.run();
+
+    verify(userRepo).count();
+    verify(spySeeder, never()).seedCategoriesAndUnits();
+    verify(spySeeder, never()).seedAdminUsers();
+    verify(spySeeder, never()).seedHouseholdOne();
+    verify(spySeeder, never()).seedHouseholdTwo();
+    verify(spySeeder, never()).seedHouseholdThree();
+    verify(spySeeder, never()).seedHouseholdFour();
+    verify(spySeeder, never()).seedEmergencyServicesWithTypes();
+  }
+
+
+  @Test
   @DisplayName("Test run method when users exist")
   void testSeedCategoriesAndUnitsWhenEmpty() {
     when(categoryRepo.count()).thenReturn(0L);
@@ -275,4 +330,29 @@ class DataSeederTest {
 
     verify(emergencyServiceRepo, never()).saveAll(anyList());
   }
+
+  @Test
+  @DisplayName("Test addHouseholdMember method with member is null")
+  void testAddHouseholdMember_WithMemberIsNull() {
+    User user = null;
+    Household household = new Household();
+
+
+    assertThrows(IllegalArgumentException.class, () -> dataSeeder.addHouseholdMember(household, user, true));
+    verify(householdMembersRepo, never()).save(any(HouseholdMembers.class));
+  }
+
+
+  @Test
+  @DisplayName("Test addHouseholdMember method with household is null")
+  void testAddHouseholdMember_WithHouseholdIsNull() {
+    User user = new User();
+    Household household = null;
+
+    assertThrows(IllegalArgumentException.class, () -> dataSeeder.addHouseholdMember(household, user, true));
+    verify(householdMembersRepo, never()).save(any(HouseholdMembers.class));
+  }
+
+
+
 }

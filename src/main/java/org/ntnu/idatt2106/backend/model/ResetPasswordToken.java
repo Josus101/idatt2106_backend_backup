@@ -6,6 +6,11 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/**
+ * ResetPasswordToken model for the database
+ * @Author Konrad Seime
+ * @since 0.1
+ */
 @Entity
 @NoArgsConstructor
 @Getter
