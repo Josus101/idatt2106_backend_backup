@@ -35,14 +35,14 @@ public class PreparednessService {
     public PreparednessStatus calculatePreparednessStatus(Household household) {
         int numPeople = household.getMembers().size();
         if (numPeople == 0) {
-            return new PreparednessStatus(0, true, "Ingen medlemmer i husstanden");
+            return new PreparednessStatus(0, 0);
         }
 
         // Krav
-        double kcal3 = numPeople * 3 * 2000;
-        double kcal7 = numPeople * 7 * 2000;
-        double water3 = numPeople * 3 * 3;
-        double water7 = numPeople * 7 * 3;
+        //double kcal3 = numPeople * 3 * 2000;
+        //double kcal7 = numPeople * 7 * 2000;
+        //double water3 = numPeople * 3 * 3;
+        //double water7 = numPeople * 7 * 3;
 
         double totalWater = 0;
         double totalKcal = 0;
@@ -70,28 +70,13 @@ public class PreparednessService {
         }
 
         // Prosentvis dekning for mat og vann (mot 7-dagers krav)
-        double kcalPercent = (totalKcal / kcal7) * 100;
-        double waterPercent = (totalWater / water7) * 100;
+        double kcalPerPersonPerDay = 2000;
+        double waterPerPersonPerDay = 3;
 
-        // Samlet dekning (laveste verdi styrer)
-        double preparednessPercent = Math.min(100.0, Math.min(kcalPercent, waterPercent));
+        double daysOfFood = totalKcal / (numPeople * kcalPerPersonPerDay);
+        double daysOfWater = totalWater / (numPeople * waterPerPersonPerDay);
 
-        // Vurder nivå
-        boolean below3days = totalKcal < kcal3 || totalWater < water3;
-        boolean below7days = totalKcal < kcal7 || totalWater < water7;
-
-        boolean warning = below3days;
-
-        String message;
-        if (below3days) {
-            message = "Lageret dekker ikke 3 dager med mat og vann";
-        } else if (below7days) {
-            message = "Lageret dekker 3 dager, men ikke 7";
-        } else {
-            message = "Lageret dekker minst 7 dager";
-        }
-
-        return new PreparednessStatus((int) preparednessPercent, warning, message);
+        return new PreparednessStatus(daysOfFood, daysOfWater);
     }
 
     /**

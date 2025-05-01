@@ -31,7 +31,7 @@ class HouseholdControllerTest {
     @DisplayName("Test getPreparednessStatus returns status for valid household ID")
     void testGetPreparednessStatusSuccess() {
         int householdId = 1;
-        PreparednessStatus status = new PreparednessStatus(80, false, "Good");
+        PreparednessStatus status = new PreparednessStatus(8, 3);
 
         when(preparednessService.getPreparednessStatusByHouseholdId(householdId)).thenReturn(status);
 

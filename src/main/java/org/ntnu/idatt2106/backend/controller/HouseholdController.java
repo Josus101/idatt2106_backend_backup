@@ -36,15 +36,15 @@ public class HouseholdController {
     private PreparednessService preparednessService;
 
     /**
-     * Endpoint for calculating the preparedness status of a household.
+     * Endpoint for retrieving the number of days the household has food and water for.
      *
      * @param id The ID of the household.
-     * @return A PreparednessStatus object with percentage and warning info.
+     * @return A PreparednessStatus object with days of food and water supply.
      */
     @GetMapping("/{id}/preparedness")
     @Operation(
             summary = "Get preparedness status",
-            description = "Returns the preparedness level of the given household based on food, water and essential items"
+            description = "Returns how many days of food and water the household has in storage"
     )
     @ApiResponses(value = {
             @ApiResponse(
