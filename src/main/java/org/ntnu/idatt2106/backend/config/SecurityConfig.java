@@ -42,6 +42,7 @@ public class SecurityConfig {
                 "/api/email/reset-password/**",
                 "/api/users/reset-password/**",
                 "/api/users/verify/**",
+                "/api/users/is-auth/**",
                 "/api/households/**",
                 "/api/emergency/items/**") // TODO: ONLY FOR TESTING REMOVE LATER
             .permitAll()

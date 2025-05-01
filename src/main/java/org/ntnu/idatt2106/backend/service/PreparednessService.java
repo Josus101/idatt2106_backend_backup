@@ -73,6 +73,7 @@ public class PreparednessService {
         double kcalPercent = (totalKcal / kcal7) * 100;
         double waterPercent = (totalWater / water7) * 100;
 
+        // Samlet dekning (laveste verdi styrer)
         double preparednessPercent = Math.min(100.0, Math.min(kcalPercent, waterPercent));
 
         // Vurder nivå
@@ -92,8 +93,6 @@ public class PreparednessService {
 
         return new PreparednessStatus((int) preparednessPercent, warning, message);
     }
-
-
 
     /**
      * Retrieves the preparedness status for a given household by its ID.

@@ -82,6 +82,10 @@ public class ItemService {
    * @return a list of items associated with a category
    */
   public List<ItemGenericDTO> getItemsByCategoryId(int id) {
+    if (!categoryRepo.existsById(id)) {
+      throw new IllegalArgumentException("Category does not exist");
+    }
+
     List<Item> items = itemRepo.findByCategory_Id(id)
             .orElseThrow(() -> new EntityNotFoundException("No items found for this category"));
 
