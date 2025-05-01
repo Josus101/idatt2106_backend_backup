@@ -23,12 +23,15 @@ public class News {
   private int id;
   @Column(nullable = false)
   private String title;
+  @Lob
   @Column(nullable = false)
   private String content;
   @Column(nullable = false)
   private double latitude;
   @Column(nullable = false)
   private double longitude;
+  @Column(nullable = false)
+  private String district;
   @Column(nullable = false)
   private Date date;
 
@@ -45,11 +48,24 @@ public class News {
    * @param latitude of the news
    * @param date of the news
    */
-  public News(String title, String content, double latitude, double longitude, Date date) {
+  public News(String title, String content, double latitude, double longitude, String district, Date date) {
     this.title = title;
     this.content = content;
     this.latitude = latitude;
     this.longitude = longitude;
+    this.district = district;
     this.date = date;
+  }
+
+
+  @Override
+  public String toString() {
+    return "News{" +
+            ", title='" + title + '\'' +
+            ", content='" + content + '\'' +
+            ", latitude=" + latitude +
+            ", longitude=" + longitude +
+            ", date=" + date +
+            '}';
   }
 }
