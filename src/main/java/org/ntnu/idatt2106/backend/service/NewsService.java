@@ -5,7 +5,9 @@ import com.rometools.rome.feed.synd.SyndEntry;
 import com.rometools.rome.feed.synd.SyndFeed;
 import com.rometools.rome.io.SyndFeedInput;
 import com.rometools.rome.io.XmlReader;
+import org.ntnu.idatt2106.backend.dto.news.NewsCreateRequest;
 import org.ntnu.idatt2106.backend.dto.news.NewsGetResponse;
+import org.ntnu.idatt2106.backend.exceptions.AlreadyInUseException;
 import org.ntnu.idatt2106.backend.model.News;
 import org.ntnu.idatt2106.backend.repo.NewsRepo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,19 +75,35 @@ public class NewsService {
             )).toList();
   }
 
+  /**
+   * Method to add news to the database
+   * @param title the title of the news
+   * @param content the content of the news
+   * @param latitude the latitude of the news
+   * @param longitude the longitude of the news
+   * @param district the district of the news
+   */
+  public void addNews(NewsCreateRequest newsCreateRequest) {
+    if (newsRepo.existsByTitleAndDate(newsCreateRequest.getTitle(), new Date())) {
+      throw new AlreadyInUseException("News with the same title and date already exists");
+    }
 
-//  /**
-//   * Method to add news to the database
-//   * @param title the title of the news
-//   * @param content the content of the news
-//   * @param latitude the latitude of the news
-//   * @param longitude the longitude of the news
-//   * @param district the district of the news
-//   */
-//  public void addNews(String title, String content, double latitude, double longitude, String district) {
-//    News news = new News(title, content, latitude, longitude, district, new Date());
-//    newsRepo.save(news);
-//  }
+    if (newsCreateRequest.getTitle().isEmpty() || newsCreateRequest.getContent().isEmpty() || newsCreateRequest.getDistrict().isEmpty()) {
+      throw new IllegalArgumentException("Title, content and district cannot be empty");
+    }
+
+    News news = new News(
+            newsCreateRequest.getTitle(),
+            newsCreateRequest.getContent(),
+            newsCreateRequest.getLatitude(),
+            newsCreateRequest.getLongitude(),
+            newsCreateRequest.getDistrict(),
+            new Date());
+
+    newsRepo.save(news);
+  }
+
+
   /**
    * Method to load the feed from the Politiloggen API
    * @return SyndFeed

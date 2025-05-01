@@ -12,7 +12,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.ntnu.idatt2106.backend.dto.news.NewsCreateRequest;
 import org.ntnu.idatt2106.backend.dto.news.NewsGetResponse;
+import org.ntnu.idatt2106.backend.exceptions.AlreadyInUseException;
 import org.ntnu.idatt2106.backend.model.News;
 import org.ntnu.idatt2106.backend.repo.NewsRepo;
 
@@ -36,6 +38,8 @@ public class NewsServiceTest {
   News testNews;
   NewsGetResponse testNewsGetResponse;
 
+  NewsCreateRequest validRequest;
+
   @BeforeEach
   void setUp() {
     testNews = new News(
@@ -53,6 +57,8 @@ public class NewsServiceTest {
             testNews.getLongitude(),
             testNews.getDistrict(),
             testNews.getDate().toString());
+
+    validRequest = new NewsCreateRequest("Title", "Content", 10.0, 20.0, "Oslo Politidistrikt");
   }
 
   @Test
@@ -95,6 +101,72 @@ public class NewsServiceTest {
     when(newsRepo.findByDistrict(null)).thenReturn(List.of());
     List<NewsGetResponse> result = newsService.getByDistrict(null);
     assertTrue(result.isEmpty());
+  }
+
+  @Test
+  @DisplayName("addNews should save news when all fields are valid and not duplicate")
+  void testAddNewsSuccess() {
+    when(newsRepo.existsByTitleAndDate(eq("Title"), any(Date.class))).thenReturn(false);
+
+    newsService.addNews(validRequest);
+
+    verify(newsRepo).save(any(News.class));
+  }
+
+  @Test
+  @DisplayName("addNews should throw AlreadyInUseException if title and date already exist")
+  void testAddNews_DuplicateTitleAndDate() {
+    when(newsRepo.existsByTitleAndDate(eq("Title"), any(Date.class))).thenReturn(true);
+
+    AlreadyInUseException ex = assertThrows(
+            AlreadyInUseException.class,
+            () -> newsService.addNews(validRequest)
+    );
+    assertEquals("News with the same title and date already exists", ex.getMessage());
+
+    verify(newsRepo, never()).save(any());
+  }
+
+  @Test
+  @DisplayName("addNews should throw IllegalArgumentException if title is empty")
+  void testAddNews_EmptyTitle() {
+    validRequest.setTitle("");
+
+    IllegalArgumentException ex = assertThrows(
+            IllegalArgumentException.class,
+            () -> newsService.addNews(validRequest)
+    );
+    assertEquals("Title, content and district cannot be empty", ex.getMessage());
+
+    verify(newsRepo, never()).save(any());
+  }
+
+  @Test
+  @DisplayName("addNews should throw IllegalArgumentException if content is empty")
+  void testAddNews_EmptyContent() {
+    validRequest.setContent("");
+
+    IllegalArgumentException ex = assertThrows(
+            IllegalArgumentException.class,
+            () -> newsService.addNews(validRequest)
+    );
+    assertEquals("Title, content and district cannot be empty", ex.getMessage());
+
+    verify(newsRepo, never()).save(any());
+  }
+
+  @Test
+  @DisplayName("addNews should throw IllegalArgumentException if district is empty")
+  void testAddNews_EmptyDistrict() {
+    validRequest.setDistrict("");
+
+    IllegalArgumentException ex = assertThrows(
+            IllegalArgumentException.class,
+            () -> newsService.addNews(validRequest)
+    );
+    assertEquals("Title, content and district cannot be empty", ex.getMessage());
+
+    verify(newsRepo, never()).save(any());
   }
 
   @Test

@@ -8,15 +8,14 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import org.ntnu.idatt2106.backend.dto.news.NewsCreateRequest;
 import org.ntnu.idatt2106.backend.dto.news.NewsGetResponse;
+import org.ntnu.idatt2106.backend.exceptions.AlreadyInUseException;
 import org.ntnu.idatt2106.backend.service.NewsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.print.DocFlavor;
 import java.util.List;
@@ -175,6 +174,62 @@ public class NewsController {
       return ResponseEntity.ok(newsByDistrict);
     } catch (Exception e) {
       return ResponseEntity.internalServerError().body("Error: Error retrieving news");
+    }
+  }
+
+  /**
+   * Add news to the database
+   * @param newsCreateRequest the news to add
+   * @return ResponseEntity with status code
+   */
+  @PostMapping("/add")
+  @Operation(
+      summary = "Add news to the database"
+  )
+  @ApiResponses(value = {
+      @ApiResponse(
+          responseCode = "200",
+          description = "News added successfully",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(example = "News added successfully")
+          )
+      ),
+      @ApiResponse(
+          responseCode = "400",
+          description = "Error: Bad request",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(example = "Error: Bad request")
+          )
+      ),
+      @ApiResponse(
+          responseCode = "409",
+          description = "Error: News already exists",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(example = "Error: News already exists")
+          )
+      ),
+      @ApiResponse(
+          responseCode = "500",
+          description = "Error adding news",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(example = "Error: Error adding news")
+          )
+      )
+  })
+  public ResponseEntity<?> addNews(@RequestBody NewsCreateRequest newsCreateRequest) {
+    try {
+      newsService.addNews(newsCreateRequest);
+      return ResponseEntity.ok("News added successfully");
+    } catch (IllegalArgumentException e) {
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: " + e.getMessage());
+    } catch (AlreadyInUseException e) {
+      return ResponseEntity.status(HttpStatus.CONFLICT).body("Error: " + e.getMessage());
+    }catch (Exception e) {
+      return ResponseEntity.internalServerError().body("Error: Error adding news");
     }
   }
 }

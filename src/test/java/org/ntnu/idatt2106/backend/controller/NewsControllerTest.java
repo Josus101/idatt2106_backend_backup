@@ -6,7 +6,9 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.ntnu.idatt2106.backend.dto.news.NewsCreateRequest;
 import org.ntnu.idatt2106.backend.dto.news.NewsGetResponse;
+import org.ntnu.idatt2106.backend.exceptions.AlreadyInUseException;
 import org.ntnu.idatt2106.backend.service.NewsService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,16 +20,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class NewsControllerTest {
-
-  // success test for getNews
-  // Not found test for getNews
-
-  // success test for retrieveNews
-  // Internal server error test for retrieveNews
-
-  // success test for getByDistrict
-  // Not found test for getByDistrict
-  // Internal server error test for getByDistrict
 
   @InjectMocks
   private NewsController newsController;
@@ -113,6 +105,55 @@ class NewsControllerTest {
     assertEquals("Error: Error retrieving news", response.getBody());
   }
 
+  @Test
+  @DisplayName("addNews returns 200 - OK on successful news addition")
+  void testAddNewsSuccess() {
+    NewsCreateRequest request = new NewsCreateRequest("Title", "Content", 10.0, 20.0, "Oslo");
+    doNothing().when(newsService).addNews(request);
 
+    ResponseEntity<?> response = newsController.addNews(request);
+
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertEquals("News added successfully", response.getBody());
+  }
+
+  @Test
+  @DisplayName("addNews returns 400 - Bad Request on invalid input")
+  void testAddNewsBadRequest() {
+    NewsCreateRequest request = new NewsCreateRequest("", "Content", 10.0, 20.0, "Oslo");
+    doThrow(new IllegalArgumentException("Title, content and district cannot be empty"))
+            .when(newsService).addNews(request);
+
+    ResponseEntity<?> response = newsController.addNews(request);
+
+    assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    assertEquals("Error: Title, content and district cannot be empty", response.getBody());
+  }
+
+  @Test
+  @DisplayName("addNews returns 409 - Conflict when news already exists")
+  void testAddNewsConflict() {
+    NewsCreateRequest request = new NewsCreateRequest("Title", "Content", 10.0, 20.0, "Oslo");
+    doThrow(new AlreadyInUseException("News with the same title and date already exists"))
+            .when(newsService).addNews(request);
+
+    ResponseEntity<?> response = newsController.addNews(request);
+
+    assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
+    assertEquals("Error: News with the same title and date already exists", response.getBody());
+  }
+
+  @Test
+  @DisplayName("addNews returns 500 - Internal Server Error on unexpected exception")
+  void testAddNewsInternalServerError() {
+    NewsCreateRequest request = new NewsCreateRequest("Title", "Content", 10.0, 20.0, "Oslo");
+    doThrow(new RuntimeException("Unexpected error"))
+            .when(newsService).addNews(request);
+
+    ResponseEntity<?> response = newsController.addNews(request);
+
+    assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+    assertEquals("Error: Error adding news", response.getBody());
+  }
 
 }
