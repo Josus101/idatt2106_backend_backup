@@ -5,6 +5,12 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * DTO for the NewsCreateRequest
+ * @Author Jonas Reiher
+ * @since 0.2
+ * @version 0.2
+ */
 @Schema(description = "Request body for creating a news article")
 @Getter
 @Setter

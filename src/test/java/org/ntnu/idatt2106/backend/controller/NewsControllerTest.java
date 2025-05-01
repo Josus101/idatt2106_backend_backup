@@ -21,6 +21,12 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+/**
+ * Test class for the NewsController
+ * @Author Jonas Reiher
+ * @since 0.2
+ * @version 0.2
+ */
 class NewsControllerTest {
 
   @InjectMocks
@@ -37,7 +43,7 @@ class NewsControllerTest {
   @BeforeEach
   void setup() {
     MockitoAnnotations.openMocks(this);
-    newsResponse = new NewsGetResponse("Title", "Content", 10.0, 20.0, "Oslo Politidistrikt", new Date().toString());
+    newsResponse = new NewsGetResponse(1, "Title", "Content", 10.0, 20.0, "Oslo Politidistrikt", new Date().toString());
   }
 
   @Test

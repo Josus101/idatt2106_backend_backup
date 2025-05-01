@@ -12,21 +12,19 @@ import org.ntnu.idatt2106.backend.dto.news.NewsCreateRequest;
 import org.ntnu.idatt2106.backend.dto.news.NewsGetResponse;
 import org.ntnu.idatt2106.backend.exceptions.AlreadyInUseException;
 import org.ntnu.idatt2106.backend.security.JWT_token;
-import org.ntnu.idatt2106.backend.service.AdminService;
 import org.ntnu.idatt2106.backend.service.NewsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.print.DocFlavor;
 import java.util.List;
 
 /**
  * Controller for the News model
  * @Author Jonas Reiher
- * @since 0.1
- * @version 0.1
+ * @since 0.2
+ * @version 0.2
  */
 @RestController
 @RequestMapping("/api/news")

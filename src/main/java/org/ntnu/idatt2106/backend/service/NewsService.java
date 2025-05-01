@@ -23,15 +23,14 @@ import java.util.List;
 /**
  * Service for the News model
  * @Author Jonas Reiher
- * @since 0.1
- * @version 0.1
+ * @since 0.2
+ * @version 0.2
  */
 @Service
 public class NewsService {
 
   @Autowired
   private NewsRepo newsRepo;
-
 
   /**
    * On application startup, retrieve news from the Politiloggen API
@@ -41,13 +40,13 @@ public class NewsService {
     retrieveNewsFromAPIFeed();
   }
 
-
   /**
    * Method to get all news from the database
    * @return List of NewsGetResponse
    */
   public List<NewsGetResponse> getAllNews() {
     return newsRepo.findAll().stream().map(news -> new NewsGetResponse(
+            news.getId(),
             news.getTitle(),
             news.getContent(),
             news.getLatitude(),
@@ -57,7 +56,6 @@ public class NewsService {
     )).toList();
   }
 
-
   /**
    * Method to get news by district
    * @param district the district to get news from
@@ -66,6 +64,7 @@ public class NewsService {
   public List<NewsGetResponse> getByDistrict(String district) {
     return newsRepo.findByDistrict(district).stream()
             .map(news -> new NewsGetResponse(
+                    news.getId(),
                     news.getTitle(),
                     news.getContent(),
                     news.getLatitude(),
@@ -77,11 +76,7 @@ public class NewsService {
 
   /**
    * Method to add news to the database
-   * @param title the title of the news
-   * @param content the content of the news
-   * @param latitude the latitude of the news
-   * @param longitude the longitude of the news
-   * @param district the district of the news
+   * @param newsCreateRequest the news to add
    */
   public void addNews(NewsCreateRequest newsCreateRequest) {
     if (newsRepo.existsByTitleAndDate(newsCreateRequest.getTitle(), new Date())) {
@@ -102,7 +97,6 @@ public class NewsService {
 
     newsRepo.save(news);
   }
-
 
   /**
    * Method to load the feed from the Politiloggen API
@@ -147,7 +141,6 @@ public class NewsService {
       throw new RuntimeException("Failed to retrieve news from API", e);
     }
   }
-
 
   /**
    * Scheduled method to clear expired news

@@ -7,6 +7,12 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Repository for the News model
+ * @Author Jonas Reiher
+ * @since 0.2
+ * @version 0.2
+ */
 public interface NewsRepo extends JpaRepository<News, Integer> {
 
   /**

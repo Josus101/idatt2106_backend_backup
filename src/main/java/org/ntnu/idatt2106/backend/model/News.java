@@ -10,7 +10,8 @@ import java.util.Date;
 /**
  * News model for the database
  * @Author Jonas Reiher
- * @since 0.1
+ * @since 0.2
+ * @version 0.2
  */
 @Entity
 @Table(name = "news")
@@ -56,7 +57,6 @@ public class News {
     this.district = district;
     this.date = date;
   }
-
 
   @Override
   public String toString() {

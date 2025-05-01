@@ -9,8 +9,8 @@ import lombok.ToString;
 /**
  * DTO for the NewsGetResponse
  * @Author Jonas Reiher
- * @since 0.1
- * @version 0.1
+ * @since 0.2
+ * @version 0.2
  */
 @Schema(description = "Request object for getting a news")
 @Getter
@@ -18,6 +18,8 @@ import lombok.ToString;
 @AllArgsConstructor
 @ToString
 public class NewsGetResponse {
+  @Schema(description = "The id of the news", example = "1")
+  private int id;
   @Schema(description = "The title of the news", example = "News title")
   private String title;
   @Schema(description = "The content of the news", example = "News content")

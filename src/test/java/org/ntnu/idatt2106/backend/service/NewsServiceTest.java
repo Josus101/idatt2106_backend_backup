@@ -25,6 +25,12 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+/**
+ * Test class for the NewsService
+ * @Author Jonas Reiher
+ * @since 0.2
+ * @version 0.2
+ */
 @ExtendWith(MockitoExtension.class)
 public class NewsServiceTest {
 
@@ -51,6 +57,7 @@ public class NewsServiceTest {
             new Date());
 
     testNewsGetResponse = new NewsGetResponse(
+            testNews.getId(),
             testNews.getTitle(),
             testNews.getContent(),
             testNews.getLatitude(),
