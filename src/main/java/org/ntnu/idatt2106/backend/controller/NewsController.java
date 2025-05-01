@@ -11,6 +11,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.ntnu.idatt2106.backend.dto.news.NewsCreateRequest;
 import org.ntnu.idatt2106.backend.dto.news.NewsGetResponse;
 import org.ntnu.idatt2106.backend.exceptions.AlreadyInUseException;
+import org.ntnu.idatt2106.backend.security.JWT_token;
+import org.ntnu.idatt2106.backend.service.AdminService;
 import org.ntnu.idatt2106.backend.service.NewsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -34,6 +36,8 @@ public class NewsController {
   private NewsService newsService;
 
 
+  @Autowired
+  private JWT_token jwt;
 
   /**
    * Get all news from the database
@@ -204,6 +208,14 @@ public class NewsController {
           )
       ),
       @ApiResponse(
+              responseCode = "401",
+              description = "Unauthorized access, must be admin user",
+              content = @Content(
+                      mediaType = "application/json",
+                      schema = @Schema(example = "Error: Unauthorized")
+              )
+      ),
+      @ApiResponse(
           responseCode = "409",
           description = "Error: News already exists",
           content = @Content(
@@ -220,8 +232,19 @@ public class NewsController {
           )
       )
   })
-  public ResponseEntity<?> addNews(@RequestBody NewsCreateRequest newsCreateRequest) {
+  public ResponseEntity<?> addNews(
+          @Parameter(
+                  name = "Authorization",
+                  description = "Bearer token in the format `Bearer <JWT>`",
+                  required = true,
+                  example = "Bearer eyJhbGciOiJIUzI1N.iIsInR5cCI6IkpXVCJ9..."
+          ) @RequestHeader("Authorization") String authorizationHeader,
+          @RequestBody NewsCreateRequest newsCreateRequest
+  ){
     try {
+      if (jwt.getAdminUserByToken(authorizationHeader) == null) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Error: Unauthorized");
+      }
       newsService.addNews(newsCreateRequest);
       return ResponseEntity.ok("News added successfully");
     } catch (IllegalArgumentException e) {
