@@ -4,6 +4,7 @@ import com.rometools.rome.feed.synd.SyndCategory;
 import com.rometools.rome.feed.synd.SyndContent;
 import com.rometools.rome.feed.synd.SyndEntry;
 import com.rometools.rome.feed.synd.SyndFeed;
+import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -20,6 +21,7 @@ import org.ntnu.idatt2106.backend.repo.NewsRepo;
 
 import java.util.Date;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -50,6 +52,7 @@ public class NewsServiceTest {
   void setUp() {
     testNews = new News(
             "Test Title",
+            "abc123",
             "This is a test news article",
             12.34,
             56.78,
@@ -58,6 +61,7 @@ public class NewsServiceTest {
 
     testNewsGetResponse = new NewsGetResponse(
             testNews.getId(),
+            testNews.getCaseId(),
             testNews.getTitle(),
             testNews.getContent(),
             testNews.getLatitude(),
@@ -65,7 +69,7 @@ public class NewsServiceTest {
             testNews.getDistrict(),
             testNews.getDate().toString());
 
-    validRequest = new NewsCreateRequest("Title", "Content", 10.0, 20.0, "Oslo Politidistrikt");
+    validRequest = new NewsCreateRequest("Title", "def456",  "Content", 10.0, 20.0, "Oslo Politidistrikt");
   }
 
   @Test
@@ -73,16 +77,22 @@ public class NewsServiceTest {
   void testGetAllNewsSuccess() {
     when(newsRepo.findAll()).thenReturn(List.of(testNews));
     List<NewsGetResponse> result = newsService.getAllNews();
+
     assertEquals(1, result.size());
     assertEquals(testNewsGetResponse.toString(), result.get(0).toString());
   }
 
   @Test
-  @DisplayName("getAllNews returns empty list when no news found")
-  void testGetAllNewsEmpty() {
+  @DisplayName("getAllNews throws EntityNotFoundException when no news found")
+  void testGetAllNewsNoNewsFound() {
     when(newsRepo.findAll()).thenReturn(List.of());
-    List<NewsGetResponse> result = newsService.getAllNews();
-    assertTrue(result.isEmpty());
+
+    EntityNotFoundException ex = assertThrows(
+            EntityNotFoundException.class,
+            () -> newsService.getAllNews()
+    );
+
+    assertEquals("No news found", ex.getMessage());
   }
 
   @Test
@@ -90,40 +100,117 @@ public class NewsServiceTest {
   void testGetByDistrictSuccess() {
     when(newsRepo.findByDistrict("Test District")).thenReturn(List.of(testNews));
     List<NewsGetResponse> result = newsService.getByDistrict("Test District");
+
     assertEquals(1, result.size());
     assertEquals(testNewsGetResponse.toString(), result.get(0).toString());
   }
 
   @Test
-  @DisplayName("getByDistrict returns empty list when no news found")
-  void testGetByDistrictEmpty() {
+  @DisplayName("getByDistrict throws EntityNotFoundException when no news found")
+  void testGetByDistrictNoNews() {
     when(newsRepo.findByDistrict("Test District")).thenReturn(List.of());
-    List<NewsGetResponse> result = newsService.getByDistrict("Test District");
-    assertTrue(result.isEmpty());
+
+    EntityNotFoundException ex = assertThrows(
+            EntityNotFoundException.class,
+            () -> newsService.getByDistrict("Test District")
+    );
+    assertEquals("No news found in district: Test District", ex.getMessage());
   }
 
   @Test
-  @DisplayName("getByDistrict returns empty list when district is null")
+  @DisplayName("getByDistrict throws EntityNotFoundException when district is null")
   void testGetByDistrictNull() {
     when(newsRepo.findByDistrict(null)).thenReturn(List.of());
-    List<NewsGetResponse> result = newsService.getByDistrict(null);
-    assertTrue(result.isEmpty());
+
+    EntityNotFoundException ex = assertThrows(
+            EntityNotFoundException.class,
+            () -> newsService.getByDistrict(null)
+    );
+    assertEquals("No news found in district: null", ex.getMessage());
   }
 
   @Test
   @DisplayName("addNews should save news when all fields are valid and not duplicate")
   void testAddNewsSuccess() {
-    when(newsRepo.existsByTitleAndDate(eq("Title"), any(Date.class))).thenReturn(false);
+    NewsCreateRequest validRequest = new NewsCreateRequest("Title", "def456", "Content", 10.0, 20.0, "Oslo Politidistrikt");
+
+    when(newsRepo.existsByTitleAndDate(anyString(), any(Date.class))).thenReturn(false);
 
     newsService.addNews(validRequest);
 
     verify(newsRepo).save(any(News.class));
   }
 
+
+  @Test
+  @DisplayName("getByCaseId returns list of NewsGetResponse on success")
+  void testGetByCaseIdSuccess() {
+    when(newsRepo.findByCaseId("abc123")).thenReturn(List.of(testNews));
+    List<NewsGetResponse> result = newsService.getByCaseId("abc123");
+
+    assertEquals(1, result.size());
+    assertEquals(testNewsGetResponse.toString(), result.get(0).toString());
+  }
+
+  @Test
+  @DisplayName("getByCaseId throws EntityNotFoundException when no news found")
+  void testGetByCaseIdThrowsOnEmpty() {
+    when(newsRepo.findByCaseId("abc123")).thenReturn(List.of());
+
+    EntityNotFoundException ex = assertThrows(
+            EntityNotFoundException.class,
+            () -> newsService.getByCaseId("abc123")
+    );
+    assertEquals("No news found with case ID: abc123", ex.getMessage());
+  }
+
+
+  @Test
+  @DisplayName("groupNewsByCaseIdAndSort returns list of lists of NewsGetResponse on success")
+  void groupNewsByCaseIdAndSort_Success() {
+    List<NewsGetResponse> newsList = List.of(
+            new NewsGetResponse(1, "CaseId1", "Title1", "Content1", 10.0, 20.0, "Oslo Politidistrikt", new Date().toString()),
+            new NewsGetResponse(2, "CaseId1", "Title2", "Content2", 10.0, 20.0, "Oslo Politidistrikt", new Date().toString()),
+            new NewsGetResponse(3, "CaseId2", "Title3", "Content3", 10.0, 20.0, "Oslo Politidistrikt", new Date().toString())
+    );
+
+    List<List<NewsGetResponse>> groupedNews = newsService.groupNewsByCaseIdAndSort(newsList);
+
+    assertEquals(2, groupedNews.size());
+    assertEquals(1, groupedNews.get(0).size());
+    assertEquals(2, groupedNews.get(1).size());
+  }
+
+  @Test
+  @DisplayName("groupNewsByCaseIdAndSort returns empty list when input is empty")
+  void groupNewsByCaseIdAndSort_EmptyInput() {
+    List<NewsGetResponse> newsList = List.of();
+    List<List<NewsGetResponse>> groupedNews = newsService.groupNewsByCaseIdAndSort(newsList);
+
+    assertTrue(groupedNews.isEmpty());
+  }
+
+  @Test
+  @DisplayName("getRecentFromGroupedNews returns most recent news from grouped news")
+  void getRecentFromGroupedNews_Success() {
+    List<NewsGetResponse> newsList = List.of(
+            new NewsGetResponse(1, "CaseId1", "Title1", "Content1", 10.0, 20.0, "Oslo Politidistrikt", "2023-10-01"),
+            new NewsGetResponse(2, "CaseId1", "Title2", "Content2", 10.0, 20.0, "Oslo Politidistrikt", "2023-10-02"),
+            new NewsGetResponse(3, "CaseId2", "Title3", "Content3", 10.0, 20.0, "Oslo Politidistrikt", "2023-10-03")
+    );
+
+    List<List<NewsGetResponse>> groupedNews = newsService.groupNewsByCaseIdAndSort(newsList);
+    List<NewsGetResponse> recentNews = newsService.getRecentFromGroupedNews(groupedNews);
+
+    assertEquals(2, recentNews.size());
+    assertEquals("Title3", recentNews.get(0).getTitle());
+    assertEquals("Title2", recentNews.get(1).getTitle());
+  }
+
   @Test
   @DisplayName("addNews should throw AlreadyInUseException if title and date already exist")
   void testAddNews_DuplicateTitleAndDate() {
-    when(newsRepo.existsByTitleAndDate(eq("Title"), any(Date.class))).thenReturn(true);
+    when(newsRepo.existsByTitleAndDate(anyString(), any(Date.class))).thenReturn(true);
 
     AlreadyInUseException ex = assertThrows(
             AlreadyInUseException.class,
@@ -246,6 +333,7 @@ public class NewsServiceTest {
   void testClearExpiredNews() {
     News expiredNews = new News(
             "Expired",
+            "abc123",
             "Old content",
             12.34,
             56.78,
@@ -262,6 +350,7 @@ public class NewsServiceTest {
   void testClearExpiredNewsNotExpired() {
     News freshNews = new News(
             "Recent",
+            "abc123",
             "Fresh content",
             12.34,
             56.78,
