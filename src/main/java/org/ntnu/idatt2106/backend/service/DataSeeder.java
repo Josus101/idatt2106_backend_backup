@@ -114,7 +114,9 @@ public class DataSeeder implements CommandLineRunner {
           new Category("Fresh Vegetables", 35, false),
           new Category("Fresh Fruits", 52, false),
           new Category("Frozen Food", 250, true),
-          new Category("Grains (Rice, Pasta)", 360, true)
+          new Category("Grains (Rice, Pasta)", 360, true),
+          new Category("Kjøkkenutstyr", 0, true)
+
       );
       categoryRepo.saveAll(categories);
     }
@@ -293,20 +295,27 @@ public class DataSeeder implements CommandLineRunner {
     Category medicalSupplies = categoryRepo.findByName("Medical Supplies").orElseThrow();
     Category snacks = categoryRepo.findByName("Snacks").orElseThrow();
     Category whiteMonster = categoryRepo.findByName("Sugar Free Monster").orElseThrow();
+    Category kjøkkenutstyr = categoryRepo.findByName("Kjøkkenutstyr").orElseThrow();
+
 
     List<Item> items = new ArrayList<>();
 
-    items.add(new Item("Water Bottle", 1.5, liter, getFutureDate(cal, Calendar.MONTH, 1), water));
-    items.add(new Item("Massive Water Bottle", 5, liter, getFutureDate(cal, Calendar.MONTH, 1), water));
-    items.add(new Item("Canned Beans", 400, kg, getFutureDate(cal, Calendar.MONTH, 3), cannedFood));
-    items.add(new Item("Canned Corn", 300, kg, getFutureDate(cal, Calendar.YEAR, 1), cannedFood));
-    items.add(new Item("Canned Soup from the soup store", 200, kg, getFutureDate(cal, Calendar.YEAR, 2), cannedFood));
-    items.add(new Item("Dried mango", 1, kg, getFutureDate(cal, Calendar.YEAR, 1), driedFood));
+    items.add(new Item("Water Bottle", 4, liter, getFutureDate(cal, Calendar.MONTH, 1), water));
+    items.add(new Item("Massive Water Bottle", 38, liter, getFutureDate(cal, Calendar.MONTH, 1), water));
+    items.add(new Item("Canned Beans", 60, kg, getFutureDate(cal, Calendar.MONTH, 3), cannedFood));
+    items.add(new Item("Canned Corn", 0.1, kg, getFutureDate(cal, Calendar.YEAR, 1), cannedFood));
+    items.add(new Item("Canned Soup from the soup store", 0.1, kg, getFutureDate(cal, Calendar.YEAR, 2), cannedFood));
+    items.add(new Item("Dried mango", 0.1, kg, getFutureDate(cal, Calendar.YEAR, 1), driedFood));
     items.add(new Item("Bandages", 10, count, getFutureDate(cal, Calendar.YEAR, 2), medicalSupplies));
     items.add(new Item("Pain Relievers", 20, count, getFutureDate(cal, Calendar.YEAR, 1), medicalSupplies));
-    items.add(new Item("Chips", 200, kg, getFutureDate(cal, Calendar.DAY_OF_YEAR, 10), snacks));
-    items.add(new Item("You", 100, kg, getFutureDate(cal, Calendar.DAY_OF_YEAR, 10), snacks));
-    items.add(new Item("White Monster", 12, liter, getFutureDate(cal, Calendar.WEEK_OF_YEAR, 2), whiteMonster));
+    items.add(new Item("Chips", 0.1, kg, getFutureDate(cal, Calendar.DAY_OF_YEAR, 10), snacks));
+    items.add(new Item("You", 0.1, kg, getFutureDate(cal, Calendar.DAY_OF_YEAR, 10), snacks));
+    items.add(new Item("White Monster", 0.1, liter, getFutureDate(cal, Calendar.WEEK_OF_YEAR, 2), whiteMonster));
+    items.add(new Item("Førstehjelp", 1, count, getFutureDate(cal, Calendar.YEAR, 1), medicalSupplies));
+    items.add(new Item("Jodtabletter", 10, count, getFutureDate(cal, Calendar.YEAR, 1), medicalSupplies));
+    items.add(new Item("Kokeapparat", 1, count, getFutureDate(cal, Calendar.YEAR, 1), kjøkkenutstyr));
+
+
 
     return itemRepo.saveAll(items);
   }

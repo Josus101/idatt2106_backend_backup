@@ -7,11 +7,13 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.ntnu.idatt2106.backend.dto.household.HouseholdCreate;
+import org.ntnu.idatt2106.backend.dto.household.EssentialItemStatusDTO;
 import org.ntnu.idatt2106.backend.dto.household.PreparednessStatus;
 import org.ntnu.idatt2106.backend.exceptions.UnauthorizedException;
 import org.ntnu.idatt2106.backend.model.Household;
 import org.ntnu.idatt2106.backend.model.User;
 import org.ntnu.idatt2106.backend.repo.HouseholdRepo;
+import org.ntnu.idatt2106.backend.service.EssentialItemService;
 import org.ntnu.idatt2106.backend.security.JWT_token;
 import org.ntnu.idatt2106.backend.service.HouseholdService;
 import org.ntnu.idatt2106.backend.service.PreparednessService;
@@ -26,9 +28,9 @@ import java.util.NoSuchElementException;
  * Controller class for handling household-related operations.
  * This class is responsible for defining the endpoints for household preparedness status retrieval.
  *
- * @author Erlend Eide Zindel
- * @version 1.0
- * @since 1.0
+ * @author Erlend Eide Zindel, Konrad Seime
+ * @version 0.2
+ * @since 0.1
  */
 @RestController
 @RequestMapping("/api/households")
@@ -43,18 +45,21 @@ public class HouseholdController {
     private PreparednessService preparednessService;
 
     @Autowired
+    private EssentialItemService essentialItemService;
+
+    @Autowired
     private JWT_token jwtTokenService;
 
     /**
-     * Endpoint for calculating the preparedness status of a household.
+     * Endpoint for retrieving the number of days the household has food and water for.
      *
      * @param id The ID of the household.
-     * @return A PreparednessStatus object with percentage and warning info.
+     * @return A PreparednessStatus object with days of food and water supply.
      */
     @GetMapping("/{id}/preparedness")
     @Operation(
             summary = "Get preparedness status",
-            description = "Returns the preparedness level of the given household based on food, water and essential items"
+            description = "Returns how many days of food and water the household has in storage"
     )
     @ApiResponses(value = {
             @ApiResponse(
@@ -76,7 +81,7 @@ public class HouseholdController {
                 description = "Internal server error",
                 content = @Content(
                     mediaType = "application/json",
-                    schema =  @Schema(example = "Error: Could not fetch preparedness status"))
+                    schema =  @Schema(example = "Unexpected error: <error message>"))
             )
     })
     public ResponseEntity<?> getPreparednessStatus(
@@ -90,9 +95,48 @@ public class HouseholdController {
             PreparednessStatus status = preparednessService.getPreparednessStatusByHouseholdId(id);
             return ResponseEntity.ok(status);
         } catch (NoSuchElementException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: Household not found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: " + e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: Could not fetch preparedness status");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unexpected error: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Endpoint for retrieving the status of essential items in a household.
+     *
+     * @param id The ID of the household.
+     * @return A list of EssentialItemStatusDTO objects indicating the presence of each essential item.
+     */
+    @GetMapping("/{id}/essential-items")
+    @Operation(
+            summary = "Get essential items status",
+            description = "Returns a list of essential items and whether each one is present in the household inventory"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Essential items status retrieved",
+                    content = @Content(schema = @Schema(implementation = EssentialItemStatusDTO.class))
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Household not found",
+                    content = @Content(schema = @Schema(example = "Error: Household not found"))
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Internal server error",
+                    content = @Content(schema = @Schema(example = "Unexpected error: <error message>"))
+            )
+    })
+    public ResponseEntity<?> getEssentialItemsStatus(@PathVariable int id) {
+        try {
+            var items = essentialItemService.getEssentialItemStatus(id);
+            return ResponseEntity.ok(items);
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unexpected error: " + e.getMessage());
         }
     }
 
