@@ -13,8 +13,10 @@ import org.ntnu.idatt2106.backend.service.AdminService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -108,7 +110,7 @@ public class AdminController {
    * @param authorizationHeader the authorization header containing the JWT token
    * @return a response entity containing the result of the operation
    */
-  @PostMapping("/elevate/{id}")
+  @PutMapping("/elevate/{id}")
   @Operation(
       summary = "Elevates an admin user to a superuseer",
       description = "Post request to elevate an admin user to a superuser. "
@@ -250,7 +252,7 @@ public class AdminController {
    * @param authorizationHeader the authorization header containing the JWT token
    * @return a response entity containing the result of the operation
    */
-  @PostMapping("/delete/{id}")
+  @DeleteMapping("/delete/{id}")
   @Operation(
       summary = "Delete an admin user",
       description = "Post request to delete an admin user. "

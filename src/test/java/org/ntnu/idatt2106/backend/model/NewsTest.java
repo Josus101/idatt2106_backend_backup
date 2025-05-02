@@ -17,6 +17,7 @@ public class NewsTest {
   void setUp() {
     testNews = new News(
             "Test Title",
+            "Test Case ID",
             "This is a test news article",
             12.34,
             56.78,
@@ -34,10 +35,11 @@ public class NewsTest {
   @Test
   @DisplayName("All Args constructor sets all fields correctly")
   void allArgsConstructorSetsFieldsCorrectly() {
-    News news = new News("Test Title", "This is a test news article", 12.34, 56.78, "Test District", new Date());
+    News news = new News("Test Title", "Test Case ID", "This is a test news article", 12.34, 56.78, "Test District", new Date());
 
     assertNotNull(news);
     assertEquals("Test Title", news.getTitle());
+    assertEquals("Test Case ID", news.getCaseId());
     assertEquals("This is a test news article", news.getContent());
     assertEquals(12.34, news.getLatitude());
     assertEquals(56.78, news.getLongitude());
@@ -57,6 +59,13 @@ public class NewsTest {
   void setAndGetContent() {
     testNews.setContent("New Content");
     assertEquals("New Content", testNews.getContent());
+  }
+
+  @Test
+  @DisplayName("Set and Get Case ID")
+  void setAndGetCaseId() {
+    testNews.setCaseId("New Case ID");
+    assertEquals("New Case ID", testNews.getCaseId());
   }
 
   @Test

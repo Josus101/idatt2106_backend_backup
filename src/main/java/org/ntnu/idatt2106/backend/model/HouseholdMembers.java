@@ -52,4 +52,16 @@ public class HouseholdMembers {
     this.id = new HouseholdMembersId(user.getId(), household.getId());
     this.isAdmin = isAdmin;
   }
+
+  /**
+   * ToString method for the HouseholdMembers model
+   */
+  @Override
+  public String toString() {
+    return "HouseholdMembers{" +
+            "user=" + user +
+            ", household=" + household +
+            ", isAdmin=" + isAdmin +
+            '}';
+  }
 }

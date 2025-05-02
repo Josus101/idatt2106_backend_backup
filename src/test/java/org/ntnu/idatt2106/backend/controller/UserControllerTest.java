@@ -9,7 +9,10 @@ import org.ntnu.idatt2106.backend.dto.user.UserLoginRequest;
 import org.ntnu.idatt2106.backend.dto.user.UserRegisterRequest;
 import org.ntnu.idatt2106.backend.dto.user.UserTokenResponse;
 import org.ntnu.idatt2106.backend.exceptions.AlreadyInUseException;
+import org.ntnu.idatt2106.backend.exceptions.MailSendingFailedException;
+import org.ntnu.idatt2106.backend.exceptions.TokenExpiredException;
 import org.ntnu.idatt2106.backend.exceptions.UserNotFoundException;
+import org.ntnu.idatt2106.backend.security.JWT_token;
 import org.ntnu.idatt2106.backend.service.LoginService;
 import org.ntnu.idatt2106.backend.service.ReCaptchaService;
 import org.ntnu.idatt2106.backend.service.ResetPasswordService;
@@ -38,6 +41,9 @@ class UserControllerTest {
 
   @Mock
   private VerifyEmailService verifyEmailService;
+
+  @Mock
+  private JWT_token jwtToken;
 
   private MockMvc mockMvc;
 
@@ -281,6 +287,73 @@ class UserControllerTest {
 
     assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     assertEquals("Invalid token", response.getBody());
+  }
+
+  @Test
+  @DisplayName("Should return true when token is valid")
+  void shouldReturnTrueWhenTokenIsValid() {
+    String token = "valid-token";
+
+    ResponseEntity<?> response = userController.isAuth(token);
+
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertEquals(true, response.getBody());
+  }
+
+  @Test
+  @DisplayName("Should return false when token is invalid")
+  void shouldReturnFalseWhenTokenIsInvalid() {
+    String token = "invalid-token";
+
+    doThrow(new IllegalArgumentException("Token is invalid")).when(jwtToken)
+        .validateJwtToken(token);
+
+    ResponseEntity<?> response = userController.isAuth("Bearer " + token);
+
+    assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    assertEquals(false, response.getBody());
+  }
+
+  @Test
+  @DisplayName("Should return 400 Bad Request when an unexpected error occurs")
+  void shouldReturnBadRequestOnUnexpectedError() {
+    String token = "invalid-token";
+
+    doThrow(new RuntimeException("Unexpected error")).when(jwtToken)
+        .validateJwtToken(token);
+
+    ResponseEntity<?> response = userController.isAuth("Bearer " + token);
+
+    assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    assertEquals("Unexpected error", response.getBody());
+  }
+
+  @Test
+  @DisplayName("Should return bad request when TokenExpired is thrown during email verification")
+  void shouldReturnBadRequestOnExpiredEmailToken() {
+    String token = "expired";
+
+    doThrow(new TokenExpiredException("lmao your token gone man")).when(verifyEmailService)
+        .verifyEmail(token);
+
+    ResponseEntity<String> response = userController.verifyEmail(token);
+
+    assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    assertEquals("Token expired", response.getBody());
+  }
+
+  @Test
+  @DisplayName("Should return IllegalArgumentException when RuntimeException is thrown during email verification")
+  void shouldReturnInternalServerErrorWhenRuntimeThrown() {
+    String token = "expired";
+
+    doThrow(new RuntimeException("lmao your token gone man")).when(verifyEmailService)
+        .verifyEmail(token);
+
+    ResponseEntity<String> response = userController.verifyEmail(token);
+
+    assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+    assertEquals("An error occurred during email verification", response.getBody());
   }
 
 }
