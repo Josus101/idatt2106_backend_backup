@@ -1,6 +1,5 @@
 package org.ntnu.idatt2106.backend.service;
 
-import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -10,19 +9,27 @@ import org.mockito.MockitoAnnotations;
 import org.ntnu.idatt2106.backend.dto.item.ItemCreateRequest;
 import org.ntnu.idatt2106.backend.dto.item.ItemGenericDTO;
 import org.ntnu.idatt2106.backend.model.Category;
+import org.ntnu.idatt2106.backend.model.Household;
+import org.ntnu.idatt2106.backend.model.HouseholdMembers;
+import org.ntnu.idatt2106.backend.model.HouseholdMembersId;
 import org.ntnu.idatt2106.backend.model.Item;
 import org.ntnu.idatt2106.backend.model.Unit;
+import org.ntnu.idatt2106.backend.model.User;
 import org.ntnu.idatt2106.backend.repo.CategoryRepo;
+import org.ntnu.idatt2106.backend.repo.HouseholdRepo;
 import org.ntnu.idatt2106.backend.repo.ItemRepo;
 import org.ntnu.idatt2106.backend.repo.UnitRepo;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -48,29 +55,47 @@ public class ItemServiceTest {
   @Mock
   private CategoryRepo categoryRepo;
 
+  @Mock
+  private HouseholdRepo householdRepo;
+
   private Item testItem;
-
   private ItemGenericDTO testItemDTO;
+  private List<Household> households;
+  private User testUser;
+  private final int TEST_USER_ID = 1;
+  private final int TEST_HOUSEHOLD_ID = 1;
 
-  @Test
-  @DisplayName("getItem method returns success on valid item ID")
-  void getItemByIdSuccess() {
-    assertEquals(1,1);
-  }
-
-/*
   @BeforeEach
   void setUp() {
     MockitoAnnotations.openMocks(this);
-    testItem = new Item("Water", 1.0, new Unit("Liter"), new Date());
 
+    testUser = new User();
+    testUser.setId(TEST_USER_ID);
+
+    Household testHousehold = new Household();
+    testHousehold.setId(TEST_HOUSEHOLD_ID);
+    testHousehold.setName("Test Household");
+
+    HouseholdMembers testMember = new HouseholdMembers();
+    testMember.setUser(testUser);
+    testMember.setHousehold(testHousehold);
+    testMember.setAdmin(true);
+    testMember.setId(new HouseholdMembersId(TEST_USER_ID, TEST_HOUSEHOLD_ID));
+
+    List<HouseholdMembers> members = new ArrayList<>();
+    members.add(testMember);
+    testHousehold.setMembers(members);
+
+    households = new ArrayList<>();
+    households.add(testHousehold);
+
+    testItem = new Item("Water", 1.0, new Unit("Liter"), new Date());
     testItem.setId(1);
+    testItem.setHousehold(households);
 
     Unit testItemUnit = new Unit("Liters");
     testItemUnit.setId(111);
     testItem.setUnit(testItemUnit);
-
-
 
     Category testItemCategory = new Category(1, "Liquid", 0, false);
     testItemCategory.setId(222);
@@ -79,14 +104,20 @@ public class ItemServiceTest {
     Date testItemExpirationDate = new Date();
     testItem.setExpirationDate(testItemExpirationDate);
 
+    List<Integer> householdIds = new ArrayList<>();
+    householdIds.add(TEST_HOUSEHOLD_ID);
+
     this.testItemDTO = new ItemGenericDTO(
-            testItem.getId(),
-            testItem.getName(),
-            testItem.getAmount(),
-            testItem.getUnit().getId(),
-            testItem.getCategory().getId(),
-            testItem.getExpirationDate()
+        testItem.getId(),
+        testItem.getName(),
+        testItem.getAmount(),
+        testItem.getUnit().getId(),
+        testItem.getCategory().getId(),
+        testItem.getExpirationDate(),
+        householdIds
     );
+
+    when(householdRepo.findById(TEST_HOUSEHOLD_ID)).thenReturn(Optional.of(testHousehold));
   }
 
   @Test
@@ -94,7 +125,7 @@ public class ItemServiceTest {
   void testGetItemByIdSuccess() {
     when(itemRepo.findById(1)).thenReturn(Optional.of(testItem));
 
-    ItemGenericDTO itemDTO = itemService.getItemById(1);
+    ItemGenericDTO itemDTO = itemService.getItemById(1, TEST_USER_ID);
 
     assertNotNull(itemDTO);
     assertEquals(itemDTO.getId(), testItemDTO.getId());
@@ -106,100 +137,120 @@ public class ItemServiceTest {
   }
 
   @Test
-  @DisplayName("getItemById should throw EntityNotFoundException if user does not exist")
+  @DisplayName("getItemById should throw IllegalArgumentException if item does not exist")
   void testGetItemByIdNotFound() {
     when(itemRepo.findById(1)).thenReturn(Optional.empty());
 
-    assertThrows(EntityNotFoundException.class, () -> itemService.getItemById(1));
+    assertThrows(IllegalArgumentException.class, () -> itemService.getItemById(1, TEST_USER_ID));
+  }
+
+  @Test
+  @DisplayName("getItemById should throw IllegalArgumentException if user is not authorized")
+  void testGetItemByIdUnauthorized() {
+    when(itemRepo.findById(1)).thenReturn(Optional.of(testItem));
+
+    assertThrows(IllegalArgumentException.class, () -> itemService.getItemById(1, 999));
   }
 
   @Test
   @DisplayName("getItemByHouseholdId should return list of items with requested household id")
   void testGetItemsByHouseholdIdSuccess() {
-    List<ItemGenericDTO> itemDTOList = new ArrayList<>();
-    itemDTOList.add(testItemDTO);
-
     List<Item> itemList = new ArrayList<>();
     itemList.add(testItem);
 
-    when(itemRepo.findByHousehold_Id(1)).thenReturn(Optional.of(itemList));
+    when(itemRepo.findByHousehold_Id(TEST_HOUSEHOLD_ID)).thenReturn(Optional.of(itemList));
 
-    assertEquals(1, itemService.getItemsByHouseholdId(1).size());
-    assertEquals(itemDTOList.get(0).getId(), itemService.getItemsByHouseholdId(1).get(0).getId());
+    List<ItemGenericDTO> result = itemService.getItemsByHouseholdId(TEST_HOUSEHOLD_ID, TEST_USER_ID);
+
+    assertEquals(1, result.size());
+    assertEquals(testItemDTO.getId(), result.get(0).getId());
   }
 
   @Test
-  @DisplayName("getItemsByHouseholdId should throw EntityNotFoundException if no items for given household exists")
+  @DisplayName("getItemsByHouseholdId should throw IllegalArgumentException if no items for given household exists")
   void getItemsByHouseholdIdNotFound() {
-    when(itemRepo.findByHousehold_Id(1)).thenReturn(Optional.empty());
+    when(itemRepo.findByHousehold_Id(TEST_HOUSEHOLD_ID)).thenReturn(Optional.empty());
 
-    assertThrows(EntityNotFoundException.class, () -> itemService.getItemsByHouseholdId(1));
+    assertThrows(IllegalArgumentException.class, () ->
+        itemService.getItemsByHouseholdId(TEST_HOUSEHOLD_ID, TEST_USER_ID));
+  }
+
+  @Test
+  @DisplayName("getItemsByHouseholdId should throw IllegalArgumentException if user is not in household")
+  void getItemsByHouseholdIdUnauthorized() {
+    assertThrows(IllegalArgumentException.class, () ->
+        itemService.getItemsByHouseholdId(TEST_HOUSEHOLD_ID, 999));
   }
 
   @Test
   @DisplayName("getItemsByCategoryId should return list of items with requested category id")
   void getItemsByCategoryIdSuccess() {
-    List<ItemGenericDTO> itemDTOList = new ArrayList<>();
-    itemDTOList.add(testItemDTO);
-
     List<Item> itemList = new ArrayList<>();
     itemList.add(testItem);
 
     when(itemRepo.findByCategory_Id(1)).thenReturn(Optional.of(itemList));
     when(categoryRepo.existsById(1)).thenReturn(true);
 
-    assertEquals(1, itemService.getItemsByCategoryId(1).size());
-    assertEquals(itemDTOList.get(0).getId(), itemService.getItemsByCategoryId(1).get(0).getId());
+    List<ItemGenericDTO> result = itemService.getItemsByCategoryId(1, TEST_USER_ID);
+
+    assertEquals(1, result.size());
+    assertEquals(testItemDTO.getId(), result.get(0).getId());
   }
 
   @Test
-  @DisplayName("getItemsByCategoryId should throw EntityNotFoundException if no items for given category exists")
+  @DisplayName("getItemsByCategoryId should throw IllegalArgumentException if no items for given category exists")
   void getItemsByCategoryIdNotFound() {
     when(categoryRepo.existsById(1)).thenReturn(true);
     when(itemRepo.findByCategory_Id(1)).thenReturn(Optional.empty());
 
-    assertThrows(EntityNotFoundException.class, () -> itemService.getItemsByCategoryId(1));
+    assertThrows(IllegalArgumentException.class, () -> itemService.getItemsByCategoryId(1, TEST_USER_ID));
   }
 
   @Test
   @DisplayName("getItemsByCategoryId should throw IllegalArgumentException if category does not exist")
   void getItemsByCategoryIdCategoryBadRequest() {
-    when(itemRepo.findByCategory_Id(1)).thenReturn(Optional.empty());
     when(categoryRepo.existsById(1)).thenReturn(false);
 
-    assertThrows(IllegalArgumentException.class, () -> itemService.getItemsByCategoryId(1));
+    assertThrows(IllegalArgumentException.class, () -> itemService.getItemsByCategoryId(1, TEST_USER_ID));
   }
 
   @Test
   @DisplayName("getAllItems should return list of all items")
   void getAllItemsSuccess() {
-    List<ItemGenericDTO> itemDTOList = new ArrayList<>();
-    itemDTOList.add(testItemDTO);
-
     List<Item> itemList = new ArrayList<>();
     itemList.add(testItem);
 
     when(itemRepo.findAll()).thenReturn(itemList);
 
-    assertEquals(1, itemService.getAllItems().size());
-    assertEquals(itemDTOList.get(0).getId(), itemService.getAllItems().get(0).getId());
+    List<ItemGenericDTO> result = itemService.getAllItems();
+
+    assertEquals(1, result.size());
+    assertEquals(testItemDTO.getId(), result.get(0).getId());
   }
 
   @Test
   @DisplayName("getAllItems should return empty list on no items found")
   void getAllItemsNotFound() {
-   List<Item> emptyItemList = new ArrayList<>();
+    List<Item> emptyItemList = new ArrayList<>();
 
-   when(itemRepo.findAll()).thenReturn(emptyItemList);
+    when(itemRepo.findAll()).thenReturn(emptyItemList);
 
-   assertTrue(itemService.getAllItems().isEmpty());
+    assertTrue(itemService.getAllItems().isEmpty());
   }
 
   @Test
   @DisplayName("AddItem should add a new item successfully")
   void addItemSuccess() {
     Date expirationDate = new Date();
-    ItemCreateRequest itemCreateRequest = new ItemCreateRequest("Melk", 1.75, 111, 222, expirationDate);
+    List<Integer> householdIds = Arrays.asList(TEST_HOUSEHOLD_ID);
+    ItemCreateRequest itemCreateRequest = new ItemCreateRequest(
+        "Melk",
+        1.75,
+        111,
+        222,
+        expirationDate,
+        householdIds
+    );
 
     Unit mockUnit = new Unit();
     mockUnit.setId(111);
@@ -218,12 +269,14 @@ public class ItemServiceTest {
     savedItem.setUnit(mockUnit);
     savedItem.setCategory(mockCategory);
     savedItem.setExpirationDate(expirationDate);
+    savedItem.setHousehold(households);
 
     when(unitRepo.findById(111)).thenReturn(Optional.of(mockUnit));
     when(categoryRepo.findById(222)).thenReturn(Optional.of(mockCategory));
+    when(householdRepo.findAllById(householdIds)).thenReturn(households);
     when(itemRepo.save(any(Item.class))).thenReturn(savedItem);
 
-    ItemGenericDTO result = itemService.addItem(itemCreateRequest);
+    ItemGenericDTO result = itemService.addItem(itemCreateRequest, TEST_USER_ID);
 
     assertNotNull(result);
     assertEquals("Melk", result.getName());
@@ -231,22 +284,40 @@ public class ItemServiceTest {
     assertEquals(111, result.getUnitId());
     assertEquals(222, result.getCategoryId());
     assertEquals(expirationDate, result.getExpirationDate());
+    assertEquals(1, result.getHouseholdIds().size());
+    assertEquals(TEST_HOUSEHOLD_ID, result.getHouseholdIds().get(0));
   }
 
   @Test
-  @DisplayName("AddItem should throw EntityNotFoundException if unit does not exist")
+  @DisplayName("AddItem should throw IllegalArgumentException if unit does not exist")
   void addItemUnitNotFound() {
-    ItemCreateRequest itemCreateRequest = new ItemCreateRequest("Melk", 1.75, 111, 222, new Date());
+    List<Integer> householdIds = Arrays.asList(TEST_HOUSEHOLD_ID);
+    ItemCreateRequest itemCreateRequest = new ItemCreateRequest(
+        "Melk",
+        1.75,
+        111,
+        222,
+        new Date(),
+        householdIds
+    );
 
     when(unitRepo.findById(111)).thenReturn(Optional.empty());
 
-    assertThrows(EntityNotFoundException.class, () -> itemService.addItem(itemCreateRequest));
+    assertThrows(IllegalArgumentException.class, () -> itemService.addItem(itemCreateRequest, TEST_USER_ID));
   }
 
   @Test
-  @DisplayName("AddItem should throw EntityNotFoundException if category does not exist")
+  @DisplayName("AddItem should throw IllegalArgumentException if category does not exist")
   void addItemCategoryNotFound() {
-    ItemCreateRequest itemCreateRequest = new ItemCreateRequest("Melk", 1.75, 111, 222, new Date());
+    List<Integer> householdIds = Arrays.asList(TEST_HOUSEHOLD_ID);
+    ItemCreateRequest itemCreateRequest = new ItemCreateRequest(
+        "Melk",
+        1.75,
+        111,
+        222,
+        new Date(),
+        householdIds
+    );
 
     Unit mockUnit = new Unit();
     mockUnit.setId(111);
@@ -255,14 +326,38 @@ public class ItemServiceTest {
     when(unitRepo.findById(111)).thenReturn(Optional.of(mockUnit));
     when(categoryRepo.findById(222)).thenReturn(Optional.empty());
 
-    assertThrows(EntityNotFoundException.class, () -> itemService.addItem(itemCreateRequest));
+    assertThrows(IllegalArgumentException.class, () -> itemService.addItem(itemCreateRequest, TEST_USER_ID));
+  }
+
+  @Test
+  @DisplayName("AddItem should throw IllegalArgumentException if user not in household")
+  void addItemUserNotInHousehold() {
+    List<Integer> householdIds = Arrays.asList(TEST_HOUSEHOLD_ID);
+    ItemCreateRequest itemCreateRequest = new ItemCreateRequest(
+        "Melk",
+        1.75,
+        111,
+        222,
+        new Date(),
+        householdIds
+    );
+
+    assertThrows(IllegalArgumentException.class, () -> itemService.addItem(itemCreateRequest, 999));
   }
 
   @Test
   @DisplayName("UpdateItem should update an existing item successfully")
   void updateItemSuccess() {
-    // Arrange
-    ItemGenericDTO newItemData = new ItemGenericDTO(1, "Hel Melk", 1.75, 111, 222, new Date());
+    List<Integer> householdIds = Arrays.asList(TEST_HOUSEHOLD_ID);
+    ItemGenericDTO newItemData = new ItemGenericDTO(
+        1,
+        "Hel Melk",
+        1.75,
+        111,
+        222,
+        new Date(),
+        householdIds
+    );
 
     Unit mockUnit = new Unit();
     mockUnit.setId(111);
@@ -281,48 +376,98 @@ public class ItemServiceTest {
     updatedItem.setUnit(mockUnit);
     updatedItem.setCategory(mockCategory);
     updatedItem.setExpirationDate(new Date());
+    updatedItem.setHousehold(households);
 
     when(itemRepo.findById(1)).thenReturn(Optional.of(testItem));
     when(unitRepo.findById(111)).thenReturn(Optional.of(mockUnit));
     when(categoryRepo.findById(222)).thenReturn(Optional.of(mockCategory));
+    when(householdRepo.findAllById(householdIds)).thenReturn(households);
     when(itemRepo.save(any(Item.class))).thenReturn(updatedItem);
 
-    itemService.updateItem(newItemData);
+    ItemGenericDTO result = itemService.updateItem(newItemData, TEST_USER_ID);
 
-    assertEquals("Hel Melk", updatedItem.getName());
+    assertEquals("Hel Melk", result.getName());
+    assertEquals(1, result.getHouseholdIds().size());
+    assertEquals(TEST_HOUSEHOLD_ID, result.getHouseholdIds().get(0));
   }
 
   @Test
-  @DisplayName("UpdateItem should throw EntityNotFoundException if item does not exist")
+  @DisplayName("UpdateItem should throw IllegalArgumentException if item does not exist")
   void updateItemNotFound() {
-    ItemGenericDTO newItemData = new ItemGenericDTO(1, "Hel Melk", 1.75, 111, 222, new Date());
+    List<Integer> householdIds = Arrays.asList(TEST_HOUSEHOLD_ID);
+    ItemGenericDTO newItemData = new ItemGenericDTO(
+        1,
+        "Hel Melk",
+        1.75,
+        111,
+        222,
+        new Date(),
+        householdIds
+    );
 
     when(itemRepo.findById(1)).thenReturn(Optional.empty());
 
-    assertThrows(EntityNotFoundException.class, () -> itemService.updateItem(newItemData));
+    assertThrows(IllegalArgumentException.class, () -> itemService.updateItem(newItemData, TEST_USER_ID));
   }
 
   @Test
-  @DisplayName("UpdateItem should throw EntityNotFoundException if unit does not exist")
+  @DisplayName("UpdateItem should throw IllegalArgumentException if user is not authorized")
+  void updateItemUnauthorized() {
+    List<Integer> householdIds = Arrays.asList(TEST_HOUSEHOLD_ID);
+    ItemGenericDTO newItemData = new ItemGenericDTO(
+        1,
+        "Hel Melk",
+        1.75,
+        111,
+        222,
+        new Date(),
+        householdIds
+    );
+
+    when(itemRepo.findById(1)).thenReturn(Optional.of(testItem));
+
+    assertThrows(IllegalArgumentException.class, () -> itemService.updateItem(newItemData, 999));
+  }
+
+  @Test
+  @DisplayName("UpdateItem should throw IllegalArgumentException if unit does not exist")
   void updateItemUnitNotFound() {
-    ItemGenericDTO newItemData = new ItemGenericDTO(1, "Hel Melk", 1.75, 111, 222, new Date());
+    List<Integer> householdIds = Arrays.asList(TEST_HOUSEHOLD_ID);
+    ItemGenericDTO newItemData = new ItemGenericDTO(
+        1,
+        "Hel Melk",
+        1.75,
+        111,
+        222,
+        new Date(),
+        householdIds
+    );
 
     when(itemRepo.findById(1)).thenReturn(Optional.of(testItem));
     when(unitRepo.findById(111)).thenReturn(Optional.empty());
 
-    assertThrows(EntityNotFoundException.class, () -> itemService.updateItem(newItemData));
+    assertThrows(IllegalArgumentException.class, () -> itemService.updateItem(newItemData, TEST_USER_ID));
   }
 
   @Test
-  @DisplayName("UpdateItem should throw EntityNotFoundException if category does not exist")
+  @DisplayName("UpdateItem should throw IllegalArgumentException if category does not exist")
   void updateItemCategoryNotFound() {
-    ItemGenericDTO newItemData = new ItemGenericDTO(1, "Hel Melk", 1.75, 111, 222, new Date());
+    List<Integer> householdIds = Arrays.asList(TEST_HOUSEHOLD_ID);
+    ItemGenericDTO newItemData = new ItemGenericDTO(
+        1,
+        "Hel Melk",
+        1.75,
+        111,
+        222,
+        new Date(),
+        householdIds
+    );
 
     when(itemRepo.findById(1)).thenReturn(Optional.of(testItem));
     when(unitRepo.findById(111)).thenReturn(Optional.of(new Unit()));
     when(categoryRepo.findById(222)).thenReturn(Optional.empty());
 
-    assertThrows(EntityNotFoundException.class, () -> itemService.updateItem(newItemData));
+    assertThrows(IllegalArgumentException.class, () -> itemService.updateItem(newItemData, TEST_USER_ID));
   }
 
   @Test
@@ -330,25 +475,26 @@ public class ItemServiceTest {
   void deleteItemSuccess() {
     int itemId = 1;
 
-    Item mockItem = new Item();
-    mockItem.setId(itemId);
-    mockItem.setHousehold(new ArrayList<>()); // Set an empty household list
+    when(itemRepo.findById(itemId)).thenReturn(Optional.of(testItem));
 
-    when(itemRepo.findById(itemId)).thenReturn(Optional.of(mockItem));
+    itemService.deleteItem(itemId, TEST_USER_ID);
 
-    itemService.deleteItem(itemId);
-
-    verify(itemRepo).findById(itemId);     // Verify that findById was called
-    verify(itemRepo).save(mockItem);        // Verify that save was called after clearing households
-    verify(itemRepo).delete(mockItem);      // Verify that delete was called
+    verify(itemRepo).delete(testItem);
   }
 
   @Test
-  @DisplayName("DeleteItem should throw EntityNotFoundException if item does not exist")
+  @DisplayName("DeleteItem should throw IllegalArgumentException if item does not exist")
   void deleteItemNotFound() {
     when(itemRepo.findById(1)).thenReturn(Optional.empty());
 
-    assertThrows(EntityNotFoundException.class, () -> itemService.deleteItem(1));
+    assertThrows(IllegalArgumentException.class, () -> itemService.deleteItem(1, TEST_USER_ID));
   }
- */
+
+  @Test
+  @DisplayName("DeleteItem should throw IllegalArgumentException if user is not authorized")
+  void deleteItemUnauthorized() {
+    when(itemRepo.findById(1)).thenReturn(Optional.of(testItem));
+
+    assertThrows(IllegalArgumentException.class, () -> itemService.deleteItem(1, 999));
+  }
 }
