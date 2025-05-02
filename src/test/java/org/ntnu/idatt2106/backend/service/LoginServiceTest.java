@@ -8,8 +8,10 @@ import org.mockito.*;
 import org.ntnu.idatt2106.backend.dto.user.UserRegisterRequest;
 import org.ntnu.idatt2106.backend.dto.user.UserTokenResponse;
 import org.ntnu.idatt2106.backend.exceptions.AlreadyInUseException;
+import org.ntnu.idatt2106.backend.exceptions.MailSendingFailedException;
 import org.ntnu.idatt2106.backend.exceptions.TokenExpiredException;
 import org.ntnu.idatt2106.backend.exceptions.UserNotFoundException;
+import org.ntnu.idatt2106.backend.exceptions.UserNotVerifiedException;
 import org.ntnu.idatt2106.backend.model.User;
 import org.ntnu.idatt2106.backend.repo.EmailVerificationTokenRepo;
 import org.ntnu.idatt2106.backend.repo.ResetPasswordTokenRepo;
@@ -313,6 +315,71 @@ public class LoginServiceTest {
       loginService.register(userRegisterRequest);
     });
   }
+
+  @Test
+  @DisplayName("Test authenticate throws UserNotVerifiedException if user is not verified")
+  void testThrowsNotVerifiedIfNotVerified() {
+    String mail = "apeman";
+    String password = "password";
+    when(userRepo.findByEmail(mail)).thenReturn(Optional.of(testUser));
+    when(
+        hasher.checkPassword(password, testUser.getPassword())).thenReturn(
+        true);
+    testUser.setVerified(false);
+    when(emailService.hasValidVerificationEmail(any())).thenReturn(false);
+    assertThrows(UserNotVerifiedException.class, () -> {
+      loginService.authenticate(mail, password);
+    });
+    try {
+      verify(emailService, times(1)).sendVerificationEmail(testUser);
+    } catch (MessagingException e) {
+      fail("Should not throw exception");
+    }
+  }
+
+  @Test
+  @DisplayName("Test does not send new verification email if user is already has active token")
+  void testDoesNotSendNewVerificationEmailIfUserAlreadyHasActiveToken() {
+    String mail = "apeman";
+    String password = "password";
+    when(userRepo.findByEmail(mail)).thenReturn(Optional.of(testUser));
+    when(
+        hasher.checkPassword(password, testUser.getPassword())).thenReturn(
+        true);
+    testUser.setVerified(false);
+    when(emailService.hasValidVerificationEmail(any())).thenReturn(true);
+    assertThrows(UserNotVerifiedException.class, () -> {
+      loginService.authenticate(mail, password);
+    });
+    try {
+      verify(emailService, times(0)).sendVerificationEmail(testUser);
+    } catch (MessagingException e) {
+      fail("Should not throw exception");
+    }
+  }
+
+  @Test
+  @DisplayName("Test throws MailsendException if mail sending fails")
+  void testThrowsMailSendExceptionIfMailSendingFails() {
+    String mail = "apeman";
+    String password = "password";
+    when(userRepo.findByEmail(mail)).thenReturn(Optional.of(testUser));
+    when(
+        hasher.checkPassword(password, testUser.getPassword())).thenReturn(
+        true);
+    testUser.setVerified(false);
+    when(emailService.hasValidVerificationEmail(testUser)).thenReturn(false);
+    try {
+      doThrow(new MessagingException("Failed to send email")).when(emailService).sendVerificationEmail(testUser);
+      assertThrows(MailSendingFailedException.class, () -> {
+        loginService.authenticate(mail, password);
+      });
+      verify(emailService, times(1)).sendVerificationEmail(testUser);
+    } catch (MessagingException e) {
+      assertEquals(e.getMessage(), "failed to send verification email");
+    }
+  }
+
 
 
 }

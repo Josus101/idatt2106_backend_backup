@@ -133,10 +133,10 @@ public class LoginService {
           if (!emailService.hasValidVerificationEmail(user.get())) {
             emailService.sendVerificationEmail(user.get());
           }
-          throw new UserNotVerifiedException("User is not verified");
         } catch (Exception e) {
           throw new MailSendingFailedException("Failed to send verification email", e.getCause());
         }
+        throw new UserNotVerifiedException("User is not verified");
       }
       if (!hasher.checkPassword(password, user.get().getPassword())) {
         throw new IllegalArgumentException("Incorrect password for given email");
