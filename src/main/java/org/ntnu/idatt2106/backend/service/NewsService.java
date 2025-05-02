@@ -128,6 +128,12 @@ public class NewsService {
             .collect(Collectors.toList());
   }
 
+  public List<NewsGetResponse> getRecentFromGroupedNews(List<List<NewsGetResponse>> groupedNews) {
+    return groupedNews.stream()
+            .map(List::getFirst)
+            .collect(Collectors.toList());
+  }
+
   /**
    * Method to add news to the database
    * @param newsCreateRequest the news to add

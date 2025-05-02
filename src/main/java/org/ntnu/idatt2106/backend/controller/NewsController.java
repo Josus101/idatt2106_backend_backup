@@ -76,10 +76,11 @@ public class NewsController {
   })
   public ResponseEntity<?> getNews() {
     try {
-      List<NewsGetResponse> news = newsService.getAllNews();
-      List<List<NewsGetResponse>> groupedNews = newsService.groupNewsByIdAndSort(news);
+      List<NewsGetResponse> news = newsService.getAllNews(); // all the news
+      List<List<NewsGetResponse>> groupedNews = newsService.groupNewsByIdAndSort(news); // group the news by case
+      List<NewsGetResponse> recentNews = newsService.getRecentFromGroupedNews(groupedNews); // get the most recent news from each case
 
-      return ResponseEntity.status(HttpStatus.OK).body(groupedNews);
+      return ResponseEntity.status(HttpStatus.OK).body(recentNews);
     } catch (EntityNotFoundException e) {
       return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: " + e.getMessage());
     } catch (Exception e) {
@@ -185,7 +186,9 @@ public class NewsController {
       List<NewsGetResponse> newsByDistrict = newsService.getByDistrict(fullDistrict);
       List<List<NewsGetResponse>> groupedNews = newsService.groupNewsByIdAndSort(newsByDistrict);
 
-      return ResponseEntity.status(HttpStatus.OK).body(groupedNews);
+      List<NewsGetResponse> recentNews = newsService.getRecentFromGroupedNews(groupedNews);
+
+      return ResponseEntity.status(HttpStatus.OK).body(recentNews);
     } catch (EntityNotFoundException e) {
       return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: " + e.getMessage());
     } catch (Exception e) {
