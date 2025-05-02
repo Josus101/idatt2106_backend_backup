@@ -2,8 +2,11 @@ package org.ntnu.idatt2106.backend.service;
 
 import org.ntnu.idatt2106.backend.dto.household.EssentialItemStatusDTO;
 import org.ntnu.idatt2106.backend.model.Household;
+import org.ntnu.idatt2106.backend.model.HouseholdMembers;
 import org.ntnu.idatt2106.backend.model.Item;
+import org.ntnu.idatt2106.backend.model.User;
 import org.ntnu.idatt2106.backend.repo.HouseholdRepo;
+import org.ntnu.idatt2106.backend.repo.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -21,6 +24,9 @@ public class EssentialItemService {
 
     @Autowired
     private HouseholdRepo householdRepo;
+
+    @Autowired
+    private UserRepo userRepo;
 
     // Alle essensielle items (alle navn må være lowercase!)
     private static final List<String> ESSENTIAL_ITEMS = List.of(
@@ -79,5 +85,23 @@ public class EssentialItemService {
         }
 
         return statusList;
+    }
+
+    public List<List<EssentialItemStatusDTO>> getEssentialItemStatusByUserId(int userId) {
+        User user = userRepo.findById(userId)
+                .orElseThrow(() -> new NoSuchElementException("User not found"));
+
+        List<Household> households = user.getHouseholdMemberships()
+                .stream()
+                .map(HouseholdMembers::getHousehold)
+                .toList();
+
+        if (households.isEmpty()) {
+            throw new NoSuchElementException("No households found for user");
+        }
+
+        return households.stream()
+                .map(h -> getEssentialItemStatus(h.getId()))
+                .toList();
     }
 }

@@ -10,7 +10,9 @@ import org.ntnu.idatt2106.backend.dto.household.EssentialItemStatusDTO;
 import org.ntnu.idatt2106.backend.model.Household;
 import org.ntnu.idatt2106.backend.model.HouseholdMembers;
 import org.ntnu.idatt2106.backend.model.Item;
+import org.ntnu.idatt2106.backend.model.User;
 import org.ntnu.idatt2106.backend.repo.HouseholdRepo;
+import org.ntnu.idatt2106.backend.repo.UserRepo;
 
 import java.util.*;
 
@@ -26,6 +28,9 @@ class EssentialItemServiceTest {
     private EssentialItemService essentialItemService;
 
     private Household household;
+
+    @Mock
+    private UserRepo userRepo;
 
     @BeforeEach
     void setUp() {
@@ -99,4 +104,71 @@ class EssentialItemServiceTest {
             essentialItemService.getEssentialItemStatus(42);
         });
     }
+
+    @Test
+    @DisplayName("Should throw when user not found")
+    void testGetEssentialItemsByUserId_userNotFound() {
+        when(userRepo.findById(404)).thenReturn(Optional.empty());
+
+        assertThrows(NoSuchElementException.class, () ->
+                essentialItemService.getEssentialItemStatusByUserId(404)
+        );
+
+        verify(userRepo).findById(404);
+    }
+
+    @Test
+    @DisplayName("Should throw when user has no households")
+    void testGetEssentialItemsByUserId_noHouseholds() {
+        User user = new User();
+        user.setHouseholdMemberships(Collections.emptyList());
+
+        when(userRepo.findById(7)).thenReturn(Optional.of(user));
+
+        assertThrows(NoSuchElementException.class, () ->
+                essentialItemService.getEssentialItemStatusByUserId(7)
+        );
+
+        verify(userRepo).findById(7);
+    }
+
+    @Test
+    @DisplayName("Should return essential items for all households of a user")
+    void testGetEssentialItemStatusByUserIdSuccess() {
+        // Arrange
+        int userId = 1;
+        int householdId = 10;
+
+        // Setup user with one household membership
+        User user = new User();
+        Household household = new Household();
+        household.setId(householdId);
+        household.setMembers(Collections.singletonList(new HouseholdMembers())); // Important to prevent NPE
+
+        HouseholdMembers membership = new HouseholdMembers();
+        membership.setHousehold(household);
+        user.setHouseholdMemberships(List.of(membership));
+
+        // Add essential item
+        Item item = new Item();
+        item.setName("Grill");
+        item.setAmount(1);
+        household.setInventory(List.of(item));
+
+        when(userRepo.findById(userId)).thenReturn(Optional.of(user));
+        when(householdRepo.findById(householdId)).thenReturn(Optional.of(household));
+
+        // Act
+        List<List<EssentialItemStatusDTO>> result = essentialItemService.getEssentialItemStatusByUserId(userId);
+
+        // Assert
+        assertEquals(1, result.size());
+        assertTrue(result.get(0).stream().anyMatch(dto -> dto.getName().equals("grill") && dto.isPresent()));
+
+        verify(userRepo).findById(userId);
+        verify(householdRepo).findById(householdId);
+    }
+
+
+
 }

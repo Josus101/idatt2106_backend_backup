@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.ntnu.idatt2106.backend.dto.household.EssentialItemStatusDTO;
 import org.ntnu.idatt2106.backend.dto.household.PreparednessStatus;
 import org.ntnu.idatt2106.backend.repo.HouseholdRepo;
+import org.ntnu.idatt2106.backend.security.JWT_token;
 import org.ntnu.idatt2106.backend.service.EssentialItemService;
 import org.ntnu.idatt2106.backend.service.PreparednessService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.HttpStatus;
 
+import java.util.List;
 import java.util.NoSuchElementException;
 
 /**
@@ -29,8 +31,6 @@ import java.util.NoSuchElementException;
 @RestController
 @RequestMapping("/api/households")
 public class HouseholdController {
-    @Autowired
-    private HouseholdRepo householdRepo;
 
     @Autowired
     private PreparednessService preparednessService;
@@ -38,16 +38,19 @@ public class HouseholdController {
     @Autowired
     private EssentialItemService essentialItemService;
 
+    @Autowired
+    private JWT_token jwtToken;
+
     /**
-     * Endpoint for retrieving the number of days the household has food and water for.
+     * Endpoint for retrieving the number of days the user's household has food and water for.
      *
-     * @param id The ID of the household.
+     * @param authorizationHeader The Authorization header containing the Bearer token.
      * @return A PreparednessStatus object with days of food and water supply.
      */
-    @GetMapping("/{id}/preparedness")
+    @GetMapping("/preparedness")
     @Operation(
-            summary = "Get preparedness status",
-            description = "Returns how many days of food and water the household has in storage"
+            summary = "Get preparedness status for user",
+            description = "Returns how many days of food and water the household(s) has in storage"
     )
     @ApiResponses(value = {
             @ApiResponse(
@@ -59,28 +62,30 @@ public class HouseholdController {
             ),
             @ApiResponse(
                 responseCode = "404",
-                description = "Household not found",
+                description = "User or household not found",
                 content = @Content(
-                    mediaType = "application/json",
-                    schema = @Schema(example = "Error: Household not found"))
+                mediaType = "application/json",
+                schema = @Schema(example = "Error: No households found for user"))
             ),
             @ApiResponse(
                 responseCode = "500",
                 description = "Internal server error",
                 content = @Content(
-                    mediaType = "application/json",
-                    schema =  @Schema(example = "Unexpected error: <error message>"))
+                mediaType = "application/json",
+                schema =  @Schema(example = "Unexpected error: <error message>"))
             )
     })
     public ResponseEntity<?> getPreparednessStatus(
             @Parameter(
-                description = "ID of the household to retrieve preparedness status for",
-                required = true,
-                example = "1"
-            ) @PathVariable int id
+                    description = "Authorization token (Bearer JWT)",
+                    required = true,
+                    example = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6..."
+            ) @RequestHeader ("Authorization") String authorizationHeader
     ){
         try {
-            PreparednessStatus status = preparednessService.getPreparednessStatusByHouseholdId(id);
+            String token = authorizationHeader.substring(7);
+            int userId = Integer.parseInt(jwtToken.extractIdFromJwt(token));
+            List<PreparednessStatus> status = preparednessService.getPreparednessStatusByUserId(userId);
             return ResponseEntity.ok(status);
         } catch (NoSuchElementException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: " + e.getMessage());
@@ -90,15 +95,17 @@ public class HouseholdController {
     }
 
     /**
-     * Endpoint for retrieving the status of essential items in a household.
+     * Endpoint for retrieving the essential item status of all households
+     * associated with the authenticated user.
      *
-     * @param id The ID of the household.
-     * @return A list of EssentialItemStatusDTO objects indicating the presence of each essential item.
+     * @param authorizationHeader The Authorization header containing the JWT token.
+     * @return A list of lists, where each inner list contains {@link EssentialItemStatusDTO}
+     *         objects representing the presence of essential items in a household.
      */
-    @GetMapping("/{id}/essential-items")
+    @GetMapping("/essential-items")
     @Operation(
-            summary = "Get essential items status",
-            description = "Returns a list of essential items and whether each one is present in the household inventory"
+            summary = "Get essential items status for user",
+            description = "Returns a list of essential items and whether each one is present in the household(s)"
     )
     @ApiResponses(value = {
             @ApiResponse(
@@ -117,10 +124,14 @@ public class HouseholdController {
                     content = @Content(schema = @Schema(example = "Unexpected error: <error message>"))
             )
     })
-    public ResponseEntity<?> getEssentialItemsStatus(@PathVariable int id) {
+    public ResponseEntity<?> getEssentialItemsStatus(
+            @RequestHeader("Authorization") String authorizationHeader) {
         try {
-            var items = essentialItemService.getEssentialItemStatus(id);
-            return ResponseEntity.ok(items);
+            String token = authorizationHeader.substring(7);
+            int userId = Integer.parseInt(jwtToken.extractIdFromJwt(token));
+
+            var statusList = essentialItemService.getEssentialItemStatusByUserId(userId);
+            return ResponseEntity.ok(statusList);
         } catch (NoSuchElementException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: " + e.getMessage());
         } catch (Exception e) {

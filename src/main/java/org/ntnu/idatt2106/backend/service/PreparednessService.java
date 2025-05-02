@@ -1,10 +1,9 @@
 package org.ntnu.idatt2106.backend.service;
 
 import org.ntnu.idatt2106.backend.dto.household.PreparednessStatus;
-import org.ntnu.idatt2106.backend.model.Category;
-import org.ntnu.idatt2106.backend.model.Household;
-import org.ntnu.idatt2106.backend.model.Item;
+import org.ntnu.idatt2106.backend.model.*;
 import org.ntnu.idatt2106.backend.repo.HouseholdRepo;
+import org.ntnu.idatt2106.backend.repo.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -25,6 +24,9 @@ public class PreparednessService {
 
     @Autowired
     private HouseholdRepo householdRepo;
+
+    @Autowired
+    private UserRepo userRepo;
 
     /**
      * Calculates the preparedness status of a given household.
@@ -81,14 +83,25 @@ public class PreparednessService {
      * preparedness status based on its inventory and number of members.
      * </p>
      *
-     * @param householdId The ID of the household to evaluate.
+     * @param userId The ID of the user whose household's preparedness status is to be retrieved.
      * @return A {@link PreparednessStatus} object representing the household's preparedness level.
-     * @throws NoSuchElementException if no household is found with the given ID.
+     * @throws NoSuchElementException if user with given userId is not found.
+     * @throws NoSuchElementException if no households are found for the user.
      */
-    public PreparednessStatus getPreparednessStatusByHouseholdId(int householdId) {
-        Household household = householdRepo.findById(householdId)
-                .orElseThrow(() -> new NoSuchElementException("Household not found"));
+    public List<PreparednessStatus> getPreparednessStatusByUserId(int userId) {
+        User user = userRepo.findById(userId)
+                .orElseThrow(() -> new NoSuchElementException("User not found"));
 
-        return calculatePreparednessStatus(household);
+        List<Household> households = user.getHouseholdMemberships()
+                .stream()
+                .map(HouseholdMembers::getHousehold)
+                .toList();
+        if (households.isEmpty()) {
+            throw new NoSuchElementException("No households found for user");
+        }
+
+        return households.stream()
+                .map(this::calculatePreparednessStatus)
+                .toList();
     }
 }
