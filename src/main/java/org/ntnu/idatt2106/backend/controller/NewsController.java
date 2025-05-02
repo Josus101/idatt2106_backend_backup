@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.persistence.EntityNotFoundException;
 import org.ntnu.idatt2106.backend.dto.news.NewsCreateRequest;
 import org.ntnu.idatt2106.backend.dto.news.NewsGetResponse;
 import org.ntnu.idatt2106.backend.exceptions.AlreadyInUseException;
@@ -24,7 +25,7 @@ import java.util.List;
  * Controller for the News model
  * @Author Jonas Reiher
  * @since 0.2
- * @version 0.2
+ * @version 0.3
  */
 @RestController
 @RequestMapping("/api/news")
@@ -41,7 +42,7 @@ public class NewsController {
    * Get all news from the database
    * @return List of NewsGetResponse
    */
-  @GetMapping("/")
+  @GetMapping("")
   @Operation(
       summary = "Get all news"
   )
@@ -63,13 +64,26 @@ public class NewsController {
               mediaType = "application/json",
               schema = @Schema(example = "Error: No news found")
           )
+      ),
+      @ApiResponse(
+          responseCode = "500",
+          description = "Error: Error retrieving news",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(example = "Error: Error retrieving news")
+          )
       )
   })
   public ResponseEntity<?> getNews() {
     try {
-      return ResponseEntity.ok(newsService.getAllNews());
+      List<NewsGetResponse> news = newsService.getAllNews();
+      List<List<NewsGetResponse>> groupedNews = newsService.groupNewsByIdAndSort(news);
+
+      return ResponseEntity.status(HttpStatus.OK).body(groupedNews);
+    } catch (EntityNotFoundException e) {
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: " + e.getMessage());
     } catch (Exception e) {
-      return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: No news found");
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: Error retrieving news");
     }
   }
 
@@ -102,6 +116,7 @@ public class NewsController {
   public ResponseEntity<?> retrieveNews() {
     try {
       newsService.retrieveNewsFromAPIFeed();
+
       return ResponseEntity.ok("News retrieved successfully");
     } catch (Exception e) {
       return ResponseEntity.internalServerError().body("Error: Error retrieving news");
@@ -141,7 +156,7 @@ public class NewsController {
           description = "Error: Error retrieving news",
           content = @Content(
               mediaType = "application/json",
-              schema = @Schema(example = "Error: Error retrieving news")
+              schema = @Schema(example = "Error: Error retrieving news for <district name>")
           )
       )
   })
@@ -166,16 +181,70 @@ public class NewsController {
           ) @PathVariable String district
   ){
     try {
-      System.out.println("Getting news for district: " + district);
       String fullDistrict = district + " Politidistrikt";
-      System.out.println("Full district name: " + fullDistrict);
       List<NewsGetResponse> newsByDistrict = newsService.getByDistrict(fullDistrict);
-      if (newsByDistrict.isEmpty()) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: No news found for district: " + fullDistrict);
-      }
-      return ResponseEntity.ok(newsByDistrict);
+      List<List<NewsGetResponse>> groupedNews = newsService.groupNewsByIdAndSort(newsByDistrict);
+
+      return ResponseEntity.status(HttpStatus.OK).body(groupedNews);
+    } catch (EntityNotFoundException e) {
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: " + e.getMessage());
     } catch (Exception e) {
-      return ResponseEntity.internalServerError().body("Error: Error retrieving news");
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: Error retrieving news for district: " + district);
+    }
+  }
+
+  /**
+   * Get all news from the database with the given case id
+   * @param caseId the case id to get news from
+   * @return List of NewsGetResponse
+   */
+  @GetMapping("/{caseId}")
+  @Operation(
+      summary = "Get news by case ID"
+  )
+  @ApiResponses(value = {
+      @ApiResponse(
+          responseCode = "200",
+          description = "News retrieved successfully",
+          content = @Content(
+              mediaType = "application/json",
+              array = @ArraySchema(
+                  schema = @Schema(implementation = NewsGetResponse.class)
+              )
+          )
+      ),
+      @ApiResponse(
+          responseCode = "404",
+          description = "Error: No news found for case ID",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(example = "Error: No news found for case ID: <caseId>")
+          )
+      ),
+      @ApiResponse(
+          responseCode = "500",
+          description = "Error: Error retrieving news",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(example = "Error: Error retrieving news for case ID: <caseId>")
+          )
+      )
+  })
+  public ResponseEntity<?> getByCaseId(
+          @Parameter(
+              description = "Case ID to get news from",
+              required = true,
+              example = "25h7fg"
+          ) @PathVariable String caseId
+  ){
+    try {
+      List<NewsGetResponse> newsByCaseId = newsService.getByCaseId(caseId);
+
+      return ResponseEntity.status(HttpStatus.OK).body(newsByCaseId);
+    } catch (EntityNotFoundException e) {
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: " + e.getMessage());
+    } catch (Exception e) {
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: Error retrieving news for case ID: " + caseId);
     }
   }
 
@@ -190,7 +259,7 @@ public class NewsController {
   )
   @ApiResponses(value = {
       @ApiResponse(
-          responseCode = "200",
+          responseCode = "201",
           description = "News added successfully",
           content = @Content(
               mediaType = "application/json",
@@ -244,13 +313,14 @@ public class NewsController {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Error: Unauthorized");
       }
       newsService.addNews(newsCreateRequest);
-      return ResponseEntity.ok("News added successfully");
+
+      return ResponseEntity.status(HttpStatus.CREATED).body("News added successfully");
     } catch (IllegalArgumentException e) {
       return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: " + e.getMessage());
     } catch (AlreadyInUseException e) {
       return ResponseEntity.status(HttpStatus.CONFLICT).body("Error: " + e.getMessage());
     }catch (Exception e) {
-      return ResponseEntity.internalServerError().body("Error: Error adding news");
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: Error adding news");
     }
   }
 }

@@ -52,4 +52,11 @@ public interface NewsRepo extends JpaRepository<News, Integer> {
    */
   List<News> findByDistrict(String district);
 
+  /**
+   * Finds all news articles by case id
+   * @param caseId the case id of the news article
+   * @return a list of news articles in the given case id
+   */
+  List<News> findByCaseId(String caseId);
+
 }

@@ -20,8 +20,10 @@ import java.util.Date;
 @AllArgsConstructor
 public class News {
   @Id
-  @GeneratedValue(strategy = jakarta.persistence.GenerationType.IDENTITY)
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
   private int id;
+  @Column(nullable = false)
+  private String caseId;
   @Column(nullable = false)
   private String title;
   @Lob
