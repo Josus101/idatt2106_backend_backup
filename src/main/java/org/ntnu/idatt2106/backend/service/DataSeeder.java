@@ -258,12 +258,19 @@ public class DataSeeder implements CommandLineRunner {
     } else if (household == null) {
       throw new IllegalArgumentException("Household cannot be null");
     }
-    HouseholdMembers member = new HouseholdMembers(user, household, isAdmin);
-    if (household.getMembers() == null) {
-      household.setMembers(new ArrayList<>());
+    if (!householdMembersRepo.existsByUserAndHousehold(user, household)) {
+      HouseholdMembers member = new HouseholdMembers(user, household, isAdmin);
+      householdMembersRepo.save(member);
+
+      if (user.getHouseholdMemberships() == null) {
+        user.setHouseholdMemberships(new ArrayList<>());
+      }
+      user.getHouseholdMemberships().add(member);
+      if (household.getMembers() == null) {
+        household.setMembers(new ArrayList<>());
+      }
+      household.getMembers().add(member);
     }
-    household.getMembers().add(member);
-    householdMembersRepo.save(member);
   }
 
   /**
