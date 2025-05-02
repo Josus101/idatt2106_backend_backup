@@ -21,8 +21,9 @@ import org.springframework.stereotype.Service;
  * Service class for handling item-related operations. This class is responsible for the business
  * logic related to items.
  *
- * @version 0.1
+ * @version 0.2
  * @since 0.1
+ * @author Jonas Reiher, Eskild Smestu
  */
 @Service
 public class ItemService {

@@ -31,8 +31,9 @@ import org.springframework.web.bind.annotation.RestController;
  * Controller class for handling inventory-related operations.
  * This class is responsible for defining the endpoints for managing items in the inventory.
  *
- * @version 1.0
- * @since 1.0
+ * @version 0.2
+ * @since 0.1
+ * @author Jonas Reiher, Eskild Smestu
  */
 @RestController
 @RequestMapping("/api/emergency/items")
