@@ -131,7 +131,7 @@ public class NewsController {
    * @param district the district to get news from
    * @return List of NewsGetResponse
    */
-  @GetMapping("/{district}")
+  @GetMapping("district/{district}")
   @Operation(
           summary = "Get news by district",
           description = "Returns a list containing all the news from the database with the given district, groups them by case ID, sort by date, and returns the most recent news from each case."
@@ -204,7 +204,7 @@ public class NewsController {
    * @param caseId the case id to get news from
    * @return List of NewsGetResponse
    */
-  @GetMapping("/{caseId}")
+  @GetMapping("case/{caseId}")
   @Operation(
       summary = "Get news by case ID",
       description = "Returns a list containing all the news from the database with the given case ID"
