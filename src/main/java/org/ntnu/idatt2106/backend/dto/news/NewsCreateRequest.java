@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 /**
  * DTO for the NewsCreateRequest
@@ -15,11 +16,12 @@ import lombok.Setter;
 @Getter
 @Setter
 @AllArgsConstructor
+@ToString
 public class NewsCreateRequest {
-  @Schema(description = "The title of the news", example = "News title")
-  private String title;
   @Schema(description = "The case id of the news", example = "25h7fg")
   private String caseId;
+  @Schema(description = "The title of the news", example = "News title")
+  private String title;
   @Schema(description = "The content of the news", example = "News content")
   private String content;
   @Schema(description = "The latitude of the news", example = "60.39299")

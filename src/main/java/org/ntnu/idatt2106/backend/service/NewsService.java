@@ -47,7 +47,7 @@ public class NewsService {
    * Method to get all news from the database
    * @return List of NewsGetResponse
    */
-  public List<NewsGetResponse> getAllNews() {
+  public List<NewsGetResponse> getAllNews() throws EntityNotFoundException {
     List<NewsGetResponse> allNews = newsRepo.findAll().stream()
         .map(news -> new NewsGetResponse(
             news.getId(), news.getCaseId(),
@@ -62,6 +62,7 @@ public class NewsService {
     if (allNews.isEmpty()) {
       throw new EntityNotFoundException("No news found");
     }
+
     return allNews;
   }
 
@@ -118,7 +119,7 @@ public class NewsService {
    * @param news the list of news to group and sort
    * @return List of grouped and sorted news
    */
-  public List<List<NewsGetResponse>> groupNewsByIdAndSort(List<NewsGetResponse> news) {
+  public List<List<NewsGetResponse>> groupNewsByCaseIdAndSort(List<NewsGetResponse> news) {
     return news.stream()
             .collect(Collectors.groupingBy(NewsGetResponse::getCaseId))
             .values().stream()
@@ -128,6 +129,11 @@ public class NewsService {
             .collect(Collectors.toList());
   }
 
+  /**
+   * Method to get the most recent news from grouped news
+   * @param groupedNews the grouped news to get the most recent from
+   * @return List of most recent news
+   */
   public List<NewsGetResponse> getRecentFromGroupedNews(List<List<NewsGetResponse>> groupedNews) {
     return groupedNews.stream()
             .map(List::getFirst)

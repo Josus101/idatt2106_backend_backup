@@ -11,6 +11,7 @@ import org.ntnu.idatt2106.backend.dto.news.NewsCreateRequest;
 import org.ntnu.idatt2106.backend.dto.news.NewsGetResponse;
 import org.ntnu.idatt2106.backend.exceptions.AlreadyInUseException;
 import org.ntnu.idatt2106.backend.model.Admin;
+import org.ntnu.idatt2106.backend.repo.NewsRepo;
 import org.ntnu.idatt2106.backend.security.JWT_token;
 import org.ntnu.idatt2106.backend.service.NewsService;
 import org.springframework.http.HttpStatus;
@@ -37,6 +38,9 @@ class NewsControllerTest {
   private NewsService newsService;
 
   @Mock
+  private NewsRepo newsRepo;
+
+  @Mock
   private JWT_token jwt;
 
   private NewsGetResponse newsResponse;
@@ -61,11 +65,21 @@ class NewsControllerTest {
   @DisplayName("getNews returns 404 - Not Found on exception")
   void testGetNewsNotFound() {
     when(newsService.getAllNews()).thenThrow(new EntityNotFoundException("No news found"));
-    when(newsService.groupNewsByIdAndSort(anyList())).thenReturn(List.of());
+    when(newsService.groupNewsByCaseIdAndSort(anyList())).thenReturn(List.of());
     ResponseEntity<?> response = newsController.getNews();
 
     assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
     assertEquals("Error: No news found", response.getBody());
+  }
+
+  @Test
+  @DisplayName("getNews returns 500 - Internal Server Error on exception")
+  void testGetNewsError() {
+    when(newsService.getAllNews()).thenThrow(new RuntimeException("boom"));
+    ResponseEntity<?> response = newsController.getNews();
+
+    assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+    assertEquals("Error: Error retrieving news", response.getBody());
   }
 
   @Test
@@ -101,11 +115,12 @@ class NewsControllerTest {
   @Test
   @DisplayName("getByDistrict returns 404 - Not Found for empty list")
   void testGetByDistrictNotFound() {
-    when(newsService.getByDistrict("Oslo Politidistrikt")).thenReturn(List.of());
+    when(newsService.getByDistrict("Oslo Politidistrikt")).thenThrow(new EntityNotFoundException("No news found for district: Oslo"));
+    when(newsService.groupNewsByCaseIdAndSort(anyList())).thenReturn(List.of());
     ResponseEntity<?> response = newsController.getByDistrict("Oslo");
 
     assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-    assertTrue(response.getBody().toString().contains("Error: No news found"));
+    assertTrue(response.getBody().toString().contains("Error: No news found for district: Oslo"));
   }
 
   @Test
@@ -115,7 +130,38 @@ class NewsControllerTest {
     ResponseEntity<?> response = newsController.getByDistrict("Oslo");
 
     assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-    assertEquals("Error: Error retrieving news", response.getBody());
+    assertEquals("Error: Error retrieving news for district: Oslo", response.getBody());
+  }
+
+  @Test
+  @DisplayName("getByCaseId returns 200 - OK and list of news")
+  void getByCaseIdSuccess() {
+    when(newsService.getByCaseId("CaseId")).thenReturn(List.of(newsResponse));
+    ResponseEntity<?> response = newsController.getByCaseId("CaseId");
+
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertInstanceOf(List.class, response.getBody());
+  }
+
+  @Test
+  @DisplayName("getByCaseId returns 404 - Not Found on empty list")
+  void getByCaseIdNotFound() {
+    when(newsService.getByCaseId("CaseId")).thenThrow(new EntityNotFoundException("No news found for case ID: CaseId"));
+    when(newsService.groupNewsByCaseIdAndSort(anyList())).thenReturn(List.of());
+    ResponseEntity<?> response = newsController.getByCaseId("CaseId");
+
+    assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    assertTrue(response.getBody().toString().contains("Error: No news found for case ID: CaseId"));
+  }
+
+  @Test
+  @DisplayName("getByCaseId returns 500 - Internal Server Error on exception")
+  void getByCaseIdError() {
+    when(newsService.getByCaseId("CaseId")).thenThrow(new RuntimeException("boom"));
+    ResponseEntity<?> response = newsController.getByCaseId("CaseId");
+
+    assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+    assertEquals("Error: Error retrieving news for case ID: CaseId", response.getBody());
   }
 
   @Test
@@ -127,7 +173,7 @@ class NewsControllerTest {
 
     ResponseEntity<?> response = newsController.addNews("valid-token", request);
 
-    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertEquals(HttpStatus.CREATED, response.getStatusCode());
     assertEquals("News added successfully", response.getBody());
   }
 

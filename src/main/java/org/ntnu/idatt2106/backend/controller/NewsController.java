@@ -77,7 +77,7 @@ public class NewsController {
   public ResponseEntity<?> getNews() {
     try {
       List<NewsGetResponse> news = newsService.getAllNews(); // all the news
-      List<List<NewsGetResponse>> groupedNews = newsService.groupNewsByIdAndSort(news); // group the news by case
+      List<List<NewsGetResponse>> groupedNews = newsService.groupNewsByCaseIdAndSort(news); // group the news by case
       List<NewsGetResponse> recentNews = newsService.getRecentFromGroupedNews(groupedNews); // get the most recent news from each case
 
       return ResponseEntity.status(HttpStatus.OK).body(recentNews);
@@ -184,7 +184,7 @@ public class NewsController {
     try {
       String fullDistrict = district + " Politidistrikt";
       List<NewsGetResponse> newsByDistrict = newsService.getByDistrict(fullDistrict);
-      List<List<NewsGetResponse>> groupedNews = newsService.groupNewsByIdAndSort(newsByDistrict);
+      List<List<NewsGetResponse>> groupedNews = newsService.groupNewsByCaseIdAndSort(newsByDistrict);
 
       List<NewsGetResponse> recentNews = newsService.getRecentFromGroupedNews(groupedNews);
 
