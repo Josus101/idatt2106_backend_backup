@@ -1,6 +1,5 @@
 package org.ntnu.idatt2106.backend.service;
 
-import jakarta.persistence.EntityNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -56,12 +55,12 @@ public class ItemService {
    * @param id     the ID of the item
    * @param userId the ID of the user requesting the item
    * @return the item with the given ID
-   * @throws EntityNotFoundException if the item is not found
+   * @throws IllegalArgumentException if the item is not found
    * @throws IllegalArgumentException if the user is not authorized
    */
   public ItemGenericDTO getItemById(int id, int userId) {
     Item item = itemRepo.findById(id)
-        .orElseThrow(() -> new EntityNotFoundException("Item not found"));
+        .orElseThrow(() -> new IllegalArgumentException("Item not found"));
 
     validateOperation(userId, id);
 
@@ -81,14 +80,14 @@ public class ItemService {
    * @param id     the ID of the household
    * @param userId the ID of the user requesting the items
    * @return a list of items associated with a household
-   * @throws EntityNotFoundException if no items are found
+   * @throws IllegalArgumentException if no items are found
    * @throws IllegalArgumentException if the user is not authorized
    */
   public List<ItemGenericDTO> getItemsByHouseholdId(int id, int userId) {
     isUserInHousehold(userId, id);
 
     List<Item> items = itemRepo.findByHousehold_Id(id)
-        .orElseThrow(() -> new EntityNotFoundException("No items found for this household"));
+        .orElseThrow(() -> new IllegalArgumentException("No items found for this household"));
 
     return items.stream().map(item -> new ItemGenericDTO(
         item.getId(),
@@ -108,7 +107,7 @@ public class ItemService {
    * @param userId the ID of the user requesting the items
    * @return a list of items associated with a category
    * @throws IllegalArgumentException if the category does not exist
-   * @throws EntityNotFoundException if no items are found
+   * @throws IllegalArgumentException if no items are found
    */
   public List<ItemGenericDTO> getItemsByCategoryId(int id, int userId) {
     if (!categoryRepo.existsById(id)) {
@@ -116,7 +115,7 @@ public class ItemService {
     }
 
     List<Item> items = itemRepo.findByCategory_Id(id)
-        .orElseThrow(() -> new EntityNotFoundException("No items found for this category"));
+        .orElseThrow(() -> new IllegalArgumentException("No items found for this category"));
 
     return items.stream()
         .filter(item -> isUserAuthorizedForItem(userId, item))
@@ -156,22 +155,22 @@ public class ItemService {
    * @param itemCreateRequest the data of the item to be added
    * @param userId the ID of the user adding the item
    * @return the created item
-   * @throws EntityNotFoundException if any referenced entity is not found
+   * @throws IllegalArgumentException if any referenced entity is not found
    * @throws IllegalArgumentException if the user is not authorized
    */
   public ItemGenericDTO addItem(ItemCreateRequest itemCreateRequest, int userId)
-      throws EntityNotFoundException {
+      throws IllegalArgumentException {
     Item item = new Item();
 
     item.setName(itemCreateRequest.getName());
     item.setAmount(itemCreateRequest.getAmount());
 
     Unit unit = unitRepo.findById(itemCreateRequest.getUnitId())
-        .orElseThrow(() -> new EntityNotFoundException("Unit not found"));
+        .orElseThrow(() -> new IllegalArgumentException("Unit not found"));
     item.setUnit(unit);
 
     Category category = categoryRepo.findById(itemCreateRequest.getCategoryId())
-        .orElseThrow(() -> new EntityNotFoundException("Category not found"));
+        .orElseThrow(() -> new IllegalArgumentException("Category not found"));
     item.setCategory(category);
 
     item.setExpirationDate(itemCreateRequest.getExpirationDate());
@@ -204,13 +203,13 @@ public class ItemService {
    * @param itemData the data of the item to be updated
    * @param userId   the ID of the user updating the item
    * @return the updated item
-   * @throws EntityNotFoundException if any referenced entity is not found
+   * @throws IllegalArgumentException if any referenced entity is not found
    * @throws IllegalArgumentException if the user is not authorized
    */
   public ItemGenericDTO updateItem(ItemGenericDTO itemData, int userId)
-      throws EntityNotFoundException {
+      throws IllegalArgumentException {
     Item item = itemRepo.findById(itemData.getId())
-        .orElseThrow(() -> new EntityNotFoundException("Item not found"));
+        .orElseThrow(() -> new IllegalArgumentException("Item not found"));
 
     validateOperation(userId, itemData.getId());
 
@@ -218,11 +217,11 @@ public class ItemService {
     item.setAmount(itemData.getAmount());
 
     Unit unit = unitRepo.findById(itemData.getUnitId())
-        .orElseThrow(() -> new EntityNotFoundException("Unit not found"));
+        .orElseThrow(() -> new IllegalArgumentException("Unit not found"));
     item.setUnit(unit);
 
     Category category = categoryRepo.findById(itemData.getCategoryId())
-        .orElseThrow(() -> new EntityNotFoundException("Category not found"));
+        .orElseThrow(() -> new IllegalArgumentException("Category not found"));
     item.setCategory(category);
 
     item.setExpirationDate(itemData.getExpirationDate());
@@ -254,12 +253,12 @@ public class ItemService {
    *
    * @param id     the ID of the item to be deleted
    * @param userId the ID of the user deleting the item
-   * @throws EntityNotFoundException if the item is not found
+   * @throws IllegalArgumentException if the item is not found
    * @throws IllegalArgumentException if the user is not authorized
    */
-  public void deleteItem(int id, int userId) throws EntityNotFoundException {
+  public void deleteItem(int id, int userId) throws IllegalArgumentException {
     Item item = itemRepo.findById(id)
-        .orElseThrow(() -> new EntityNotFoundException("Item not found"));
+        .orElseThrow(() -> new IllegalArgumentException("Item not found"));
 
     validateOperation(userId, id);
 
@@ -274,11 +273,11 @@ public class ItemService {
    *
    * @param households the households to get IDs from
    * @return a list of household IDs
-   * @throws EntityNotFoundException if any household is not found
+   * @throws IllegalArgumentException if any household is not found
    */
   private List<Integer> getIdsByHousehold(List<Household> households) {
     if (households == null || households.isEmpty()) {
-      throw new EntityNotFoundException("No households found");
+      throw new IllegalArgumentException("No households found");
     }
 
     return households.stream()
@@ -291,13 +290,13 @@ public class ItemService {
    *
    * @param householdIds the IDs of the households
    * @return a list of households
-   * @throws EntityNotFoundException if any household is not found
+   * @throws IllegalArgumentException if any household is not found
    */
   private List<Household> getHouseholdsByIds(List<Integer> householdIds) {
     List<Household> households = householdRepo.findAllById(householdIds);
 
     if (households.size() != householdIds.size()) {
-      throw new EntityNotFoundException("One or more households not found");
+      throw new IllegalArgumentException("One or more households not found");
     }
 
     return households;
@@ -309,11 +308,11 @@ public class ItemService {
    * @param userId the ID of the user
    * @param itemId the ID of the item
    * @throws IllegalArgumentException if the user is not authorized
-   * @throws EntityNotFoundException  if the item is not found
+   * @throws IllegalArgumentException  if the item is not found
    */
   private void validateOperation(int userId, int itemId) {
     Item item = itemRepo.findById(itemId)
-        .orElseThrow(() -> new EntityNotFoundException("Item not found"));
+        .orElseThrow(() -> new IllegalArgumentException("Item not found"));
 
     if (!isUserAuthorizedForItem(userId, item)) {
       throw new IllegalArgumentException(
