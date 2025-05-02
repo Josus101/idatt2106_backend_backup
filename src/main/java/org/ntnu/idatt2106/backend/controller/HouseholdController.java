@@ -23,8 +23,8 @@ import java.util.NoSuchElementException;
  * This class is responsible for defining the endpoints for household preparedness status retrieval.
  *
  * @author Erlend Eide Zindel
- * @version 1.0
- * @since 1.0
+ * @version 0.2
+ * @since 0.1
  */
 @RestController
 @RequestMapping("/api/households")

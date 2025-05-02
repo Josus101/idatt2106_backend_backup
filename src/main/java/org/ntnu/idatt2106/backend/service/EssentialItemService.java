@@ -11,6 +11,10 @@ import java.util.*;
 
 /**
  * Service for checking the presence of essential items in a household inventory.
+ *
+ * @author Erlend Eide Zindel
+ * @version 0.2
+ * @since 0.2
  */
 @Service
 public class EssentialItemService {

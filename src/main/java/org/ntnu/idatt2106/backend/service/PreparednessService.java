@@ -17,7 +17,8 @@ import java.util.*;
  * This includes assessing food, water, and essential item availability relative to household size.
  *
  * @author Erlend
- * @since 1.0
+ * @since 0.1
+ * @version 0.2
  */
 @Service
 public class PreparednessService {
@@ -37,13 +38,7 @@ public class PreparednessService {
         if (numPeople == 0) {
             return new PreparednessStatus(0, 0);
         }
-
-        // Krav
-        //double kcal3 = numPeople * 3 * 2000;
-        //double kcal7 = numPeople * 7 * 2000;
-        //double water3 = numPeople * 3 * 3;
-        //double water7 = numPeople * 7 * 3;
-
+        // Beregn total mengde vann og kalorier
         double totalWater = 0;
         double totalKcal = 0;
 
@@ -69,7 +64,7 @@ public class PreparednessService {
             }
         }
 
-        // Prosentvis dekning for mat og vann (mot 7-dagers krav)
+        // Antall dager med mat og vann
         double kcalPerPersonPerDay = 2000;
         double waterPerPersonPerDay = 3;
 
