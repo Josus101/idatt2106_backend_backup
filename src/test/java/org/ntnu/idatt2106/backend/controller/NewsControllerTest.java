@@ -1,5 +1,6 @@
 package org.ntnu.idatt2106.backend.controller;
 
+import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -43,7 +44,7 @@ class NewsControllerTest {
   @BeforeEach
   void setup() {
     MockitoAnnotations.openMocks(this);
-    newsResponse = new NewsGetResponse(1, "Title", "Content", 10.0, 20.0, "Oslo Politidistrikt", new Date().toString());
+    newsResponse = new NewsGetResponse(1, "CaseId","Title", "Content", 10.0, 20.0, "Oslo Politidistrikt", new Date().toString());
   }
 
   @Test
@@ -59,7 +60,8 @@ class NewsControllerTest {
   @Test
   @DisplayName("getNews returns 404 - Not Found on exception")
   void testGetNewsNotFound() {
-    when(newsService.getAllNews()).thenThrow(new RuntimeException("fail"));
+    when(newsService.getAllNews()).thenThrow(new EntityNotFoundException("No news found"));
+    when(newsService.groupNewsByIdAndSort(anyList())).thenReturn(List.of());
     ResponseEntity<?> response = newsController.getNews();
 
     assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
@@ -119,7 +121,7 @@ class NewsControllerTest {
   @Test
   @DisplayName("addNews returns 200 - OK on successful news addition")
   void testAddNewsSuccess() {
-    NewsCreateRequest request = new NewsCreateRequest("Title", "Content", 10.0, 20.0, "Oslo");
+    NewsCreateRequest request = new NewsCreateRequest("Title", "CaseId",  "Content", 10.0, 20.0, "Oslo");
     doNothing().when(newsService).addNews(request);
     when(jwt.getAdminUserByToken(anyString())).thenReturn(new Admin());
 
@@ -132,7 +134,7 @@ class NewsControllerTest {
   @Test
   @DisplayName("addNews returns 400 - Bad Request on invalid input")
   void testAddNewsBadRequest() {
-    NewsCreateRequest request = new NewsCreateRequest("", "Content", 10.0, 20.0, "Oslo");
+    NewsCreateRequest request = new NewsCreateRequest("", "CaseId", "Content", 10.0, 20.0, "Oslo");
     doThrow(new IllegalArgumentException("Title, content and district cannot be empty"))
             .when(newsService).addNews(request);
     when(jwt.getAdminUserByToken(anyString())).thenReturn(new Admin());
@@ -146,7 +148,7 @@ class NewsControllerTest {
   @Test
   @DisplayName("addNews returns 401 - Unauthorized when user is not admin")
   void testAddNewsUnauthorized() {
-    NewsCreateRequest request = new NewsCreateRequest("Title", "Content", 10.0, 20.0, "Oslo");
+    NewsCreateRequest request = new NewsCreateRequest("Title", "CaseId", "Content", 10.0, 20.0, "Oslo");
     doThrow(new SecurityException("Unauthorized"))
             .when(newsService).addNews(request);
 
@@ -159,7 +161,7 @@ class NewsControllerTest {
   @Test
   @DisplayName("addNews returns 409 - Conflict when news already exists")
   void testAddNewsConflict() {
-    NewsCreateRequest request = new NewsCreateRequest("Title", "Content", 10.0, 20.0, "Oslo");
+    NewsCreateRequest request = new NewsCreateRequest("Title", "CaseId", "Content", 10.0, 20.0, "Oslo");
     doThrow(new AlreadyInUseException("News with the same title and date already exists"))
             .when(newsService).addNews(request);
     when(jwt.getAdminUserByToken(anyString())).thenReturn(new Admin());
@@ -173,7 +175,7 @@ class NewsControllerTest {
   @Test
   @DisplayName("addNews returns 500 - Internal Server Error on unexpected exception")
   void testAddNewsInternalServerError() {
-    NewsCreateRequest request = new NewsCreateRequest("Title", "Content", 10.0, 20.0, "Oslo");
+    NewsCreateRequest request = new NewsCreateRequest("Title", "CaseId", "Content", 10.0, 20.0, "Oslo");
     doThrow(new RuntimeException("Unexpected error"))
             .when(newsService).addNews(request);
     when(jwt.getAdminUserByToken(anyString())).thenReturn(new Admin());

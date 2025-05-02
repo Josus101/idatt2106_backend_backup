@@ -50,6 +50,7 @@ public class NewsServiceTest {
   void setUp() {
     testNews = new News(
             "Test Title",
+            "abc123",
             "This is a test news article",
             12.34,
             56.78,
@@ -58,6 +59,7 @@ public class NewsServiceTest {
 
     testNewsGetResponse = new NewsGetResponse(
             testNews.getId(),
+            testNews.getCaseId(),
             testNews.getTitle(),
             testNews.getContent(),
             testNews.getLatitude(),
@@ -65,7 +67,7 @@ public class NewsServiceTest {
             testNews.getDistrict(),
             testNews.getDate().toString());
 
-    validRequest = new NewsCreateRequest("Title", "Content", 10.0, 20.0, "Oslo Politidistrikt");
+    validRequest = new NewsCreateRequest("Title", "def456",  "Content", 10.0, 20.0, "Oslo Politidistrikt");
   }
 
   @Test
@@ -246,6 +248,7 @@ public class NewsServiceTest {
   void testClearExpiredNews() {
     News expiredNews = new News(
             "Expired",
+            "abc123",
             "Old content",
             12.34,
             56.78,
@@ -262,6 +265,7 @@ public class NewsServiceTest {
   void testClearExpiredNewsNotExpired() {
     News freshNews = new News(
             "Recent",
+            "abc123",
             "Fresh content",
             12.34,
             56.78,
