@@ -6,6 +6,13 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import io.swagger.v3.oas.annotations.media.Schema;
+
+/**
+ * Data transfer object for household requests.
+ * This class is used to transfer household data between the client and server.
+ * It includes fields for household ID, name, location (latitude and longitude),
+ * members, and inventory.
+ */
 @Getter
 @Setter
 @AllArgsConstructor

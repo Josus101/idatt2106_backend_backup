@@ -159,7 +159,17 @@ public class HouseholdController {
                     responseCode = "400",
                     description = "Invalid household details",
                     content = @Content(schema = @Schema(example = "Invalid household details"))
-            )
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "Unauthorized",
+                    content = @Content(schema = @Schema(example = "Unauthorized"))
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Internal server error",
+                    content = @Content(schema = @Schema(example = "Unexpected error: <error message>"))
+            ),
     })
     public ResponseEntity<?> createHousehold(
         @Parameter(
@@ -185,13 +195,13 @@ public class HouseholdController {
                     return ResponseEntity.status(HttpStatus.CREATED).body("Household successfully created");
                 }
             }
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Error: Unauthorized");
         } catch (IllegalArgumentException e) {
             System.out.println(e.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid household details");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: " + e.getMessage());
         } catch (Exception e) {
             System.out.println(e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Could not create household");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
         }
     }
 
@@ -212,9 +222,19 @@ public class HouseholdController {
                     description = "Join code successfully created"
             ),
             @ApiResponse(
+                    responseCode = "401",
+                    description = "Unauthorized",
+                    content = @Content(schema = @Schema(example = "Unauthorized"))
+            ),
+            @ApiResponse(
                     responseCode = "404",
                     description = "Household not found",
                     content = @Content(schema = @Schema(example = "Household not found"))
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Internal server error",
+                    content = @Content(schema = @Schema(example = "Unexpected error: <error message>"))
             )
     })
     public ResponseEntity<?> createInvite(
@@ -239,11 +259,11 @@ public class HouseholdController {
                     return ResponseEntity.ok(joinCode);
                 }
             }
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Error: Unauthorized");
         } catch (NoSuchElementException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Household not found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: " + e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Could not create invite");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
         }
     }
 
@@ -272,6 +292,11 @@ public class HouseholdController {
                     responseCode = "404",
                     description = "Household not found",
                     content = @Content(schema = @Schema(example = "Household not found"))
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Internal server error",
+                    content = @Content(schema = @Schema(example = "Unexpected error: <error message>"))
             )
     })
     public ResponseEntity<?> joinHouseHold(
@@ -297,12 +322,12 @@ public class HouseholdController {
                     return ResponseEntity.ok("Successfully joined the household");
                 }
             }
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid join code");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: Invalid join code");
 
         } catch (NoSuchElementException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Household not found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: " + e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Could not join household");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
         }
     }
 
@@ -336,6 +361,11 @@ public class HouseholdController {
                 responseCode = "404",
                 description = "Household not found",
                 content = @Content(schema = @Schema(example = "Household not found"))
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Internal server error",
+                    content = @Content(schema = @Schema(example = "Unexpected error: <error message>"))
             )
     })
     public ResponseEntity<?> getMeOutOfThisHousehold(
@@ -358,15 +388,15 @@ public class HouseholdController {
                     householdService.leaveHousehold(id, user);
                     return ResponseEntity.ok("Successfully left the household");
                 }
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: User not found");
             }
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Could not leave household");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: User not found");
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid household ID");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: " + e.getMessage());
         } catch (NoSuchElementException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Matching user and household not found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: " + e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Could not leave household");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
         }
     }
 
@@ -401,6 +431,11 @@ public class HouseholdController {
             responseCode = "404",
             description = "Household or user not found",
             content = @Content(schema = @Schema(example = "Household or user not found"))
+        ),
+        @ApiResponse(
+            responseCode = "500",
+            description = "Internal server error",
+            content = @Content(schema = @Schema(example = "Unexpected error: <error message>"))
         )
     })
     public ResponseEntity<?> getOutOfMyHouse(
@@ -425,20 +460,20 @@ public class HouseholdController {
                 String token = authorizationHeader.substring(7);
                 User user = jwtTokenService.getUserByToken(token);
                 if (user == null) {
-                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User not found from token");
+                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Error: User not found from token");
                 }
                 householdService.kickUserFromHousehold(householdId, userId, user);
                 return ResponseEntity.ok("User successfully kicked from the household");
             }
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User not authorized to kick this user from the household");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Error: User not authorized to kick this user from the household");
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid household ID or user ID");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: " + e.getMessage());
         } catch (NoSuchElementException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Household or user not found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: " + e.getMessage());
         } catch (UnauthorizedException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User not authorized to kick this user from the household");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Error: " + e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Could not kick user from household");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
         }
     }
 
@@ -461,6 +496,16 @@ public class HouseholdController {
             responseCode = "404",
             description = "No households found for this user",
             content = @Content(schema = @Schema(example = "No households found for this user"))
+        ),
+        @ApiResponse(
+            responseCode = "401",
+            description = "Unauthorized",
+            content = @Content(schema = @Schema(example = "Unauthorized"))
+        ),
+        @ApiResponse(
+            responseCode = "500",
+            description = "Internal server error",
+            content = @Content(schema = @Schema(example = "Unexpected error: <error message>"))
         )
     })
     public ResponseEntity<?> getMyHouses(
@@ -479,11 +524,15 @@ public class HouseholdController {
                     return ResponseEntity.ok(householdService.getHouseholdsByUser(user));
                 }
             }
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Error: Unauthorized");
         } catch (NoSuchElementException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No households found for this user");
+            System.out.println("message: "+e.getMessage());
+            System.out.println("cause: "+e.getCause());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: " + e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Could not retrieve households");
+            System.out.println("message: "+e.getMessage());
+            System.out.println("cause: "+e.getCause());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
         }
     }
 
