@@ -132,12 +132,15 @@ public class NewsServiceTest {
   @Test
   @DisplayName("addNews should save news when all fields are valid and not duplicate")
   void testAddNewsSuccess() {
-    when(newsRepo.existsByTitleAndDate(eq("Title"), any(Date.class))).thenReturn(false);
+    NewsCreateRequest validRequest = new NewsCreateRequest("Title", "def456", "Content", 10.0, 20.0, "Oslo Politidistrikt");
+
+    when(newsRepo.existsByTitleAndDate(anyString(), any(Date.class))).thenReturn(false);
 
     newsService.addNews(validRequest);
 
     verify(newsRepo).save(any(News.class));
   }
+
 
   @Test
   @DisplayName("getByCaseId returns list of NewsGetResponse on success")
@@ -207,7 +210,7 @@ public class NewsServiceTest {
   @Test
   @DisplayName("addNews should throw AlreadyInUseException if title and date already exist")
   void testAddNews_DuplicateTitleAndDate() {
-    when(newsRepo.existsByTitleAndDate(eq("Title"), any(Date.class))).thenReturn(true);
+    when(newsRepo.existsByTitleAndDate(anyString(), any(Date.class))).thenReturn(true);
 
     AlreadyInUseException ex = assertThrows(
             AlreadyInUseException.class,

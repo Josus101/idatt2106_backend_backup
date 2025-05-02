@@ -145,7 +145,8 @@ public class NewsService {
    * @param newsCreateRequest the news to add
    */
   public void addNews(NewsCreateRequest newsCreateRequest) {
-    if (newsRepo.existsByTitleAndDate(newsCreateRequest.getTitle(), new Date())) {
+    Date now = new Date();
+    if (newsRepo.existsByTitleAndDate(newsCreateRequest.getTitle(), now)) {
       throw new AlreadyInUseException("News with the same title and date already exists");
     }
 
@@ -160,7 +161,7 @@ public class NewsService {
             newsCreateRequest.getLatitude(),
             newsCreateRequest.getLongitude(),
             newsCreateRequest.getDistrict(),
-            new Date());
+            now);
 
     newsRepo.save(news);
   }
