@@ -10,30 +10,19 @@ public class PreparednessStatusTest {
   @Test
   @DisplayName("Test PreparednessStatus constructor sets fields correctly")
   void testConstructorSetsFields() {
-    PreparednessStatus dto = new PreparednessStatus(
-        75,
-        true,
-        "Lageret ditt dekker minst 7 dager"
-    );
-    assertEquals(75, dto.getPreparednessPercent());
-    assertEquals(true, dto.isWarning());
-    assertEquals("Lageret ditt dekker minst 7 dager", dto.getMessage());
+    PreparednessStatus dto = new PreparednessStatus(4.5, 3.2);
+    assertEquals(4.5, dto.getDaysOfFood(), 0.001);
+    assertEquals(3.2, dto.getDaysOfWater(), 0.001);
   }
 
   @Test
   @DisplayName("Test PreparednessStatus getters and setters")
   void testGettersAndSetters() {
-    PreparednessStatus dto = new PreparednessStatus(
-        75,
-        true,
-        "Lageret ditt dekker minst 7 dager"
-    );
-    dto.setPreparednessPercent(50);
-    dto.setWarning(false);
-    dto.setMessage("Lageret ditt dekker kun 3 dager");
+    PreparednessStatus dto = new PreparednessStatus(4.5, 3.2);
+    dto.setDaysOfFood(6.0);
+    dto.setDaysOfWater(2.0);
 
-    assertEquals(50, dto.getPreparednessPercent());
-    assertEquals(false, dto.isWarning());
-    assertEquals("Lageret ditt dekker kun 3 dager", dto.getMessage());
+    assertEquals(6.0, dto.getDaysOfFood(), 0.001);
+    assertEquals(2.0, dto.getDaysOfWater(), 0.001);
   }
 }
