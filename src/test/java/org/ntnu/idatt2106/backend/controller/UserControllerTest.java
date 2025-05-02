@@ -302,12 +302,26 @@ class UserControllerTest {
   void shouldReturnFalseWhenTokenIsInvalid() {
     String token = "invalid-token";
     
-    doThrow(new IllegalArgumentException("Invalid token")).when()
-        .verifyEmail(token);
+    doThrow(new IllegalArgumentException("Token is invalid")).when(jwtToken)
+        .validateJwtToken(token);
     
-    ResponseEntity<?> response = userController.isAuth(token);
+    ResponseEntity<?> response = userController.isAuth("Bearer " + token);
     
-    assertEquals(HttpStatus.OK, response.getStatusCode());
-    assertEquals(true, response.getBody());
+    assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    assertEquals(false, response.getBody());
+  }
+  
+  @Test
+  @DisplayName("Should return 400 Bad Request when an unexpected error occurs")
+  void shouldReturnBadRequestOnUnexpectedError() {
+    String token = "invalid-token";
+    
+    doThrow(new RuntimeException("Unexpected error")).when(jwtToken)
+        .validateJwtToken(token);
+    
+    ResponseEntity<?> response = userController.isAuth("Bearer " + token);
+    
+    assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    assertEquals("Unexpected error", response.getBody());
   }
 }
