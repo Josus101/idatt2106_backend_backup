@@ -7,12 +7,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.ntnu.idatt2106.backend.dto.household.PreparednessStatus;
-import org.ntnu.idatt2106.backend.model.Category;
-import org.ntnu.idatt2106.backend.model.Household;
-import org.ntnu.idatt2106.backend.model.HouseholdMembers;
-import org.ntnu.idatt2106.backend.model.Item;
-import org.ntnu.idatt2106.backend.model.Unit;
+import org.ntnu.idatt2106.backend.model.*;
 import org.ntnu.idatt2106.backend.repo.HouseholdRepo;
+import org.ntnu.idatt2106.backend.repo.UserRepo;
 
 import java.util.*;
 
@@ -26,158 +23,128 @@ class PreparednessServiceTest {
     private PreparednessService preparednessService;
 
     @Mock
-    private HouseholdRepo householdRepo;
-
-    private Household household;
+    private UserRepo userRepo;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        household = new Household();
     }
 
     @Test
-    @DisplayName("Should return 0 days if no members")
-    void testNoMembers() {
-        household.setMembers(Collections.emptyList());
-
-        PreparednessStatus status = preparednessService.calculatePreparednessStatus(household);
-
-        assertEquals(0, status.getDaysOfFood(), 0.01);
-        assertEquals(0, status.getDaysOfWater(), 0.01);
-    }
-
-    @Test
-    @DisplayName("Should ignore expired items")
-    void testExpiredItemsIgnored() {
-        household.setMembers(Collections.singletonList(new HouseholdMembers()));
-
-        Item expired = new Item();
-        expired.setCategory(new Category(1, "Vann", null, false));
-        expired.setAmount(5);
-        expired.setUnit(new Unit("l"));
-
-        Calendar cal = Calendar.getInstance();
-        cal.add(Calendar.DAY_OF_YEAR, -1); // Yesterday
-        expired.setExpirationDate(cal.getTime());
-
-        household.setInventory(Collections.singletonList(expired));
-
-        PreparednessStatus status = preparednessService.calculatePreparednessStatus(household);
-
-        assertEquals(0, status.getDaysOfFood(), 0.01);
-        assertEquals(0, status.getDaysOfWater(), 0.01);
-    }
-
-    @Test
-    @DisplayName("Should calculate under 3 days supply")
-    void testUnder3DaysSupply() {
-        household.setMembers(Collections.singletonList(new HouseholdMembers()));
-
-        Item water = new Item();
-        water.setCategory(new Category(1, "Vann", null, false));
-        water.setAmount(2); // 2L
-        water.setUnit(new Unit("l"));
-
-        Calendar cal = Calendar.getInstance();
-        cal.add(Calendar.DAY_OF_YEAR, 5);
-        water.setExpirationDate(cal.getTime());
-
-        household.setInventory(Collections.singletonList(water));
-
-        PreparednessStatus status = preparednessService.calculatePreparednessStatus(household);
-
-        assertTrue(status.getDaysOfWater() < 3);
-        assertEquals(0, status.getDaysOfFood(), 0.01);
-    }
-
-    @Test
-    @DisplayName("Should calculate between 3 and 7 days supply")
-    void testThreeToSevenDaysSupply() {
-        household.setMembers(Collections.singletonList(new HouseholdMembers()));
-
-        // 6000 kcal, 10L water
-        Item food = new Item();
-        food.setCategory(new Category(1, "Mat", 500, false));
-        food.setAmount(12); // 6000 kcal
-        food.setUnit(new Unit("stk"));
-
-        Item water = new Item();
-        water.setCategory(new Category(2, "Vann", null, false));
-        water.setAmount(10); // 10L
-        water.setUnit(new Unit("l"));
-
-        Calendar cal = Calendar.getInstance();
-        cal.add(Calendar.DAY_OF_YEAR, 10);
-        Date futureDate = cal.getTime();
-
-        food.setExpirationDate(futureDate);
-        water.setExpirationDate(futureDate);
-
-        household.setInventory(Arrays.asList(food, water));
-
-        PreparednessStatus status = preparednessService.calculatePreparednessStatus(household);
-
-        assertTrue(status.getDaysOfFood() >= 3 && status.getDaysOfFood() < 7);
-        assertTrue(status.getDaysOfWater() >= 3 && status.getDaysOfWater() < 7);
-    }
-
-    @Test
-    @DisplayName("Should calculate 7+ days supply")
-    void testSevenDaysOrMoreSupply() {
-        household.setMembers(Collections.singletonList(new HouseholdMembers()));
-
-        Item food = new Item();
-        food.setCategory(new Category(1, "Mat", 500, false));
-        food.setAmount(30); // 15000 kcal
-        food.setUnit(new Unit("stk"));
-
-        Item water = new Item();
-        water.setCategory(new Category(2, "Vann", null, false));
-        water.setAmount(25); // 25L
-        water.setUnit(new Unit("l"));
-
-        Calendar cal = Calendar.getInstance();
-        cal.add(Calendar.DAY_OF_YEAR, 10);
-        Date futureDate = cal.getTime();
-
-        food.setExpirationDate(futureDate);
-        water.setExpirationDate(futureDate);
-
-        household.setInventory(Arrays.asList(food, water));
-
-        PreparednessStatus status = preparednessService.calculatePreparednessStatus(household);
-
-        assertTrue(status.getDaysOfFood() >= 7);
-        assertTrue(status.getDaysOfWater() >= 7);
-    }
-
-    @Test
-    @DisplayName("Should return status for valid household ID")
-    void testGetPreparednessStatusByIdSuccess() {
+    @DisplayName("Should return preparedness status for all user's households")
+    void testGetPreparednessStatusByUserIdSuccess() {
+        // Arrange
+        User user = new User();
         Household household = new Household();
         household.setMembers(Collections.singletonList(new HouseholdMembers()));
         household.setInventory(Collections.emptyList());
 
-        when(householdRepo.findById(1)).thenReturn(java.util.Optional.of(household));
+        HouseholdMembers membership = new HouseholdMembers();
+        membership.setHousehold(household);
+        user.setHouseholdMemberships(List.of(membership));
 
-        PreparednessStatus status = preparednessService.getPreparednessStatusByHouseholdId(1);
+        when(userRepo.findById(1)).thenReturn(java.util.Optional.of(user));
 
-        assertEquals(0, status.getDaysOfFood(), 0.01);
-        assertEquals(0, status.getDaysOfWater(), 0.01);
-        verify(householdRepo).findById(1);
+        // Act
+        List<PreparednessStatus> result = preparednessService.getPreparednessStatusByUserId(1);
+
+        // Assert
+        assertEquals(1, result.size());
+        assertEquals(0, result.get(0).getDaysOfFood(), 0.01);
+        assertEquals(0, result.get(0).getDaysOfWater(), 0.01);
+        verify(userRepo).findById(1);
     }
 
     @Test
-    @DisplayName("Should throw exception when household not found")
-    void testGetPreparednessStatusByIdNotFound() {
-        when(householdRepo.findById(99)).thenReturn(java.util.Optional.empty());
+    @DisplayName("Should throw exception when user not found")
+    void testUserNotFound() {
+        when(userRepo.findById(99)).thenReturn(java.util.Optional.empty());
 
         assertThrows(NoSuchElementException.class, () ->
-                preparednessService.getPreparednessStatusByHouseholdId(99)
+                preparednessService.getPreparednessStatusByUserId(99)
         );
 
-        verify(householdRepo).findById(99);
+        verify(userRepo).findById(99);
     }
+
+    @Test
+    @DisplayName("Should throw exception when user has no households")
+    void testUserWithNoHouseholds() {
+        User user = new User();
+        user.setHouseholdMemberships(Collections.emptyList());
+
+        when(userRepo.findById(42)).thenReturn(java.util.Optional.of(user));
+
+        assertThrows(NoSuchElementException.class, () ->
+                preparednessService.getPreparednessStatusByUserId(42)
+        );
+
+        verify(userRepo).findById(42);
+    }
+
+    @Test
+    @DisplayName("Should return 0 days when household has no members")
+    void testNoMembersReturnsZeroDays() {
+        Household emptyHousehold = new Household();
+        emptyHousehold.setMembers(Collections.emptyList());
+        emptyHousehold.setInventory(Collections.emptyList());
+
+        PreparednessStatus status = preparednessService.calculatePreparednessStatus(emptyHousehold);
+
+        assertEquals(0, status.getDaysOfFood());
+        assertEquals(0, status.getDaysOfWater());
+    }
+
+    @Test
+    @DisplayName("Should correctly calculate food and water with mixed inventory")
+    void testMixedInventoryCalculation() {
+        Household household = new Household();
+
+        // 1 medlem
+        household.setMembers(List.of(new HouseholdMembers()));
+
+        Calendar cal = Calendar.getInstance();
+
+        // Utgått vann (skal ignoreres)
+        Item expiredWater = new Item();
+        expiredWater.setAmount(10);
+        expiredWater.setUnit(new Unit("L"));
+        expiredWater.setCategory(new Category(1, "Water", null, false));
+        cal.setTime(new Date());
+        cal.add(Calendar.DAY_OF_YEAR, -1);
+        expiredWater.setExpirationDate(cal.getTime());
+
+        // Mat uten kcalPerUnit (skal ikke regnes som mat)
+        Item invalidFood = new Item();
+        invalidFood.setAmount(5);
+        invalidFood.setUnit(new Unit("Stk"));
+        invalidFood.setCategory(new Category(2, "Snacks", null, false));
+        cal.setTime(new Date());
+        cal.add(Calendar.DAY_OF_YEAR, 10);
+        invalidFood.setExpirationDate(cal.getTime());
+
+        // Gyldig vann
+        Item validWater = new Item();
+        validWater.setAmount(6); // 6L
+        validWater.setUnit(new Unit("L"));
+        validWater.setCategory(new Category(3, "Vann", null, false));
+        validWater.setExpirationDate(cal.getTime());
+
+        // Gyldig mat
+        Item validFood = new Item();
+        validFood.setAmount(4); // 4 * 500 = 2000 kcal = 1 dag
+        validFood.setUnit(new Unit("Stk"));
+        validFood.setCategory(new Category(4, "Mat", 500, false));
+        validFood.setExpirationDate(cal.getTime());
+
+        household.setInventory(List.of(expiredWater, invalidFood, validWater, validFood));
+
+        PreparednessStatus status = preparednessService.calculatePreparednessStatus(household);
+
+        assertEquals(1, status.getDaysOfFood(), 0.01);
+        assertEquals(2, status.getDaysOfWater(), 0.01); // 6L / (1*3)
+    }
+
+
 }
 
