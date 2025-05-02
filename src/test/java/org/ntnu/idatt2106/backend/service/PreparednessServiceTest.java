@@ -4,6 +4,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.ntnu.idatt2106.backend.dto.household.PreparednessStatus;
 import org.ntnu.idatt2106.backend.model.Category;
@@ -11,18 +12,21 @@ import org.ntnu.idatt2106.backend.model.Household;
 import org.ntnu.idatt2106.backend.model.HouseholdMembers;
 import org.ntnu.idatt2106.backend.model.Item;
 import org.ntnu.idatt2106.backend.model.Unit;
+import org.ntnu.idatt2106.backend.repo.HouseholdRepo;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.Calendar;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class PreparednessServiceTest {
 
     @InjectMocks
     private PreparednessService preparednessService;
+
+    @Mock
+    private HouseholdRepo householdRepo;
 
     private Household household;
 
@@ -146,6 +150,34 @@ class PreparednessServiceTest {
 
         assertTrue(status.getDaysOfFood() >= 7);
         assertTrue(status.getDaysOfWater() >= 7);
+    }
+
+    @Test
+    @DisplayName("Should return status for valid household ID")
+    void testGetPreparednessStatusByIdSuccess() {
+        Household household = new Household();
+        household.setMembers(Collections.singletonList(new HouseholdMembers()));
+        household.setInventory(Collections.emptyList());
+
+        when(householdRepo.findById(1)).thenReturn(java.util.Optional.of(household));
+
+        PreparednessStatus status = preparednessService.getPreparednessStatusByHouseholdId(1);
+
+        assertEquals(0, status.getDaysOfFood(), 0.01);
+        assertEquals(0, status.getDaysOfWater(), 0.01);
+        verify(householdRepo).findById(1);
+    }
+
+    @Test
+    @DisplayName("Should throw exception when household not found")
+    void testGetPreparednessStatusByIdNotFound() {
+        when(householdRepo.findById(99)).thenReturn(java.util.Optional.empty());
+
+        assertThrows(NoSuchElementException.class, () ->
+                preparednessService.getPreparednessStatusByHouseholdId(99)
+        );
+
+        verify(householdRepo).findById(99);
     }
 }
 

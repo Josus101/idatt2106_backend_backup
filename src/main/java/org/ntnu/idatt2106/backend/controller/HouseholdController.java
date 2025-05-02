@@ -35,6 +35,9 @@ public class HouseholdController {
     @Autowired
     private PreparednessService preparednessService;
 
+    @Autowired
+    private EssentialItemService essentialItemService;
+
     /**
      * Endpoint for retrieving the number of days the household has food and water for.
      *
@@ -85,9 +88,6 @@ public class HouseholdController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: Could not fetch preparedness status");
         }
     }
-
-    @Autowired
-    private EssentialItemService essentialItemService;
 
     /**
      * Endpoint for retrieving the status of essential items in a household.
