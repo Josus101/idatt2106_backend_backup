@@ -69,7 +69,7 @@ public class HouseholdController {
                 description = "Internal server error",
                 content = @Content(
                     mediaType = "application/json",
-                    schema =  @Schema(example = "Error: Could not fetch preparedness status"))
+                    schema =  @Schema(example = "Unexpected error: <error message>"))
             )
     })
     public ResponseEntity<?> getPreparednessStatus(
@@ -83,9 +83,9 @@ public class HouseholdController {
             PreparednessStatus status = preparednessService.getPreparednessStatusByHouseholdId(id);
             return ResponseEntity.ok(status);
         } catch (NoSuchElementException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: Household not found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: " + e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: Could not fetch preparedness status");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unexpected error: " + e.getMessage());
         }
     }
 
@@ -109,12 +109,12 @@ public class HouseholdController {
             @ApiResponse(
                     responseCode = "404",
                     description = "Household not found",
-                    content = @Content(schema = @Schema(example = "Household not found"))
+                    content = @Content(schema = @Schema(example = "Error: Household not found"))
             ),
             @ApiResponse(
                     responseCode = "500",
                     description = "Internal server error",
-                    content = @Content(schema = @Schema(example = "Error message"))
+                    content = @Content(schema = @Schema(example = "Unexpected error: <error message>"))
             )
     })
     public ResponseEntity<?> getEssentialItemsStatus(@PathVariable int id) {
@@ -122,9 +122,9 @@ public class HouseholdController {
             var items = essentialItemService.getEssentialItemStatus(id);
             return ResponseEntity.ok(items);
         } catch (NoSuchElementException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Household not found: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: " + e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to fetch essential items: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unexpected error: " + e.getMessage());
         }
     }
 }

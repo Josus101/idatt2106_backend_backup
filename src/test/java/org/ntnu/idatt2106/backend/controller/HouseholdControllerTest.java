@@ -72,7 +72,7 @@ class HouseholdControllerTest {
         ResponseEntity<?> response = householdController.getPreparednessStatus(householdId);
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-        assertEquals("Error: Could not fetch preparedness status", response.getBody());
+        assertEquals("Unexpected error: Unexpected error", response.getBody());
     }
 
     @Test
@@ -103,7 +103,7 @@ class HouseholdControllerTest {
         ResponseEntity<?> response = householdController.getEssentialItemsStatus(householdId);
 
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        assertEquals("Household not found: Household not found", response.getBody());
+        assertEquals("Error: Household not found", response.getBody());
     }
 
     @Test
@@ -117,6 +117,6 @@ class HouseholdControllerTest {
         ResponseEntity<?> response = householdController.getEssentialItemsStatus(householdId);
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-        assertEquals("Failed to fetch essential items: DB failure", response.getBody());
+        assertEquals("Unexpected error: DB failure", response.getBody());
     }
 }
