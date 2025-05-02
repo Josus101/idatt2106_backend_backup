@@ -45,7 +45,7 @@ public class User {
   @Column()
   private boolean verified;
 
-  @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+  @OneToMany(mappedBy = "user", orphanRemoval = true)
   private List<HouseholdMembers> householdMemberships = new ArrayList<>();
 
 

@@ -31,7 +31,7 @@ public class Household {
   @Column
   private double longitude;
 
-  @OneToMany(mappedBy = "household", cascade = CascadeType.ALL, orphanRemoval = true)
+  @OneToMany(mappedBy = "household", orphanRemoval = true)
   private List<HouseholdMembers> members = new ArrayList<>();
 
   @ManyToMany
