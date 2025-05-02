@@ -42,6 +42,9 @@ public class HouseholdController {
     private HouseholdService householdService;
 
     @Autowired
+    private HouseholdRepo householdRepo;
+
+    @Autowired
     private PreparednessService preparednessService;
 
     @Autowired
@@ -49,6 +52,7 @@ public class HouseholdController {
 
     @Autowired
     private JWT_token jwtTokenService;
+
 
 
     /**
