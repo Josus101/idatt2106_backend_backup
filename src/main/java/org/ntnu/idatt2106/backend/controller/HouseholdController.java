@@ -101,7 +101,7 @@ public class HouseholdController {
      *
      * @param household The household object to be created.
      */
-    @PostMapping
+    @PostMapping("/create")
     @Operation(
             summary = "Create a new household",
             description = "Creates a new household with the given details"
