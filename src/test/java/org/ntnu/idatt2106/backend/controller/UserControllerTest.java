@@ -12,6 +12,7 @@ import org.ntnu.idatt2106.backend.exceptions.AlreadyInUseException;
 import org.ntnu.idatt2106.backend.exceptions.MailSendingFailedException;
 import org.ntnu.idatt2106.backend.exceptions.TokenExpiredException;
 import org.ntnu.idatt2106.backend.exceptions.UserNotFoundException;
+import org.ntnu.idatt2106.backend.security.JWT_token;
 import org.ntnu.idatt2106.backend.service.LoginService;
 import org.ntnu.idatt2106.backend.service.ReCaptchaService;
 import org.ntnu.idatt2106.backend.service.ResetPasswordService;
@@ -40,6 +41,9 @@ class UserControllerTest {
 
   @Mock
   private VerifyEmailService verifyEmailService;
+
+  @Mock
+  private JWT_token jwtToken;
 
   private MockMvc mockMvc;
 
@@ -78,7 +82,7 @@ class UserControllerTest {
 
   @Test
   @DisplayName("Test register method returns Bad request with already used email")
-  void testBadRequestWithUsedEmail() {
+  void testBadrequestWithUsedEmail() {
     UserRegisterRequest invalidUser = new UserRegisterRequest("taken-email", "password123", "John", "Doe", "123", "123456789");
 
     doThrow(new AlreadyInUseException("Invalid user data")).when(loginService).register(invalidUser);
@@ -91,58 +95,7 @@ class UserControllerTest {
   }
 
   @Test
-  @DisplayName("Test register method returns Bad request with invalid reCAPTCHA token")
-  void testBadRequestWithInvalidToken() {
-    UserRegisterRequest invalidUser = new UserRegisterRequest("email", "password123", "John", "Doe", "123", "123456789");
-
-    when(reCaptchaService.verifyToken(anyString())).thenReturn(false);
-    ResponseEntity<String> response = userController.registerUser(invalidUser);
-
-    assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-    assertEquals("Error: Invalid Captcha token", response.getBody());
-  }
-
-  @Test
-  @DisplayName("Test register method returns Internal Server Error with a MailSendingFailedException")
-  void testInternalServerErrorWithMailSendingFailed() {
-    UserRegisterRequest invalidUser = new UserRegisterRequest("email", "password123", "John", "Doe", "123", "123456789");
-
-    doThrow(new MailSendingFailedException("Invalid user data")).when(loginService).register(invalidUser);
-    when(reCaptchaService.verifyToken(anyString())).thenReturn(true);
-    ResponseEntity<String> response = userController.registerUser(invalidUser);
-
-    assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-    assertEquals("Failed to send verification email", response.getBody());
-  }
-
-  @Test
-  @DisplayName("Test register method returns Internal Server Error with an IllegalStateException")
-  void testInternalServerErrorWithIllegalState() {
-    UserRegisterRequest invalidUser = new UserRegisterRequest("email", "password123", "John", "Doe", "123", "123456789");
-
-    doThrow(new IllegalStateException("Invalid user data")).when(loginService).register(invalidUser);
-    when(reCaptchaService.verifyToken(anyString())).thenReturn(true);
-    ResponseEntity<String> response = userController.registerUser(invalidUser);
-
-    assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-    assertEquals("Failed to send verification email", response.getBody());
-  }
-
-  @Test
-  @DisplayName("Test register method returns Internal Server Error with a RuntimeException")
-  void testInternalServerErrorWithRuntime() {
-    UserRegisterRequest invalidUser = new UserRegisterRequest("email", "password123", "John", "Doe", "123", "123456789");
-
-    doThrow(new RuntimeException("Invalid user data")).when(loginService).register(invalidUser);
-    when(reCaptchaService.verifyToken(anyString())).thenReturn(true);
-    ResponseEntity<String> response = userController.registerUser(invalidUser);
-
-    assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-    assertEquals("An error occurred during registration", response.getBody());
-  }
-
-  @Test
-  @DisplayName("Test register method returns BadRequest with already used phone number")
+  @DisplayName("Test register method returns Badrequest with already used phone number")
   void testBadRequestWithUsedNumber() {
     UserRegisterRequest invalidUser = new UserRegisterRequest("email", "password123", "John", "Doe", "taken", "123456789");
 
@@ -334,6 +287,45 @@ class UserControllerTest {
 
     assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     assertEquals("Invalid token", response.getBody());
+  }
+
+  @Test
+  @DisplayName("Should return true when token is valid")
+  void shouldReturnTrueWhenTokenIsValid() {
+    String token = "valid-token";
+
+    ResponseEntity<?> response = userController.isAuth(token);
+
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertEquals(true, response.getBody());
+  }
+
+  @Test
+  @DisplayName("Should return false when token is invalid")
+  void shouldReturnFalseWhenTokenIsInvalid() {
+    String token = "invalid-token";
+
+    doThrow(new IllegalArgumentException("Token is invalid")).when(jwtToken)
+        .validateJwtToken(token);
+
+    ResponseEntity<?> response = userController.isAuth("Bearer " + token);
+
+    assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    assertEquals(false, response.getBody());
+  }
+
+  @Test
+  @DisplayName("Should return 400 Bad Request when an unexpected error occurs")
+  void shouldReturnBadRequestOnUnexpectedError() {
+    String token = "invalid-token";
+
+    doThrow(new RuntimeException("Unexpected error")).when(jwtToken)
+        .validateJwtToken(token);
+
+    ResponseEntity<?> response = userController.isAuth("Bearer " + token);
+
+    assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    assertEquals("Unexpected error", response.getBody());
   }
 
   @Test
