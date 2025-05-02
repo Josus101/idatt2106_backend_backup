@@ -409,7 +409,7 @@ class HouseholdControllerTest {
         when(jwtTokenService.getUserByToken("")).thenReturn(null);
         ResponseEntity<?> response = householdController.getMeOutOfThisHousehold("", 1);
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-        assertEquals("Error: User not found", response.getBody());
+        assertEquals("Unexpected error: User not found", response.getBody());
     }
 
     @Test
@@ -458,7 +458,7 @@ class HouseholdControllerTest {
         ResponseEntity<?> response = householdController.getMyHouses("Bearer valid.token");
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-        assertEquals("Error: Could not retrieve households", response.getBody());
+        assertEquals("Unexpected error: Could not retrieve households", response.getBody());
     }
 
 
