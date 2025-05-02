@@ -44,7 +44,8 @@ public class NewsController {
    */
   @GetMapping("")
   @Operation(
-      summary = "Get all news"
+      summary = "Get all news",
+      description = "Returns a list containing all the news from the database, groups them by case ID, sort by date, and returns the most recent news from each case."
   )
   @ApiResponses(value = {
       @ApiResponse(
@@ -94,7 +95,8 @@ public class NewsController {
    */
   @GetMapping("/retrieve")
   @Operation(
-      summary = "Retrieve news from API feed"
+      summary = "Retrieve news from API feed",
+      description = "Retrieves news from the API feed and saves it to the database. This is a one-time operation and should be used with caution."
   )
   @ApiResponses(value = {
       @ApiResponse(
@@ -129,9 +131,10 @@ public class NewsController {
    * @param district the district to get news from
    * @return List of NewsGetResponse
    */
-  @GetMapping("/district/{district}")
+  @GetMapping("/{district}")
   @Operation(
-          summary = "Get news by district"
+          summary = "Get news by district",
+          description = "Returns a list containing all the news from the database with the given district, groups them by case ID, sort by date, and returns the most recent news from each case."
   )
   @ApiResponses(value = {
       @ApiResponse(
@@ -203,7 +206,8 @@ public class NewsController {
    */
   @GetMapping("/{caseId}")
   @Operation(
-      summary = "Get news by case ID"
+      summary = "Get news by case ID",
+      description = "Returns a list containing all the news from the database with the given case ID"
   )
   @ApiResponses(value = {
       @ApiResponse(
@@ -258,7 +262,8 @@ public class NewsController {
    */
   @PostMapping("/add")
   @Operation(
-      summary = "Add news to the database"
+      summary = "Add news to the database",
+      description = "Adds news to the database. Only admin users can add news."
   )
   @ApiResponses(value = {
       @ApiResponse(
