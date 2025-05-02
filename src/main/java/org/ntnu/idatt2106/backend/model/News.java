@@ -51,8 +51,9 @@ public class News {
    * @param latitude of the news
    * @param date of the news
    */
-  public News(String title, String content, double latitude, double longitude, String district, Date date) {
+  public News(String title, String caseId, String content, double latitude, double longitude, String district, Date date) {
     this.title = title;
+    this.caseId = caseId;
     this.content = content;
     this.latitude = latitude;
     this.longitude = longitude;

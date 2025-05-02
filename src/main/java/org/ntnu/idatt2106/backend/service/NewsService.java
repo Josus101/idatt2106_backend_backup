@@ -144,6 +144,7 @@ public class NewsService {
     News news = new News(
             newsCreateRequest.getTitle(),
             newsCreateRequest.getContent(),
+            newsCreateRequest.getCaseId(),
             newsCreateRequest.getLatitude(),
             newsCreateRequest.getLongitude(),
             newsCreateRequest.getDistrict(),
