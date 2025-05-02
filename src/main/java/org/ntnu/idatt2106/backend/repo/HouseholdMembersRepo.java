@@ -1,5 +1,6 @@
 package org.ntnu.idatt2106.backend.repo;
 
+import java.util.List;
 import java.util.Optional;
 import org.ntnu.idatt2106.backend.model.Household;
 import org.ntnu.idatt2106.backend.model.HouseholdMembers;
@@ -37,4 +38,12 @@ public interface HouseholdMembersRepo extends JpaRepository<HouseholdMembers, In
      * @return true if the HouseholdMember exists, false otherwise.
      */
     boolean existsByUserAndHousehold(User user, Household household);
+
+    /**
+     * Finds a HouseholdMember by its user.
+     *
+     * @param user The user.
+     * @return An Optional containing the HouseholdMember if found, or empty if not.
+     */
+  List<HouseholdMembers> findByUser(User user);
 }

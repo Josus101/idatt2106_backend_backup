@@ -3,6 +3,7 @@ package org.ntnu.idatt2106.backend.service;
 import org.junit.jupiter.api.*;
 import org.mockito.*;
 import org.ntnu.idatt2106.backend.dto.household.HouseholdCreate;
+import org.ntnu.idatt2106.backend.dto.household.HouseholdRequest;
 import org.ntnu.idatt2106.backend.exceptions.UnauthorizedException;
 import org.ntnu.idatt2106.backend.model.*;
 import org.ntnu.idatt2106.backend.repo.*;
@@ -589,6 +590,33 @@ class HouseholdServiceTest {
 
     verify(householdMembersRepo).delete(targetMember);
     verify(householdRepo).save(testHousehold);
+  }
+
+  @Test
+  @DisplayName("getHouseholdsByUser should return households for user")
+  void testGetHouseholdsByUser() {
+    testUser.getHouseholdMemberships().add(new HouseholdMembers(testUser, testHousehold, false));
+    List<HouseholdRequest> households = householdService.getHouseholdsByUser(testUser);
+    assertEquals(1, households.size());
+    assertEquals(testHousehold.getId(), households.get(0).getId());
+    assertEquals(testHousehold.getName(), households.get(0).getName());
+  }
+
+  @Test
+  @DisplayName("getHouseholdsByUser should return empty list for user with no households")
+  void testGetHouseholdsByUserNoHouseholds() {
+    when(householdMembersRepo.findByUser(testUser)).thenReturn(new ArrayList<>());
+
+    List<HouseholdRequest> households = householdService.getHouseholdsByUser(testUser);
+    assertTrue(households.isEmpty());
+  }
+
+  @Test
+  @DisplayName("getHouseholdsByUser should throw illegalargument for null user")
+  void testGetHouseholdsByUserNullUser() {
+    assertThrows(IllegalArgumentException.class, () -> {
+      householdService.getHouseholdsByUser(null);
+    });
   }
 
 }

@@ -1,15 +1,19 @@
 package org.ntnu.idatt2106.backend.service;
 
 import java.security.SecureRandom;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import org.ntnu.idatt2106.backend.dto.household.HouseholdCreate;
+import org.ntnu.idatt2106.backend.dto.household.HouseholdRequest;
 import org.ntnu.idatt2106.backend.exceptions.JoinCodeException;
 import org.ntnu.idatt2106.backend.exceptions.UnauthorizedException;
 import org.ntnu.idatt2106.backend.model.Household;
 import org.ntnu.idatt2106.backend.model.HouseholdJoinCode;
 import org.ntnu.idatt2106.backend.model.HouseholdMembers;
+import org.ntnu.idatt2106.backend.model.Item;
 import org.ntnu.idatt2106.backend.model.User;
 import org.ntnu.idatt2106.backend.repo.HouseholdJoinCodeRepo;
 import org.ntnu.idatt2106.backend.repo.HouseholdMembersRepo;
@@ -336,5 +340,41 @@ public class HouseholdService {
       addUserToHousehold(household, user);
     }
     return household;
+  }
+
+
+  /**
+   * Gets households by user.
+   *
+   * @param user The user whose households are to be retrieved.
+   * @return The households that the user is a member of.
+   */
+  public List<HouseholdRequest> getHouseholdsByUser(User user) {
+    if (user == null) {
+      throw new IllegalArgumentException("User cannot be null");
+    }
+    List<HouseholdMembers> householdMemberships = user.getHouseholdMemberships();
+
+    List<HouseholdRequest> households = new ArrayList<>();
+    for (HouseholdMembers householdMember : householdMemberships) {
+      System.out.println("Household member: " + householdMember);
+      Household household = householdMember.getHousehold();
+
+      List<String> members = new ArrayList<>();
+      List<String> inventory = new ArrayList<>();
+      if (household.getMembers() != null) {
+        for (HouseholdMembers member : household.getMembers()) {
+          members.add(member.getUser().toString());
+        }
+      }
+      if (household.getInventory() != null) {
+        for (Item item : household.getInventory()) {
+          inventory.add(item.toString());
+        }
+      }
+
+      households.add(new HouseholdRequest(household.getId(), household.getName(), household.getLatitude(), household.getLongitude(), members, inventory));
+    }
+    return households;
   }
 }

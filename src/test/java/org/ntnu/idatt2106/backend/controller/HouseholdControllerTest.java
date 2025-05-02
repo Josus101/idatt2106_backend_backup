@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.*;
 import org.ntnu.idatt2106.backend.dto.household.HouseholdCreate;
 import org.ntnu.idatt2106.backend.dto.household.EssentialItemStatusDTO;
+import org.ntnu.idatt2106.backend.dto.household.HouseholdRequest;
 import org.ntnu.idatt2106.backend.dto.household.PreparednessStatus;
 import org.ntnu.idatt2106.backend.exceptions.UnauthorizedException;
 import org.ntnu.idatt2106.backend.model.Household;
@@ -409,6 +410,55 @@ class HouseholdControllerTest {
         ResponseEntity<?> response = householdController.getMeOutOfThisHousehold("", 1);
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
         assertEquals("Could not leave household", response.getBody());
+    }
+
+    @Test
+    @DisplayName("Should return households when token is valid and user has households")
+    void testGetMyHouseholdsSuccess() {
+        User user = new User();
+        List<HouseholdRequest> households = List.of(new HouseholdRequest());
+
+        when(jwtTokenService.getUserByToken("valid.token")).thenReturn(user);
+        when(householdService.getHouseholdsByUser(user)).thenReturn(households);
+
+        ResponseEntity<?> response = householdController.getMyHouses("Bearer valid.token");
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(households, response.getBody());
+    }
+
+    @Test
+    @DisplayName("Should return 401 Unauthorized when authorization header is missing or invalid")
+    void testGetMyHouseholdsUnauthorized() {
+        ResponseEntity<?> response = householdController.getMyHouses("InvalidHeader");
+
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+        assertEquals("Unauthorized", response.getBody());
+    }
+
+    @Test
+    @DisplayName("Should return 404 when no households are found for user")
+    void testGetMyHouseholdsNotFound() {
+        User user = new User();
+
+        when(jwtTokenService.getUserByToken("valid.token")).thenReturn(user);
+        when(householdService.getHouseholdsByUser(user)).thenThrow(new NoSuchElementException("Not found"));
+
+        ResponseEntity<?> response = householdController.getMyHouses("Bearer valid.token");
+
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertEquals("No households found for this user", response.getBody());
+    }
+
+    @Test
+    @DisplayName("Should return 500 if unexpected exception occurs")
+    void testGetMyHouseholdsInternalError() {
+        when(jwtTokenService.getUserByToken("valid.token")).thenThrow(new RuntimeException("Unexpected error"));
+
+        ResponseEntity<?> response = householdController.getMyHouses("Bearer valid.token");
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertEquals("Could not retrieve households", response.getBody());
     }
 
 

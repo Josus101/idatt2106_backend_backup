@@ -441,4 +441,51 @@ public class HouseholdController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Could not kick user from household");
         }
     }
+
+    /**
+     * Endpoint for finding a users households based on token
+     *
+     * @param authorizationHeader The authorization header containing the JWT token.
+     */
+    @GetMapping("/myHouseholds")
+    @Operation(
+        summary = "Get all households for a user",
+        description = "Returns all households for the user based on the token"
+    )
+    @ApiResponses(value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "Households successfully retrieved"
+        ),
+        @ApiResponse(
+            responseCode = "404",
+            description = "No households found for this user",
+            content = @Content(schema = @Schema(example = "No households found for this user"))
+        )
+    })
+    public ResponseEntity<?> getMyHouses(
+        @Parameter(
+            name = "Authorization",
+            description = "Bearer token in the format Bearer <JWT>",
+            required = true,
+            example = "Bearer eyJhbGciOiJIUzI1N.iIsInR5cCI6IkpXVCJ9..."
+        ) @RequestHeader("Authorization") String authorizationHeader
+    ) {
+        try {
+            if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+                String token = authorizationHeader.substring(7);
+                User user = jwtTokenService.getUserByToken(token);
+                if (user != null) {
+                    return ResponseEntity.ok(householdService.getHouseholdsByUser(user));
+                }
+            }
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized");
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No households found for this user");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Could not retrieve households");
+        }
+    }
+
+
 }
