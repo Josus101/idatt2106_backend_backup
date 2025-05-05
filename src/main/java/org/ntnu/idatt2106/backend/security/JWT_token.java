@@ -31,7 +31,8 @@ public class JWT_token {
   private UserRepo userRepo;
   @Autowired
   private AdminRepo adminRepo;
-  private static final Key key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+  private static final Key userKey = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+  private static final Key adminKey = Keys.secretKeyFor(SignatureAlgorithm.HS256);
   private static final long EXPIRATION_TIME = 120 * 60 * 1000; // 2 hours
 
   /**
@@ -62,7 +63,7 @@ public class JWT_token {
             .setSubject(user.getStringID())
             .setIssuedAt(new Date())
             .setExpiration(expirationDate)
-            .signWith(key)
+            .signWith(userKey)
             .compact();
     return new UserTokenResponse(token, expirationDate.getTime());
   }
@@ -78,7 +79,7 @@ public class JWT_token {
         .setSubject(admin.getStringId())
         .setIssuedAt(new Date())
         .setExpiration(expirationDate)
-        .signWith(key)
+        .signWith(adminKey)
         .compact();
     return new UserTokenResponse(token, expirationDate.getTime());
   }
@@ -96,11 +97,31 @@ public class JWT_token {
             .setSubject(user.getStringID())
             .setIssuedAt(new Date())
             .setExpiration(expirationDate)
-            .signWith(key)
+            .signWith(userKey)
             .compact();
     return new UserTokenResponse(token, expirationDate.getTime());
   }
 
+  /**
+   * Validates the JWT token and checks if it has expired.
+   *
+   * @param token the JWT token to validate
+   * @param admin boolean indicating if the token is for an admin
+   * @throws TokenExpiredException if the token has expired
+   * @throws IllegalArgumentException if the token is invalid or empty
+   */
+  public void validateJwtToken(String token, boolean admin) {
+    try {
+      Key key = admin ? adminKey : userKey;
+      Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
+    } catch (ExpiredJwtException e) {
+      throw new TokenExpiredException("Token has expired");
+    } catch (UnsupportedJwtException | MalformedJwtException e) {
+      throw new IllegalArgumentException("Token is invalid");
+    } catch (IllegalArgumentException e) {
+      throw new IllegalArgumentException("Token is empty");
+    }
+  }
 
   /**
    * Validates the JWT token and checks if it has expired.
@@ -111,7 +132,7 @@ public class JWT_token {
    */
   public void validateJwtToken(String token) {
     try {
-      Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
+      validateJwtToken(token, false);
     } catch (ExpiredJwtException e) {
       throw new TokenExpiredException("Token has expired");
     } catch (UnsupportedJwtException | MalformedJwtException e) {
@@ -120,14 +141,17 @@ public class JWT_token {
       throw new IllegalArgumentException("Token is empty");
     }
   }
+
   /**
    * Extracts the user ID from the JWT token.
    *
    * @param token the JWT token
+   * @param admin boolean indicating if the token is for an admin
    * @return the user ID as a string, or null if the token is invalid
    */
-  public String extractIdFromJwt(String token) {
+  public String extractIdFromJwt(String token, boolean admin) {
     try {
+      Key key = admin ? adminKey : userKey;
       Claims claims = Jwts.parserBuilder().setSigningKey(key).build()
           .parseClaimsJws(token)
           .getBody();
@@ -136,6 +160,21 @@ public class JWT_token {
       return null;
     }
   }
+
+  /**
+   * Extracts the user ID from the JWT token.
+   *
+   * @param token the JWT token
+   * @return the user ID as a string, or null if the token is invalid
+   */
+  public String extractIdFromJwt(String token) {
+    try {
+      return extractIdFromJwt(token, false);
+    } catch (Exception e) {
+      return null;
+    }
+  }
+
   /**
    * Retrieves the user associated with the given JWT token.
    *
@@ -143,7 +182,7 @@ public class JWT_token {
    * @return the User object, or null if the token is invalid or user not found
    */
   public User getUserByToken(String token) {
-    String id = extractIdFromJwt(token);
+    String id = extractIdFromJwt(token, false);
     if (id == null) {
       return null;
     }
@@ -157,7 +196,7 @@ public class JWT_token {
    * @return the Admin user object, or null if the token is invalid or user not found
    */
   public Admin getAdminUserByToken(String token) {
-    String id = extractIdFromJwt(token);
+    String id = extractIdFromJwt(token, true);
     if (id == null) {
       return null;
     }

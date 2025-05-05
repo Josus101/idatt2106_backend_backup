@@ -20,6 +20,7 @@ import org.ntnu.idatt2106.backend.repo.UserRepo;
 import java.util.Optional;
 
 public class JWTTokenTest {
+
   @Mock
   JWT_token jwt;
   User user;
@@ -74,23 +75,25 @@ public class JWTTokenTest {
   @DisplayName("Test generate token method generates a token with correct user id")
   void testGenerateTokenUsesCorrectId() {
     UserTokenResponse token = jwt.generateJwtToken(user);
-    String userId = jwt.extractIdFromJwt(token.getToken());
+    String userId = jwt.extractIdFromJwt(token.getToken(), false);
     assertNotNull(userId);
     assertEquals(user.getStringID(), userId);
   }
+
   @Test
   @DisplayName("Token validation throws IllegalArgumentException for malformed token")
   void testValidateMalformedToken() {
     String malformedToken = "this.is.not.a.jwt";
     assertThrows(IllegalArgumentException.class, () -> {
-      jwt.validateJwtToken(malformedToken);
+      jwt.validateJwtToken(malformedToken, false);
     });
   }
+
   @Test
   @DisplayName("Token validation throws IllegalArgumentException for empty token")
   void testValidateEmptyToken() {
     assertThrows(IllegalArgumentException.class, () -> {
-      jwt.validateJwtToken("");
+      jwt.validateJwtToken("", false);
     });
   }
 
@@ -100,7 +103,7 @@ public class JWTTokenTest {
     String expiredToken = jwt.generateJwtTokenWithExpirationTime(user, -1000).getToken();
 
     assertThrows(TokenExpiredException.class, () -> {
-      jwt.validateJwtToken(expiredToken);
+      jwt.validateJwtToken(expiredToken, false);
     });
   }
 
@@ -109,7 +112,7 @@ public class JWTTokenTest {
   void testValidateValidToken() {
     String validToken = jwt.generateJwtToken(user).getToken();
     assertDoesNotThrow(() -> {
-      jwt.validateJwtToken(validToken);
+      jwt.validateJwtToken(validToken, false);
     });
   }
 
@@ -117,7 +120,7 @@ public class JWTTokenTest {
   @DisplayName("extractIdFromJwt returns null for invalid token")
   void testExtractIdFromInvalidToken() {
     String invalidToken = "invalid.token.value";
-    String id = jwt.extractIdFromJwt(invalidToken);
+    String id = jwt.extractIdFromJwt(invalidToken, false);
     assertNull(id);
   }
 
@@ -129,7 +132,7 @@ public class JWTTokenTest {
 
     // Spy to control extractIdFromJwt behavior
     JWT_token spyJwt = spy(jwt);
-    doReturn(String.valueOf(user.getId())).when(spyJwt).extractIdFromJwt(token);
+    doReturn(String.valueOf(user.getId())).when(spyJwt).extractIdFromJwt(token, false);
     when(userRepo.findById(user.getId())).thenReturn(Optional.of(user));
 
     User result = spyJwt.getUserByToken(token);
@@ -143,7 +146,7 @@ public class JWTTokenTest {
     String token = jwt.generateJwtToken(user).getToken();
 
     JWT_token spyJwt = spy(jwt);
-    doReturn(String.valueOf(user.getId())).when(spyJwt).extractIdFromJwt(token);
+    doReturn(String.valueOf(user.getId())).when(spyJwt).extractIdFromJwt(token, false);
     when(userRepo.findById(user.getId())).thenReturn(Optional.empty());
 
     User result = spyJwt.getUserByToken(token);
@@ -154,18 +157,83 @@ public class JWTTokenTest {
   @DisplayName("Should return null when extractIdFromJwt returns null")
   void testGetUserByTokenReturnsNullOnInvalidToken() {
     JWT_token spyJwt = spy(jwt);
-    doReturn(null).when(spyJwt).extractIdFromJwt("invalid.token");
+    doReturn(null).when(spyJwt).extractIdFromJwt("invalid.token", false);
 
     User result = spyJwt.getUserByToken("invalid.token");
     assertNull(result);
   }
+
+  @Test
+  @DisplayName("Token validation throws IllegalArgumentException for malformed token with admin key")
+  void testValidateMalformedTokenAdminKey() {
+    String malformedToken = "this.is.not.a.jwt";
+    assertThrows(IllegalArgumentException.class, () -> {
+      jwt.validateJwtToken(malformedToken, true);
+    });
+  }
+
+  @Test
+  @DisplayName("Token validation throws IllegalArgumentException for empty token with admin key")
+  void testValidateEmptyTokenAdminKey() {
+    assertThrows(IllegalArgumentException.class, () -> {
+      jwt.validateJwtToken("", true);
+    });
+  }
+
+  @Test
+  @DisplayName("extractIdFromJwt returns null for invalid token with admin key")
+  void testExtractIdFromInvalidTokenAdminKey() {
+    String invalidToken = "invalid.token.value";
+    String id = jwt.extractIdFromJwt(invalidToken, true);
+    assertNull(id);
+  }
+
+
+  @Test
+  @DisplayName("Should return user when token is valid and user exists with admin key")
+  void testGetUserByTokenReturnsUserAdminKey() {
+    String token = jwt.generateJwtToken(user).getToken();
+
+    // Spy to control extractIdFromJwt behavior
+    JWT_token spyJwt = spy(jwt);
+    doReturn(String.valueOf(user.getId())).when(spyJwt).extractIdFromJwt(token, true);
+    when(userRepo.findById(user.getId())).thenReturn(Optional.of(user));
+
+    User result = spyJwt.getUserByToken(token);
+    assertNotNull(result);
+    assertEquals(user.getId(), result.getId());
+  }
+
+  @Test
+  @DisplayName("Should return null when token is valid but user not found with admin key")
+  void testGetUserByTokenReturnsNullWhenUserMissingAdminKey() {
+    String token = jwt.generateJwtToken(user).getToken();
+
+    JWT_token spyJwt = spy(jwt);
+    doReturn(String.valueOf(user.getId())).when(spyJwt).extractIdFromJwt(token, true);
+    when(userRepo.findById(user.getId())).thenReturn(Optional.empty());
+
+    User result = spyJwt.getUserByToken(token);
+    assertNull(result);
+  }
+
+  @Test
+  @DisplayName("Should return null when extractIdFromJwt returns null with admin key")
+  void testGetUserByTokenReturnsNullOnInvalidTokenAdminKey() {
+    JWT_token spyJwt = spy(jwt);
+    doReturn(null).when(spyJwt).extractIdFromJwt("invalid.token", true);
+
+    User result = spyJwt.getUserByToken("invalid.token");
+    assertNull(result);
+  }
+
   @Test
   @DisplayName("Should return admin user when token is valid and user exists")
   void testGetAdminUserByTokenReturnsUser() {
     String token = jwt.generateJwtToken(admin).getToken();
 
     JWT_token spyJwt = spy(jwt);
-    doReturn(String.valueOf(admin.getId())).when(spyJwt).extractIdFromJwt(token);
+    doReturn(String.valueOf(admin.getId())).when(spyJwt).extractIdFromJwt(token, true);
     when(adminRepo.findById(admin.getId())).thenReturn(Optional.of(admin));
 
     Admin result = spyJwt.getAdminUserByToken(token);
@@ -179,7 +247,7 @@ public class JWTTokenTest {
     String token = jwt.generateJwtToken(admin).getToken();
 
     JWT_token spyJwt = spy(jwt);
-    doReturn(String.valueOf(admin.getId())).when(spyJwt).extractIdFromJwt(token);
+    doReturn(String.valueOf(admin.getId())).when(spyJwt).extractIdFromJwt(token, true);
     when(adminRepo.findById(admin.getId())).thenReturn(Optional.empty());
 
     Admin result = spyJwt.getAdminUserByToken(token);
@@ -190,9 +258,53 @@ public class JWTTokenTest {
   @DisplayName("Should return null when extractIdFromJwt returns null")
   void testGetAdminUserByTokenReturnsNullOnInvalidToken() {
     JWT_token spyJwt = spy(jwt);
-    doReturn(null).when(spyJwt).extractIdFromJwt("invalid.token");
+    doReturn(null).when(spyJwt).extractIdFromJwt("invalid.token", false);
 
     Admin result = spyJwt.getAdminUserByToken("invalid.token");
     assertNull(result);
   }
+
+  @Test
+  @DisplayName("Should return null when extractIdFromJwt returns null with admin key")
+  void testGetAdminUserByTokenReturnsNullOnInvalidTokenAdminKey() {
+    JWT_token spyJwt = spy(jwt);
+    doReturn(null).when(spyJwt).extractIdFromJwt("invalid.token", true);
+
+    Admin result = spyJwt.getAdminUserByToken("invalid.token");
+    assertNull(result);
+  }
+
+  @Test
+  @DisplayName("Test extractIdFromJwt returns null if extracting admin user with non-admin token")
+  void testExtractIdFromJwtReturnNullForNonAdminToken() {
+    String token = jwt.generateJwtToken(user).getToken();
+    assertNull(jwt.extractIdFromJwt(token, true));
+  }
+
+  @Test
+  @DisplayName("Test extractIdFromJwt returns null if extracting user with admin token")
+  void testExtractIdFromJwtReturnNullForAdminToken() {
+    String token = jwt.generateJwtToken(admin).getToken();
+    assertNull(jwt.extractIdFromJwt(token, false));
+  }
+
+  @Test
+  @DisplayName("Validate token works without boolean")
+  void testValidateTokenWithoutBoolean() {
+    String token = jwt.generateJwtToken(user).getToken();
+    assertDoesNotThrow(() -> {
+      jwt.validateJwtToken(token);
+    });
+  }
+
+  @Test
+  @DisplayName("Extract id token works without boolean")
+  void testExtractIdFromJwtWithBoolean() {
+    String token = jwt.generateJwtToken(user).getToken();
+    String id = jwt.extractIdFromJwt(token);
+    assertNotNull(id);
+    assertEquals(user.getStringID(), id);
+  }
+
+
 }
