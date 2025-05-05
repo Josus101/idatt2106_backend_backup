@@ -210,8 +210,8 @@ public class MapZonesController {
   @PostMapping("/zone/create/")
   public ResponseEntity<?> createZone(@RequestBody EmergencyZoneCreateDTO zone) {
     try {
-      mapZonesService.createZone(zone);
-      return ResponseEntity.status(HttpStatus.CREATED).body("Zone created successfully.");
+      Long zoneId = mapZonesService.createZone(zone);
+      return ResponseEntity.status(HttpStatus.CREATED).body(zoneId);
     } catch (Exception e) {
       return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: " + e.getMessage());
     }

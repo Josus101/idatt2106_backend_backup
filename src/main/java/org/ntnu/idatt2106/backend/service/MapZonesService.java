@@ -4,12 +4,14 @@ import org.ntnu.idatt2106.backend.dto.map.CoordinatesDTO;
 import org.ntnu.idatt2106.backend.dto.map.zones.EmergencyZoneCreateDTO;
 import org.ntnu.idatt2106.backend.dto.map.zones.EmergencyZoneDescDTO;
 import org.ntnu.idatt2106.backend.dto.map.zones.EmergencyZoneFullDTO;
+import org.ntnu.idatt2106.backend.repo.map.MapZoneRepo;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
 public class MapZonesService {
+
 
   public List<EmergencyZoneFullDTO> getAllEmergencyZones() {
     return null;
@@ -27,8 +29,8 @@ public class MapZonesService {
     return null;
   }
 
-  public void createZone(EmergencyZoneCreateDTO emergencyZoneCreateDTO) {
-
+  public Long createZone(EmergencyZoneCreateDTO emergencyZoneCreateDTO) {
+    return null;
   }
 
   public void updateZone(Long zoneId, EmergencyZoneCreateDTO emergencyZoneCreateDTO) {
