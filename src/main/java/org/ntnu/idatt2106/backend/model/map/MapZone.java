@@ -43,7 +43,7 @@ public class MapZone {
 
   @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
   @JoinColumn(name = "centered_coordinate_id", referencedColumnName = "id")
-  private Coordinate centeredCoordinate;
+  private Coordinate coordinatePoint;
 
   @OneToMany(mappedBy = "mapZone", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<CoordinatePolygon> polygons = new ArrayList<>();
@@ -64,13 +64,13 @@ public class MapZone {
    * @param severityLevel of the zone
    *                      * @param centeredCoordinate of the zon
    */
-  public MapZone(String name, String description, String address, Coordinate centeredCoordinate, String type,
+  public MapZone(String name, String description, String address, Coordinate coordinatePoint, String type,
                  int severityLevel) {
     this.name = name;
     this.description = description;
     this.address = address;
     this.type = type;
     this.severityLevel = severityLevel;
-    this.centeredCoordinate = centeredCoordinate;
+    this.coordinatePoint = coordinatePoint;
   }
 }

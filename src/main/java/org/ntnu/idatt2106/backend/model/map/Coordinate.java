@@ -27,11 +27,11 @@ public class Coordinate {
   @Column(nullable = false)
   private double longitude;
 
-  @OneToOne(mappedBy = "point-coordinate", cascade = CascadeType.ALL, orphanRemoval = true)
+  @OneToOne(mappedBy = "coordinatePoint", cascade = CascadeType.ALL, orphanRemoval = true)
   private MapZone mapZonePoint;
 
   @ManyToOne
-  @JoinColumn(name = "ring_id")
+  @JoinColumn(name = "coordinate_ring_id")
   private CoordinateRing ring;
   /**
    * Blank constructor for the Coordinate model

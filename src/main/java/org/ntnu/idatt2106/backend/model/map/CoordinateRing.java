@@ -30,7 +30,7 @@ public class CoordinateRing {
   private List<Coordinate> coordinates = new ArrayList<>();
 
   @ManyToOne
-  @JoinColumn(name = "polygon_id")
+  @JoinColumn(name = "coordinate_polygon_id")
   private CoordinatePolygon polygon;
 
   /**
