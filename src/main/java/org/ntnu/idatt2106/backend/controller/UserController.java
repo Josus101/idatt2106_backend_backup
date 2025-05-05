@@ -6,15 +6,20 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import java.util.Date;
+import org.ntnu.idatt2106.backend.dto.household.HouseholdCreate;
 import org.ntnu.idatt2106.backend.dto.user.PasswordResetRequest;
 import org.ntnu.idatt2106.backend.dto.user.UserLoginRequest;
+import org.ntnu.idatt2106.backend.dto.user.UserPositionUpdate;
 import org.ntnu.idatt2106.backend.dto.user.UserRegisterRequest;
 import org.ntnu.idatt2106.backend.dto.user.UserTokenResponse;
 import org.ntnu.idatt2106.backend.exceptions.AlreadyInUseException;
 import org.ntnu.idatt2106.backend.exceptions.MailSendingFailedException;
 import org.ntnu.idatt2106.backend.exceptions.TokenExpiredException;
 import org.ntnu.idatt2106.backend.exceptions.UserNotFoundException;
+import org.ntnu.idatt2106.backend.model.User;
 import org.ntnu.idatt2106.backend.security.JWT_token;
+import org.ntnu.idatt2106.backend.service.HouseholdService;
 import org.ntnu.idatt2106.backend.service.LoginService;
 import org.ntnu.idatt2106.backend.service.ReCaptchaService;
 import org.ntnu.idatt2106.backend.service.ResetPasswordService;
@@ -46,6 +51,9 @@ public class UserController {
 
   @Autowired
   private VerifyEmailService verifyEmailService;
+
+  @Autowired
+  private HouseholdService householdService;
   
   @Autowired
   private JWT_token jwtToken;
@@ -370,5 +378,192 @@ public class UserController {
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred during email verification");
     }
   }
+
+  /**
+   * Endpoint for updating last known location of a user.
+   * @param positionUpdate the new position of the user
+   * @param authorizationHeader the JWT token for authorization
+   * @return a response entity indicating the result of the operation
+   */
+  @PutMapping("/update-location")
+  @Operation(
+      summary = "Update user location",
+      description = "Updates the last known location of the user"
+  )
+  @ApiResponses(value = {
+      @ApiResponse(
+          responseCode = "200",
+          description = "Location updated successfully",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(example = "Location updated successfully"))
+      ),
+      @ApiResponse(
+          responseCode = "400",
+          description = "Invalid location data",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(example = "Invalid location data"))
+      ),
+      @ApiResponse(
+          responseCode = "401",
+          description = "Unauthorized - Invalid token",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(example = "Unauthorized - Invalid token"))
+      ),
+      @ApiResponse(
+          responseCode = "500",
+          description = "Internal server error",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(example = "An unexpected error occurred during location update"))
+      )
+  })
+  public ResponseEntity<String> updateLocation(
+      @Parameter(description = "Position of the user", required = true,
+          schema = @Schema(implementation = UserPositionUpdate.class))
+      @RequestParam UserPositionUpdate positionUpdate,
+      @Parameter(description = "Authorization header with JWT token", example = "Bearer <token>")
+      @RequestHeader("Authorization") String authorizationHeader
+  ) {
+    try {
+      String token = authorizationHeader.substring(7);
+      User user = jwtToken.getUserByToken(token);
+      if (user != null) {
+        user.setPosition(positionUpdate);
+        return ResponseEntity.ok("Location updated successfully");
+      } else {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized - Invalid token");
+      }
+    } catch (IllegalArgumentException e) {
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid location data");
+    } catch (Exception e) {
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred during location update");
+    }
+  }
+
+  /**
+   * Endpoint for getting the last known location of all users in a household.
+   * @param authorizationHeader the JWT token for authorization
+   * @param householdId the ID of the household
+   * @return a response entity containing the user's last known location
+   */
+  @GetMapping("/locations/{householdId}")
+  @Operation(
+      summary = "Get user location",
+      description = "Gets the last known location of all users in a household"
+  )
+  @ApiResponses(value = {
+      @ApiResponse(
+          responseCode = "200",
+          description = "Location retrieved successfully",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(implementation = UserPositionUpdate.class))
+      ),
+      @ApiResponse(
+          responseCode = "400",
+          description = "Invalid household ID",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(example = "Invalid household ID"))
+      ),
+      @ApiResponse(
+          responseCode = "401",
+          description = "Unauthorized - Invalid token",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(example = "Unauthorized - Invalid token"))
+      ),
+      @ApiResponse(
+          responseCode = "500",
+          description = "Internal server error",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(example = "An unexpected error occurred during location retrieval"))
+      )
+  })
+  public ResponseEntity<?> getPositionsFromHousehold(
+      @Parameter(description = "Id of the household", example = "1")
+      @PathVariable int householdId,
+      @Parameter(description = "Authorization header with JWT token", example = "Bearer <token>")
+      @RequestHeader("Authorization") String authorizationHeader) {
+    try {
+      String token = authorizationHeader.substring(7);
+      User user = jwtToken.getUserByToken(token);
+      if (user != null) {
+        return ResponseEntity.ok(householdService.getUserPositions(householdId, user));
+      } else {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized - Invalid token");
+      }
+    } catch (IllegalArgumentException e) {
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid household ID");
+    } catch (Exception e) {
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred during location retrieval");
+    }
+  }
+
+
+  /**
+   * Endpoint for getting the last known location of all users in all household the requesting user
+   * is a member of.
+   * @param authorizationHeader the JWT token for authorization
+   * @return a response entity containing the user's last known location
+   */
+  @GetMapping("/locations")
+  @Operation(
+      summary = "Get user location",
+      description = "Gets the last known location of all users the requesting user has access to"
+  )
+  @ApiResponses(value = {
+      @ApiResponse(
+          responseCode = "200",
+          description = "Location retrieved successfully",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(implementation = UserPositionUpdate.class))
+      ),
+      @ApiResponse(
+          responseCode = "400",
+          description = "Invalid household ID",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(example = "Invalid household ID"))
+      ),
+      @ApiResponse(
+          responseCode = "401",
+          description = "Unauthorized - Invalid token",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(example = "Unauthorized - Invalid token"))
+      ),
+      @ApiResponse(
+          responseCode = "500",
+          description = "Internal server error",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(example = "An unexpected error occurred during location retrieval"))
+      )
+  })
+  public ResponseEntity<?> getPositionsFromHousehold(
+      @Parameter(description = "Authorization header with JWT token", example = "Bearer <token>")
+      @RequestHeader("Authorization") String authorizationHeader) {
+    try {
+      String token = authorizationHeader.substring(7);
+      User user = jwtToken.getUserByToken(token);
+      if (user != null) {
+        return ResponseEntity.ok(householdService.getUserPositions(user));
+      } else {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized - Invalid token");
+      }
+    } catch (IllegalArgumentException e) {
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid household ID");
+    } catch (Exception e) {
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred during location retrieval");
+    }
+  }
+
+
 }
 

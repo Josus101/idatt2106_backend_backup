@@ -52,6 +52,8 @@ public class InventoryController {
   @Autowired
   JWT_token jwtToken;
 
+
+  // Why is there non endpoint method in this controller class?
   /**
    * Helper method to extract user ID from request
    *
@@ -68,6 +70,7 @@ public class InventoryController {
     }
   }
 
+  //Todo: Remove this endpoint, as it gives all items regardless of household
   /**
    * Endpoint for retrieving all items in the inventory.
    *
