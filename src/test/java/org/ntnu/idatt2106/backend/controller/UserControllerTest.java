@@ -1,18 +1,23 @@
 package org.ntnu.idatt2106.backend.controller;
 
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
 import org.ntnu.idatt2106.backend.dto.user.PasswordResetRequest;
 import org.ntnu.idatt2106.backend.dto.user.UserLoginRequest;
+import org.ntnu.idatt2106.backend.dto.user.UserPositionResponse;
+import org.ntnu.idatt2106.backend.dto.user.UserPositionUpdate;
 import org.ntnu.idatt2106.backend.dto.user.UserRegisterRequest;
 import org.ntnu.idatt2106.backend.dto.user.UserTokenResponse;
 import org.ntnu.idatt2106.backend.exceptions.AlreadyInUseException;
 import org.ntnu.idatt2106.backend.exceptions.MailSendingFailedException;
 import org.ntnu.idatt2106.backend.exceptions.TokenExpiredException;
 import org.ntnu.idatt2106.backend.exceptions.UserNotFoundException;
+import org.ntnu.idatt2106.backend.model.User;
 import org.ntnu.idatt2106.backend.security.JWT_token;
+import org.ntnu.idatt2106.backend.service.HouseholdService;
 import org.ntnu.idatt2106.backend.service.LoginService;
 import org.ntnu.idatt2106.backend.service.ReCaptchaService;
 import org.ntnu.idatt2106.backend.service.ResetPasswordService;
@@ -41,6 +46,9 @@ class UserControllerTest {
 
   @Mock
   private VerifyEmailService verifyEmailService;
+
+  @Mock
+  private HouseholdService householdService;
 
   @Mock
   private JWT_token jwtToken;
@@ -355,5 +363,172 @@ class UserControllerTest {
     assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
     assertEquals("An error occurred during email verification", response.getBody());
   }
+  @Test
+  @DisplayName("Should return 200 OK when location update is successful")
+  void shouldReturnOkOnSuccessfulLocationUpdate() {
+    UserPositionUpdate positionUpdate = new UserPositionUpdate(59.91, 10.75); // example lat/lng
+    String token = "Bearer valid.jwt.token";
+    User user = new User();
+
+    when(jwtToken.getUserByToken("valid.jwt.token")).thenReturn(user);
+
+    ResponseEntity<String> response = userController.updateLocation(positionUpdate, token);
+
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertEquals("Location updated successfully", response.getBody());
+  }
+
+  @Test
+  @DisplayName("Should return 401 when token is invalid")
+  void shouldReturnUnauthorizedWithInvalidToken() {
+    UserPositionUpdate positionUpdate = new UserPositionUpdate(59.91, 10.75);
+    String token = "Bearer invalid.jwt.token";
+
+    when(jwtToken.getUserByToken("invalid.jwt.token")).thenReturn(null);
+
+    ResponseEntity<String> response = userController.updateLocation(positionUpdate, token);
+
+    assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    assertEquals("Unauthorized - Invalid token", response.getBody());
+  }
+
+  @Test
+  @DisplayName("Should return 400 on IllegalArgumentException")
+  void shouldReturnBadRequestOnIllegalArgument() {
+    UserPositionUpdate positionUpdate = new UserPositionUpdate(0, 0);
+
+    String token = "Bearer bad.jwt.token";
+
+    when(jwtToken.getUserByToken("bad.jwt.token")).thenThrow(new IllegalArgumentException());
+
+    ResponseEntity<String> response = userController.updateLocation(positionUpdate, token);
+
+    assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    assertEquals("Invalid location data", response.getBody());
+  }
+
+  @Test
+  @DisplayName("Should return 500 on unexpected exception during updateLocation")
+  void shouldReturnInternalServerErrorOnUnexpectedException() {
+    UserPositionUpdate positionUpdate = new UserPositionUpdate(59.91, 10.75);
+    String token = "Bearer exception.jwt.token";
+
+    when(jwtToken.getUserByToken("exception.jwt.token")).thenThrow(new RuntimeException());
+
+    ResponseEntity<String> response = userController.updateLocation(positionUpdate, token);
+
+    assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+    assertEquals("An unexpected error occurred during location update", response.getBody());
+  }
+
+  @Test
+  @DisplayName("Should return 200 OK when household location is retrieved")
+  void shouldReturnOkWhenHouseholdLocationRetrieved() {
+    String token = "Bearer valid.jwt.token";
+    User user = new User();
+    int householdId = 1;
+
+    when(jwtToken.getUserByToken("valid.jwt.token")).thenReturn(user);
+    when(householdService.getUserPositions(user)).thenReturn(List.of(new UserPositionResponse(59.91, 10.75, "2023-10-01T12:00:00Z", 1, "John Doe")));
+    ResponseEntity<?> response = userController.getPositionsFromHousehold(householdId, token);
+
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertNotNull(response.getBody());
+  }
+
+  @Test
+  @DisplayName("Should return 401 when token is invalid for household location")
+  void shouldReturnUnauthorizedOnInvalidTokenForHousehold() {
+    String token = "Bearer invalid.jwt.token";
+
+    when(jwtToken.getUserByToken("invalid.jwt.token")).thenReturn(null);
+
+    ResponseEntity<?> response = userController.getPositionsFromHousehold(1, token);
+
+    assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    assertEquals("Unauthorized - Invalid token", response.getBody());
+  }
+
+  @Test
+  @DisplayName("Should return 400 on IllegalArgumentException for household location")
+  void shouldReturnBadRequestForIllegalArgumentInHousehold() {
+    String token = "Bearer invalid.jwt.token";
+
+    when(jwtToken.getUserByToken("invalid.jwt.token")).thenThrow(new IllegalArgumentException());
+
+    ResponseEntity<?> response = userController.getPositionsFromHousehold(1, token);
+
+    assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    assertEquals("Invalid household ID", response.getBody());
+  }
+
+  @Test
+  @DisplayName("Should return 500 on unexpected error for household location")
+  void shouldReturnInternalServerErrorForHouseholdLocation() {
+    String token = "Bearer error.jwt.token";
+
+    when(jwtToken.getUserByToken("error.jwt.token")).thenThrow(new RuntimeException());
+
+    ResponseEntity<?> response = userController.getPositionsFromHousehold(1, token);
+
+    assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+    assertEquals("An unexpected error occurred during location retrieval", response.getBody());
+  }
+
+  @Test
+  @DisplayName("Should return 200 OK when user has access to locations")
+  void shouldReturnOkWhenUserHasAccessToLocations() {
+    String token = "Bearer valid.jwt.token";
+    User user = new User();
+
+    when(jwtToken.getUserByToken("valid.jwt.token")).thenReturn(user);
+    when(householdService.getUserPositions(user)).thenReturn(List.of(new UserPositionResponse(59.91, 10.75, "2023-10-01T12:00:00Z", 1, "John Doe")));
+
+    ResponseEntity<?> response = userController.getPositionsFromHousehold(token);
+
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertNotNull(response.getBody());
+  }
+
+  @Test
+  @DisplayName("Should return 401 when token is invalid for general household location")
+  void shouldReturnUnauthorizedForGeneralHouseholdInvalidToken() {
+    String token = "Bearer invalid.jwt.token";
+
+    when(jwtToken.getUserByToken("invalid.jwt.token")).thenReturn(null);
+
+    ResponseEntity<?> response = userController.getPositionsFromHousehold(token);
+
+    assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    assertEquals("Unauthorized - Invalid token", response.getBody());
+  }
+
+  @Test
+  @DisplayName("Should return 400 on bad household ID exception")
+  void shouldReturnBadRequestForGeneralHouseholdIllegalArgument() {
+    String token = "Bearer bad.jwt.token";
+
+    when(jwtToken.getUserByToken("bad.jwt.token")).thenThrow(new IllegalArgumentException());
+
+    ResponseEntity<?> response = userController.getPositionsFromHousehold(token);
+
+    assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    assertEquals("Invalid household ID", response.getBody());
+  }
+
+  @Test
+  @DisplayName("Should return 500 on unexpected error in general household location")
+  void shouldReturnInternalServerErrorForGeneralHouseholdError() {
+    String token = "Bearer error.jwt.token";
+
+    when(jwtToken.getUserByToken("error.jwt.token")).thenThrow(new RuntimeException());
+
+    ResponseEntity<?> response = userController.getPositionsFromHousehold(token);
+
+    assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+    assertEquals("An unexpected error occurred during location retrieval", response.getBody());
+  }
+
+
 
 }

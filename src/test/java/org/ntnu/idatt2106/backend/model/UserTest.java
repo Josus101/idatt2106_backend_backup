@@ -2,8 +2,10 @@ package org.ntnu.idatt2106.backend.model;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.util.Date;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.ntnu.idatt2106.backend.dto.user.UserPositionUpdate;
 
 public class UserTest {
 
@@ -127,13 +129,67 @@ public class UserTest {
     assertEquals("Jane Doe", user.toString());
   }
 
-  //@Test
-  //@DisplayName("Test adding household to user adds correctly")
-  //void testAddHousehold() {
-  //  User user = new User();
-  //  Household household = new Household();
-  //  HouseholdMembers householdMembership = new HouseholdMembers();
-  //  user.addHouseholdMembership(household);
-  //  assertTrue(user.getHouseholds().contains(household));
-  //}
+  @Test
+  @DisplayName("Test adding household to user adds correctly")
+  void testAddHousehold() {
+    User user = new User();
+    Household household = new Household();
+    HouseholdMembers householdMembership = new HouseholdMembers(user, household, false);
+    user.getHouseholdMemberships().add(householdMembership);
+    assertTrue(user.getHouseholdMemberships().contains(householdMembership));
+  }
+
+  @Test
+  @DisplayName("Test setPosition sets latitude and longitude correctly")
+  void testSetPosition() {
+    User user = new User();
+    UserPositionUpdate positionUpdate = new UserPositionUpdate(69.4, 18.9);
+    user.setPosition(positionUpdate);
+    assertEquals(69.4, user.getLatitude());
+    assertEquals(18.9, user.getLongitude());
+  }
+
+  @Test
+  @DisplayName("Test setPosition throws exception for invalid latitude")
+  void testSetPositionInvalidLatitude() {
+    User user = new User();
+    UserPositionUpdate positionUpdate = new UserPositionUpdate(91.0, 18.9);
+    Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+      user.setPosition(positionUpdate);
+    });
+    assertEquals("Invalid latitude or longitude", exception.getMessage());
+  }
+
+  @Test
+  @DisplayName("Test setPosition throws exception for invalid longitude")
+  void testSetPositionInvalidLongitude() {
+    User user = new User();
+    UserPositionUpdate positionUpdate = new UserPositionUpdate(69.4, 181.0);
+    Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+      user.setPosition(positionUpdate);
+    });
+    assertEquals("Invalid latitude or longitude", exception.getMessage());
+  }
+
+  @Test
+  @DisplayName("Test setPosition sets time correctly")
+  void testSetPositionTimeFormat() {
+    User user = new User();
+    UserPositionUpdate positionUpdate = new UserPositionUpdate(69.4, 18.9);
+    user.setPosition(positionUpdate);
+    assertNotNull(user.getPositionUpdateTime());
+    assertTrue(user.getPositionUpdateTime() instanceof Date);
+  }
+
+  @Test
+  @DisplayName("formats date correctly")
+  void testFormatDate() {
+    User user = new User();
+    Date date = new Date(1746442184323L);
+    user.setPositionUpdateTime(date);
+
+    assertEquals("2025-05-05T12:49", user.getFormattedPositionUpdateTime());
+  }
+
+
 }
