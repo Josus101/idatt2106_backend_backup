@@ -13,6 +13,7 @@ import org.ntnu.idatt2106.backend.model.News;
 import org.ntnu.idatt2106.backend.repo.NewsRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.annotation.Profile;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -126,7 +127,10 @@ public class NewsService {
             .map(list -> list.stream()
                     .sorted(Comparator.comparing(NewsGetResponse::getDate).reversed())
                     .collect(Collectors.toList()))
-            .collect(Collectors.toList());
+            .toList().stream()
+                .sorted(Comparator.comparing(
+                        (List<NewsGetResponse> l) -> l.getFirst().getDate()).reversed()
+                ).collect(Collectors.toList());
   }
 
   /**
