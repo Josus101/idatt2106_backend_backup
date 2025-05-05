@@ -57,7 +57,13 @@ public class NewsService {
             news.getLongitude(),
             news.getDistrict(),
             news.getDate().toString()
-    )).toList();
+    )).toList()
+            .stream()
+            .sorted(
+                Comparator.comparing(
+                    NewsGetResponse::getDate
+                ).reversed()
+            ).collect(Collectors.toList());
 
     if (allNews.isEmpty()) {
       throw new EntityNotFoundException("No news found");
@@ -82,7 +88,12 @@ public class NewsService {
             news.getLongitude(),
             news.getDistrict(),
             news.getDate().toString()
-        )).toList();
+        )).toList().stream()
+            .sorted(
+                Comparator.comparing(
+                    NewsGetResponse::getDate
+                ).reversed()
+            ).collect(Collectors.toList());;
 
     if (newsByDistrict.isEmpty()) {
       throw new EntityNotFoundException("No news found in district: " + district);
