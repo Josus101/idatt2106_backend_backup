@@ -4,6 +4,7 @@ import org.junit.jupiter.api.*;
 import org.mockito.*;
 import org.ntnu.idatt2106.backend.dto.household.HouseholdCreate;
 import org.ntnu.idatt2106.backend.dto.household.HouseholdRequest;
+import org.ntnu.idatt2106.backend.dto.user.UserPositionResponse;
 import org.ntnu.idatt2106.backend.exceptions.UnauthorizedException;
 import org.ntnu.idatt2106.backend.model.*;
 import org.ntnu.idatt2106.backend.repo.*;
@@ -39,7 +40,9 @@ class HouseholdServiceTest {
     MockitoAnnotations.openMocks(this);
 
     testHousehold = new Household(1, "TestHouse", 10.0, 20.0);
-    testUser = new User("test@example.com", "password123", "Ape", "Apemann", "69420420");
+    testUser = new User(1,"test@example.com", "password123", "Ape", "Apemann", "69420420",
+        10.0, 20.0, true);
+    testUser.setPositionUpdateTime(new Date(1850000000000L));
   }
 
   @Test
@@ -617,6 +620,95 @@ class HouseholdServiceTest {
     assertThrows(IllegalArgumentException.class, () -> {
       householdService.getHouseholdsByUser(null);
     });
+  }
+
+  @Test
+  @DisplayName("getUserPositions should return positions for users in the household")
+  void testGetUserPositionShouldReturnCorrectPosition() {
+    when(householdMembersRepo.existsByUserAndHousehold(testUser, testHousehold)).thenReturn(true);
+    HouseholdMembers member = new HouseholdMembers(testUser, testHousehold, false);
+    when(householdMembersRepo.findByUser(testUser)).thenReturn(List.of(member));
+    when(householdMembersRepo.findByUserAndHousehold(testUser, testHousehold)).thenReturn(Optional.of(member));
+    when(householdMembersRepo.findAllByHousehold(testHousehold)).thenReturn(List.of(member));
+
+    List<UserPositionResponse> result = householdService.getUserPositions(testHousehold, testUser);
+
+    assertEquals(1, result.size());
+    UserPositionResponse response = result.get(0);
+    assertEquals(10.0, response.getLatitude());
+    assertEquals(20.0, response.getLongitude());
+    assertEquals("2028-08-16T02:53", response.getPositionUpdateTime());
+    assertEquals(1, response.getId());
+    assertEquals("Ape Apemann", response.getName());
+  }
+
+  @Test
+  @DisplayName("getUserPositions should throw exception for non-member user")
+  void testGetUserPositionsThrowsExceptionWhenNonMember() {
+    when(householdMembersRepo.existsByUserAndHousehold(testUser, testHousehold)).thenReturn(false);
+
+    assertThrows(UnauthorizedException.class, () ->
+        householdService.getUserPositions(testHousehold, testUser));
+  }
+
+  @Test
+  @DisplayName("getUserPositions should return correct positions for household ID and user")
+  void testGetUserPositionsShouldReturnCorrectWithId() {
+    when(householdRepo.findById(42)).thenReturn(Optional.of(testHousehold));
+    when(householdMembersRepo.existsByUserAndHousehold(testUser, testHousehold)).thenReturn(true);
+    HouseholdMembers member = new HouseholdMembers(testUser, testHousehold, false);
+    when(householdMembersRepo.findAllByHousehold(testHousehold)).thenReturn(List.of(member));
+
+    List<UserPositionResponse> result = householdService.getUserPositions(42, testUser);
+
+    assertEquals(1, result.size());
+  }
+
+  @Test
+  @DisplayName("getUserPositions should throw exception for non-existent household ID")
+  void testGetUserPositionsHouseholdIdAndUserThrowsIdNotFound() {
+    when(householdRepo.findById(99)).thenReturn(Optional.empty());
+
+    assertThrows(NoSuchElementException.class, () ->
+        householdService.getUserPositions(99, testUser));
+  }
+
+  @Test
+  @DisplayName("getUserPositions should return correct positions for user only")
+  void testGetUserPositionsShouldReturnCorrectForUserOnly() {
+    HouseholdMembers memberInHousehold = mock(HouseholdMembers.class);
+    Household anotherHousehold = mock(Household.class);
+
+    HouseholdMembers member = new HouseholdMembers(testUser, anotherHousehold, false);
+    testUser.setHouseholdMemberships(List.of(memberInHousehold, member));
+    when(householdMembersRepo.existsByUserAndHousehold(testUser, anotherHousehold)).thenReturn(true);
+    when(householdMembersRepo.findByUser(testUser)).thenReturn(List.of(memberInHousehold, member));
+    when(householdMembersRepo.findAllByHousehold(anotherHousehold)).thenReturn(List.of(member));
+    List<UserPositionResponse> result = householdService.getUserPositions(testUser);
+    assertEquals(1, result.size());
+    UserPositionResponse response = result.get(0);
+    assertEquals(10.0, response.getLatitude());
+    assertEquals(20.0, response.getLongitude());
+    assertEquals("2028-08-16T02:53", response.getPositionUpdateTime());
+    assertEquals(1, response.getId());
+    assertEquals("Ape Apemann", response.getName());
+  }
+
+  @Test
+  @DisplayName("getUserPositions should throw exception for non-existent user")
+  void testGetUserPositionsThrowsExceptionWhenNullUser() {
+    assertThrows(IllegalArgumentException.class, () ->
+        householdService.getUserPositions((User) null));
+  }
+
+  @Test
+  @DisplayName("getUserPositions should throw exception for null household or user")
+  void testGetUserPositionsThrowsExceptionWhenNullHouseholdOrUser() {
+    assertThrows(IllegalArgumentException.class, () ->
+        householdService.getUserPositions(null, testUser));
+
+    assertThrows(IllegalArgumentException.class, () ->
+        householdService.getUserPositions(testHousehold, null));
   }
 
 }

@@ -8,6 +8,7 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 import org.ntnu.idatt2106.backend.dto.household.HouseholdCreate;
 import org.ntnu.idatt2106.backend.dto.household.HouseholdRequest;
+import org.ntnu.idatt2106.backend.dto.user.UserPositionResponse;
 import org.ntnu.idatt2106.backend.exceptions.JoinCodeException;
 import org.ntnu.idatt2106.backend.exceptions.UnauthorizedException;
 import org.ntnu.idatt2106.backend.model.Household;
@@ -376,5 +377,78 @@ public class HouseholdService {
       households.add(new HouseholdRequest(household.getId(), household.getName(), household.getLatitude(), household.getLongitude(), members, inventory));
     }
     return households;
+  }
+
+  /**
+   * Gets all user positions in a household.
+   *
+   * @param household The household whose user positions are to be retrieved.
+   * @param user The user whose positions are to be retrieved.
+   * @return A list of user positions in the household.
+   */
+  public List<UserPositionResponse> getUserPositions(Household household, User user) {
+    if (household == null || user == null) {
+      throw new IllegalArgumentException("Household and user cannot be null");
+    }
+    if (!householdMembersRepo.existsByUserAndHousehold(user, household)) {
+      throw new UnauthorizedException("User is not a member of the household");
+    }
+    List<HouseholdMembers> members = householdMembersRepo.findAllByHousehold(household);
+    List<UserPositionResponse> userPositions = new ArrayList<>();
+    for (HouseholdMembers member : members) {
+      UserPositionResponse userPosition = new UserPositionResponse(
+          member.getUser().getLatitude(),
+          member.getUser().getLongitude(),
+          member.getUser().getFormattedPositionUpdateTime(),
+          member.getUser().getId(),
+          member.getUser().toString()
+      );
+      userPositions.add(userPosition);
+    }
+    return userPositions;
+  }
+
+  /**
+   * Gets all user positions in a household.
+   *
+   * @param householdId The id of the household whose user positions are to be retrieved.
+   * @param user The user whose positions are to be retrieved.
+   * @return A list of user positions in the household.
+   */
+  public List<UserPositionResponse> getUserPositions(int householdId, User user) {
+    Optional<Household> foundHousehold = householdRepo.findById(householdId);
+    if (foundHousehold.isEmpty()) {
+      throw new NoSuchElementException("Household not found");
+    }
+    return getUserPositions(foundHousehold.get(), user);
+  }
+
+  /**
+   * Gets position of all users in all households a user is a member of.
+   *
+   * @param user The user whose positions are to be retrieved.
+   * @return A list of user positions in the households.
+   */
+  public List<UserPositionResponse> getUserPositions(User user) {
+    if (user == null) {
+      throw new IllegalArgumentException("User cannot be null");
+    }
+    List<HouseholdMembers> householdMemberships = user.getHouseholdMemberships();
+    List<UserPositionResponse> userPositions = new ArrayList<>();
+    for (HouseholdMembers householdMember : householdMemberships) {
+      Household household = householdMember.getHousehold();
+      List<HouseholdMembers> members = householdMembersRepo.findAllByHousehold(household);
+      for (HouseholdMembers member : members) {
+        UserPositionResponse userPosition = new UserPositionResponse(
+            member.getUser().getLatitude(),
+            member.getUser().getLongitude(),
+            member.getUser().getFormattedPositionUpdateTime(),
+            member.getUser().getId(),
+            member.getUser().toString()
+        );
+        userPositions.add(userPosition);
+      }
+    }
+    return userPositions;
   }
 }
