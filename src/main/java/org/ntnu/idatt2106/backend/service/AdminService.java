@@ -1,6 +1,9 @@
 package org.ntnu.idatt2106.backend.service;
 
+import java.util.List;
 import java.util.Optional;
+
+import org.ntnu.idatt2106.backend.dto.admin.AdminGetResponse;
 import org.ntnu.idatt2106.backend.exceptions.UnauthorizedException;
 import org.ntnu.idatt2106.backend.exceptions.UserNotFoundException;
 import org.ntnu.idatt2106.backend.model.Admin;
@@ -201,5 +204,25 @@ public class AdminService {
       throw new IllegalArgumentException("Cannot delete a super user");
     }
     adminRepo.delete(adminUser);
+  }
+
+  /**
+   * Retrieves all admin users.
+   *
+   * @param authorizationHeader The authorization header containing the bearer token.
+   * @return A list of all admin users.
+   */
+  public List<AdminGetResponse> getAllAdmins(String authorizationHeader) {
+    try {
+      verifyAdminIsSuperUser(authorizationHeader);
+      return adminRepo.findAll().stream().map(admin -> new AdminGetResponse(
+          admin.getId(),
+          admin.getUsername(),
+          admin.isSuperUser()
+      )).toList();
+    } catch (UnauthorizedException e) {
+      throw new UnauthorizedException("You are not authorized to get all admins");
+    }
+
   }
 }

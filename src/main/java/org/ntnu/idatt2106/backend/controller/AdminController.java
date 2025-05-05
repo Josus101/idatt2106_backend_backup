@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import org.ntnu.idatt2106.backend.dto.admin.AdminGetResponse;
 import org.ntnu.idatt2106.backend.dto.admin.AdminLoginRegisterRequest;
 import org.ntnu.idatt2106.backend.exceptions.UnauthorizedException;
 import org.ntnu.idatt2106.backend.exceptions.UserNotFoundException;
@@ -13,14 +14,7 @@ import org.ntnu.idatt2106.backend.service.AdminService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * This class is used to handle all the requests related to admin users.
@@ -317,6 +311,64 @@ public class AdminController {
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(false);
     }
     return ResponseEntity.ok(true);
+  }
+
+  /**
+   * Endpoint for getting all admin users.
+   * @param authorizationHeader the authorization header containing the JWT token
+   *
+   * @return a response entity containing the list of admin users
+   */
+  @GetMapping("")
+  @Operation(
+      summary = "Get all admin users",
+      description = "Get request to retrieve all admin users. "
+          + "Requires superuser privileges. "
+          + "Returns a list of admin users."
+  )
+  @ApiResponses(value = {
+      @ApiResponse(
+          responseCode = "200",
+          description = "List of admin users",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(type = "array", implementation = AdminGetResponse.class)
+          )
+      ),
+      @ApiResponse(
+          responseCode = "401",
+          description = "Unauthorized",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(type = "boolean", example = "false")
+          )
+      ),
+      @ApiResponse(
+        responseCode = "404",
+        description = "No admin users found",
+        content = @Content(
+            mediaType = "application/json",
+            schema = @Schema(type = "boolean", example = "false")
+        )
+      )
+  })
+  public ResponseEntity<?> getAllAdmins (
+          @Parameter(
+                  name = "Authorization",
+                  description = "Bearer token in the format `Bearer <JWT>`",
+                  required = true,
+                  example = "Bearer eyJhbGciOiJIUzI1N.iIsInR5cCI6IkpXVCJ9..."
+          ) @RequestHeader("Authorization") String authorizationHeader
+  ){
+    try {
+      return ResponseEntity.ok(adminService.getAllAdmins(authorizationHeader));
+    } catch (UnauthorizedException e) {
+      return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(false);
+    } catch (UserNotFoundException e) {
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: " + e.getMessage());
+    } catch (Exception e) {
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(false);
+    }
   }
 
 }
