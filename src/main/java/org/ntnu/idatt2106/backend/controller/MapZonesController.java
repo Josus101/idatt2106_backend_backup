@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import org.ntnu.idatt2106.backend.dto.map.CoordinatesDTO;
 import org.ntnu.idatt2106.backend.dto.map.zones.EmergencyZoneCreateDTO;
 import org.ntnu.idatt2106.backend.dto.map.zones.EmergencyZoneDescDTO;
 import org.ntnu.idatt2106.backend.dto.map.zones.EmergencyZoneFullDTO;
@@ -103,12 +104,12 @@ public class MapZonesController {
           description = "The map area to retrieve emergency zones from.",
           example = "",
           required = true
-      ) @PathVariable List<List<Double>> mapArea,
+      ) @PathVariable List<CoordinatesDTO> mapArea,
       @Parameter(
           description = "The zone IDs to exclude from the response. Can be an empty array.",
           example = "[1, 2, 3]",
           required = true
-      ) @PathVariable int[] excludedZoneIds) {
+      ) @PathVariable Long[] excludedZoneIds) {
     List<EmergencyZoneFullDTO> emergencyZones = mapZonesService
         .getEmergencyZonesInMapArea(mapArea, excludedZoneIds);
     if (emergencyZones.isEmpty()) {
@@ -153,7 +154,7 @@ public class MapZonesController {
           description = "The ID of the emergency zone to retrieve.",
           example = "12345",
           required = true
-      ) @PathVariable String zoneId) {
+      ) @PathVariable Long zoneId) {
     try {
       EmergencyZoneFullDTO emergencyZone = mapZonesService.getEmergencyZoneById(zoneId);
       return ResponseEntity.ok(emergencyZone);
@@ -196,9 +197,9 @@ public class MapZonesController {
           description = "The ID of the emergency zone to retrieve the description from.",
           example = "12345",
           required = true
-      ) @PathVariable String zoneId) {
+      ) @PathVariable Long zoneId) {
     try {
-      EmergencyZoneDescDTO emergencyZoneDesc = mapZonesService.getEmergencyZoneDescription(zoneId);
+      EmergencyZoneDescDTO emergencyZoneDesc = mapZonesService.getEmergencyZoneDescById(zoneId);
       return ResponseEntity.ok(emergencyZoneDesc);
     } catch (Exception e) {
       return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: Emergency zone not found." + e.getMessage());
@@ -208,16 +209,31 @@ public class MapZonesController {
 
   @PostMapping("/zone/create/")
   public ResponseEntity<?> createZone(@RequestBody EmergencyZoneCreateDTO zone) {
-    return ResponseEntity.ok(mapZonesService.createZone(zone));
+    try {
+      mapZonesService.createZone(zone);
+      return ResponseEntity.status(HttpStatus.CREATED).body("Zone created successfully.");
+    } catch (Exception e) {
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: " + e.getMessage());
+    }
   }
 
   @PutMapping("/zone/update/{zoneId}")
-  public ResponseEntity<?> updateZone(@PathVariable String zoneId, @RequestBody EmergencyZoneCreateDTO zone) {
-    return ResponseEntity.ok(mapZonesService.updateZone(zoneId, zone));
+  public ResponseEntity<?> updateZone(@PathVariable Long zoneId, @RequestBody EmergencyZoneCreateDTO zone) {
+    try {
+      mapZonesService.updateZone(zoneId, zone);
+      return ResponseEntity.ok("Zone updated successfully.");
+    } catch (Exception e) {
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: " + e.getMessage());
+    }
   }
 
   @DeleteMapping("/zone/delete/{zoneId}")
-  public ResponseEntity<?> deleteZone(@PathVariable String zoneId) {
-    return ResponseEntity.ok(mapZonesService.deleteZone(zoneId));
+  public ResponseEntity<?> deleteZone(@PathVariable Long zoneId) {
+    try {
+      mapZonesService.deleteZone(zoneId);
+      return ResponseEntity.ok("Zone deleted successfully.");
+    } catch (Exception e) {
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: " + e.getMessage());
+    }
   }
 }
