@@ -110,7 +110,7 @@ public class HouseholdService {
       System.out.println(user + " already in household " + household.getName());
       return;
     }
-    HouseholdMembers householdMembers = new HouseholdMembers(user, household,false);
+    HouseholdMembers householdMembers = new HouseholdMembers(user, household,false, false);
     householdMembersRepo.save(householdMembers);
     user.getHouseholdMemberships().add(householdMembers);
     household.getMembers().add(householdMembers);  }
@@ -121,12 +121,12 @@ public class HouseholdService {
    * @param household The household to which the user will be added.
    * @param user The user to be added.
    */
-  public void addUserToHousehold(Household household, User user, boolean isAdmin) {
+  public void addUserToHousehold(Household household, User user, boolean isAdmin, boolean isPrimary) {
     if (householdMembersRepo.existsByUserAndHousehold(user, household)) {
       System.out.println(user + " already in household " + household.getName());
       return;
     }
-    HouseholdMembers householdMembers = new HouseholdMembers(user, household,isAdmin);
+    HouseholdMembers householdMembers = new HouseholdMembers(user, household, isAdmin, isPrimary);
     householdMembersRepo.save(householdMembers);
     user.getHouseholdMemberships().add(householdMembers);
     household.getMembers().add(householdMembers);  }

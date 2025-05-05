@@ -152,8 +152,8 @@ public class DataSeeder implements CommandLineRunner {
     User albert = createVerifiedUser("albert@example.com", "password123", "Albert", "Zindel", "98765432");
     Household household = createHousehold("Test Household", 59.9139, 10.7522);
 
-    addHouseholdMember(household, testUser, true);
-    addHouseholdMember(household, albert, false);
+    addHouseholdMember(household, testUser, true, true);
+    addHouseholdMember(household, albert, false, false);
 
     List<Item> items = createItemsForHouseholdOne();
     household.setInventory(items);
@@ -168,7 +168,7 @@ public class DataSeeder implements CommandLineRunner {
     User krekar = createVerifiedUser("krekar@gmail.com", "test123", "Krekar", "Design", "11111111");
 
     Household household = createHousehold("Krekar's Household", 60.3913, 5.3221);
-    addHouseholdMember(household, krekar, true);
+    addHouseholdMember(household, krekar, true, false);
 
     List<Item> items = createItemsForHouseholdTwo();
     household.setInventory(items);
@@ -183,7 +183,7 @@ public class DataSeeder implements CommandLineRunner {
     User kalle = createVerifiedUser("kalle@gmail.com", "test123", "Kalle", "Kontainer", "2222222");
     System.out.println(kalle);
     Household household = createHousehold("Kalle's Container", 58.9690, 5.7331);
-    addHouseholdMember(household, kalle, true);
+    addHouseholdMember(household, kalle, true, true );
 
     List<Item> items = createItemsForHouseholdThree();
     household.setInventory(items);
@@ -198,7 +198,7 @@ public class DataSeeder implements CommandLineRunner {
     User kare = createVerifiedUser("kare@gmail.com", "test123", "Kåre", "Kakkelovn", "33333333");
 
     Household household = createHousehold("Kåre's Fireplace", 59.9139, 10.7522);
-    addHouseholdMember(household, kare, true);
+    addHouseholdMember(household, kare, true, true);
 
     List<Item> items = createItemsForHouseholdFour();
     household.setInventory(items);
@@ -254,14 +254,14 @@ public class DataSeeder implements CommandLineRunner {
    * @param user      The user to add as a member
    * @param isAdmin   Whether the user is an admin
    */
-  public void addHouseholdMember(Household household, User user, boolean isAdmin) {
+  public void addHouseholdMember(Household household, User user, boolean isAdmin, boolean isPrimary) {
     if (user == null) {
       throw new IllegalArgumentException("User cannot be null");
     } else if (household == null) {
       throw new IllegalArgumentException("Household cannot be null");
     }
     if (!householdMembersRepo.existsByUserAndHousehold(user, household)) {
-      HouseholdMembers member = new HouseholdMembers(user, household, isAdmin);
+      HouseholdMembers member = new HouseholdMembers(user, household, isAdmin, isPrimary);
       householdMembersRepo.save(member);
 
       if (user.getHouseholdMemberships() == null) {

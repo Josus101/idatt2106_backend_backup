@@ -158,7 +158,7 @@ class HouseholdServiceTest {
   @Test
   @DisplayName("Should remove user from household if member exists")
   void testRemoveUserFromHouseholdSuccess() {
-    HouseholdMembers member = new HouseholdMembers(testUser, testHousehold, false);
+    HouseholdMembers member = new HouseholdMembers(testUser, testHousehold, false, false);
 
     when(householdMembersRepo.findByUserAndHousehold(testUser, testHousehold))
         .thenReturn(Optional.of(member));
@@ -267,7 +267,7 @@ class HouseholdServiceTest {
 
     when(householdMembersRepo.existsByUserAndHousehold(testUser, testHousehold))
         .thenReturn(true);
-    HouseholdMembers existingMember = new HouseholdMembers(testUser, testHousehold, false);
+    HouseholdMembers existingMember = new HouseholdMembers(testUser, testHousehold, false, false);
     testHousehold.getMembers().add(existingMember);
 
     TestUtils.callPrivateMethod(householdService,
@@ -287,7 +287,7 @@ class HouseholdServiceTest {
 
     when(householdMembersRepo.existsByUserAndHousehold(testUser, testHousehold))
         .thenReturn(true);
-    HouseholdMembers existingMember = new HouseholdMembers(testUser, testHousehold, true);
+    HouseholdMembers existingMember = new HouseholdMembers(testUser, testHousehold, true, false);
     testHousehold.getMembers().add(existingMember);
 
     TestUtils.callPrivateMethod(householdService,
@@ -302,9 +302,9 @@ class HouseholdServiceTest {
   @Test
   @DisplayName("Added admin user should have isAdmin set to true")
   void testAdminUserIsAdmin(){
-    HouseholdMembers member = new HouseholdMembers(testUser, testHousehold, true);
+    HouseholdMembers member = new HouseholdMembers(testUser, testHousehold, true, false);
     when(householdMembersRepo.save(any(HouseholdMembers.class))).thenReturn(member);
-    householdService.addUserToHousehold(testHousehold, testUser, true);
+    householdService.addUserToHousehold(testHousehold, testUser, true, false);
     assertTrue(member.isAdmin());
     assertTrue(testHousehold.getMembers().get(0).isAdmin());
   }
@@ -405,7 +405,7 @@ class HouseholdServiceTest {
   @Test
   @DisplayName("Private removeUserFromHousehold should remove existing member")
   void testPrivateRemoveUserFromHousehold() {
-    HouseholdMembers member = new HouseholdMembers(testUser, testHousehold, false);
+    HouseholdMembers member = new HouseholdMembers(testUser, testHousehold, false, false);
     when(householdMembersRepo.findByUserAndHousehold(testUser, testHousehold))
         .thenReturn(Optional.of(member));
 
@@ -471,7 +471,7 @@ class HouseholdServiceTest {
   @Test
   @DisplayName("Should allow regular user to leave household")
   void testLeaveHouseholdRegularUser() {
-    HouseholdMembers member = new HouseholdMembers(testUser, testHousehold, false);
+    HouseholdMembers member = new HouseholdMembers(testUser, testHousehold, false, false);
     when(householdMembersRepo.existsByUserAndHousehold(testUser, testHousehold))
         .thenReturn(true);
     when(householdMembersRepo.findByUserAndHousehold(testUser, testHousehold))
@@ -486,7 +486,7 @@ class HouseholdServiceTest {
   @Test
   @DisplayName("Should prevent admin from leaving household")
   void testLeaveHouseholdAdminUser() {
-    HouseholdMembers adminMember = new HouseholdMembers(testUser, testHousehold, true);
+    HouseholdMembers adminMember = new HouseholdMembers(testUser, testHousehold, true, false);
     when(householdMembersRepo.existsByUserAndHousehold(testUser, testHousehold))
         .thenReturn(true);
     when(householdMembersRepo.findByUserAndHousehold(testUser, testHousehold))
@@ -522,9 +522,9 @@ class HouseholdServiceTest {
     when(householdMembersRepo.existsByUserAndHousehold(adminUser, testHousehold)).thenReturn(true);
     when(householdMembersRepo.existsByUserAndHousehold(targetUser, testHousehold)).thenReturn(true);
     when(householdMembersRepo.findByUserAndHousehold(adminUser, testHousehold))
-        .thenReturn(Optional.of(new HouseholdMembers(adminUser, testHousehold, true)));
+        .thenReturn(Optional.of(new HouseholdMembers(adminUser, testHousehold, true, false)));
     when(householdMembersRepo.findByUserAndHousehold(targetUser, testHousehold))
-        .thenReturn(Optional.of(new HouseholdMembers(targetUser, testHousehold, false)));
+        .thenReturn(Optional.of(new HouseholdMembers(targetUser, testHousehold, false, false)));
 
     householdService.kickUserFromHousehold(1, 3, adminUser);
 
@@ -556,8 +556,8 @@ class HouseholdServiceTest {
   @DisplayName("Should verify admin can kick user")
   void testVerifyCanKickUserAdmin() {
     User adminUser = new User("admin@test.com", "password", "Admin", "User", "12345678");
-    HouseholdMembers adminMember = new HouseholdMembers(adminUser, testHousehold, true);
-    HouseholdMembers targetMember = new HouseholdMembers(testUser, testHousehold, false);
+    HouseholdMembers adminMember = new HouseholdMembers(adminUser, testHousehold, true, false);
+    HouseholdMembers targetMember = new HouseholdMembers(testUser, testHousehold, false, false);
 
     when(householdMembersRepo.existsByUserAndHousehold(testUser, testHousehold)).thenReturn(true);
     when(householdMembersRepo.findByUserAndHousehold(adminUser, testHousehold))
@@ -575,8 +575,8 @@ class HouseholdServiceTest {
   @DisplayName("Should allow admin to kick user")
   void testKickUserFromHousehold() {
     User adminUser = new User("admin@test.com", "password", "Admin", "User", "12345678");
-    HouseholdMembers adminMember = new HouseholdMembers(adminUser, testHousehold, true);
-    HouseholdMembers targetMember = new HouseholdMembers(testUser, testHousehold, false);
+    HouseholdMembers adminMember = new HouseholdMembers(adminUser, testHousehold, true, false);
+    HouseholdMembers targetMember = new HouseholdMembers(testUser, testHousehold, false, false);
 
     when(householdMembersRepo.existsByUserAndHousehold(testUser, testHousehold)).thenReturn(true);
     when(householdMembersRepo.existsByUserAndHousehold(adminUser, testHousehold)).thenReturn(true);
@@ -595,7 +595,7 @@ class HouseholdServiceTest {
   @Test
   @DisplayName("getHouseholdsByUser should return households for user")
   void testGetHouseholdsByUser() {
-    testUser.getHouseholdMemberships().add(new HouseholdMembers(testUser, testHousehold, false));
+    testUser.getHouseholdMemberships().add(new HouseholdMembers(testUser, testHousehold, false, false));
     List<HouseholdRequest> households = householdService.getHouseholdsByUser(testUser);
     assertEquals(1, households.size());
     assertEquals(testHousehold.getId(), households.get(0).getId());

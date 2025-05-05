@@ -204,7 +204,7 @@ public class HouseholdController {
                 User user = jwtTokenService.getUserByToken(token);
                 if (user != null) {
                     Household createdHousehold = householdService.createHousehold(household);
-                    householdService.addUserToHousehold(createdHousehold, user, true);
+                    householdService.addUserToHousehold(createdHousehold, user, true, false);
                     return ResponseEntity.status(HttpStatus.CREATED).body("Household successfully created");
                 }
             }
