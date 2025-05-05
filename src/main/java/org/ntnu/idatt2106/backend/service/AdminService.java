@@ -215,14 +215,17 @@ public class AdminService {
   public List<AdminGetResponse> getAllAdmins(String authorizationHeader) {
     try {
       verifyAdminIsSuperUser(authorizationHeader);
-      return adminRepo.findAll().stream().map(admin -> new AdminGetResponse(
+      List<AdminGetResponse> admins = adminRepo.findAll().stream().map(admin -> new AdminGetResponse(
           admin.getId(),
           admin.getUsername(),
           admin.isSuperUser()
       )).toList();
+      if (admins.isEmpty()) {
+        throw new UserNotFoundException("No admins found");
+      }
+      return admins;
     } catch (UnauthorizedException e) {
       throw new UnauthorizedException("You are not authorized to get all admins");
     }
-
   }
 }

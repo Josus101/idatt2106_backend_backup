@@ -2,12 +2,14 @@ package org.ntnu.idatt2106.backend.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.ntnu.idatt2106.backend.dto.admin.AdminGetResponse;
 import org.ntnu.idatt2106.backend.dto.admin.AdminLoginRegisterRequest;
+import org.ntnu.idatt2106.backend.dto.news.NewsGetResponse;
 import org.ntnu.idatt2106.backend.exceptions.UnauthorizedException;
 import org.ntnu.idatt2106.backend.exceptions.UserNotFoundException;
 import org.ntnu.idatt2106.backend.service.AdminService;
@@ -315,8 +317,8 @@ public class AdminController {
 
   /**
    * Endpoint for getting all admin users.
-   * @param authorizationHeader the authorization header containing the JWT token
    *
+   * @param authorizationHeader the authorization header containing the JWT token
    * @return a response entity containing the list of admin users
    */
   @GetMapping("")
@@ -332,7 +334,9 @@ public class AdminController {
           description = "List of admin users",
           content = @Content(
               mediaType = "application/json",
-              schema = @Schema(type = "array", implementation = AdminGetResponse.class)
+              array = @ArraySchema(
+                      schema = @Schema(implementation = AdminGetResponse.class)
+              )
           )
       ),
       @ApiResponse(
@@ -348,8 +352,16 @@ public class AdminController {
         description = "No admin users found",
         content = @Content(
             mediaType = "application/json",
-            schema = @Schema(type = "boolean", example = "false")
+            schema = @Schema(example = "Error: No admins found")
         )
+      ),
+      @ApiResponse(
+          responseCode = "500",
+          description = "Internal Server Error",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(type = "boolean", example = "false")
+          )
       )
   })
   public ResponseEntity<?> getAllAdmins (
