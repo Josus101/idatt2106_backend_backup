@@ -1,6 +1,7 @@
 package org.ntnu.idatt2106.backend.service;
 
 import java.security.SecureRandom;
+import java.text.BreakIterator;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -377,4 +378,8 @@ public class HouseholdService {
     }
     return households;
   }
+
+//  public  getPrimary(User user) {
+//    householdMembersRepo.findByUserAnd_isPrimaryTrue()
+//  }
 }

@@ -5,10 +5,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
-import org.ntnu.idatt2106.backend.dto.household.HouseholdCreate;
-import org.ntnu.idatt2106.backend.dto.household.EssentialItemStatusDTO;
-import org.ntnu.idatt2106.backend.dto.household.HouseholdRequest;
-import org.ntnu.idatt2106.backend.dto.household.PreparednessStatus;
+import org.ntnu.idatt2106.backend.dto.household.*;
 import org.ntnu.idatt2106.backend.exceptions.UnauthorizedException;
 import org.ntnu.idatt2106.backend.model.Household;
 import org.ntnu.idatt2106.backend.model.HouseholdMembers;
@@ -62,7 +59,7 @@ class HouseholdControllerTest {
     void testGetPreparednessStatusSuccess() {
         String token = "Bearer dummy.jwt.token";
         int userId = 42;
-        PreparednessStatus mockStatus = new PreparednessStatus(6.0, 4.0);
+        MyHouseholdStatusGetResponse mockStatus = new MyHouseholdStatusGetResponse(1, "MyHouse", new PreparednessStatus(6.0, 4.0));
 
         when(jwtTokenService.extractIdFromJwt("dummy.jwt.token")).thenReturn(String.valueOf(userId));
         when(preparednessService.getPreparednessStatusByUserId(userId)).thenReturn(List.of(mockStatus));

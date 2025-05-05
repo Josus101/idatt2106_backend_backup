@@ -2,13 +2,17 @@ package org.ntnu.idatt2106.backend.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import lombok.Getter;
 import org.ntnu.idatt2106.backend.dto.household.HouseholdCreate;
 import org.ntnu.idatt2106.backend.dto.household.EssentialItemStatusDTO;
 import org.ntnu.idatt2106.backend.dto.household.PreparednessStatus;
+import org.ntnu.idatt2106.backend.dto.household.MyHouseholdStatusGetResponse;
+import org.ntnu.idatt2106.backend.dto.news.NewsGetResponse;
 import org.ntnu.idatt2106.backend.exceptions.UnauthorizedException;
 import org.ntnu.idatt2106.backend.model.Household;
 import org.ntnu.idatt2106.backend.model.User;
@@ -59,7 +63,7 @@ public class HouseholdController {
      * Endpoint for retrieving the number of days the user's household has food and water for.
      *
      * @param authorizationHeader The Authorization header containing the Bearer token.
-     * @return A PreparednessStatus object with days of food and water supply.
+     * @return A List of {@link MyHouseholdStatusGetResponse} object with id, name, and preparedness status (days of food and water supply) of the households.
      */
     @GetMapping("/preparedness")
     @Operation(
@@ -72,7 +76,10 @@ public class HouseholdController {
                 description = "Preparedness status successfully retrieved",
                 content = @Content(
                     mediaType = "application/json",
-                    schema = @Schema(implementation = PreparednessStatus.class))
+                        array = @ArraySchema(
+                            schema = @Schema(implementation = MyHouseholdStatusGetResponse.class)
+                        )
+                )
             ),
             @ApiResponse(
                 responseCode = "404",
@@ -99,7 +106,7 @@ public class HouseholdController {
         try {
             String token = authorizationHeader.substring(7);
             int userId = Integer.parseInt(jwtTokenService.extractIdFromJwt(token));
-            List<PreparednessStatus> status = preparednessService.getPreparednessStatusByUserId(userId);
+            List<MyHouseholdStatusGetResponse> status = preparednessService.getPreparednessStatusByUserId(userId);
             return ResponseEntity.ok(status);
         } catch (NoSuchElementException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: " + e.getMessage());
@@ -549,5 +556,25 @@ public class HouseholdController {
         }
     }
 
+//    @GetMapping("/getPrimary")
+//    public ResponseEntity<?> checkPrimaryHouseholdOfUser(
+//        @Parameter(
+//            name = "Authorization",
+//            description = "Bearer token in the format Bearer <JWT>",
+//            required = true,
+//            example = "Bearer eyJhbGciOiJIUzI1N.iIsInR5cCI6IkpXVCJ9..."
+//        ) @RequestHeader("Authorization") String authorizationHeader
+//    ){
+//        try {
+//            if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+//                String token = authorizationHeader.substring(7);
+//                User user = jwtTokenService.getUserByToken(token);
+//                if (user != null) {
+//                    return ResponseEntity.status(HttpStatus.OK).body(householdService.getPrimary(user));
+//                }
+//            }
+//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Error: Unauthorized");
+//        } catch ()
+//    }
 
 }

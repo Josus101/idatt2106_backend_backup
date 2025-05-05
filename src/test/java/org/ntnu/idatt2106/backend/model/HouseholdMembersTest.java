@@ -25,12 +25,14 @@ class HouseholdMembersTest {
     User user = new User();
     Household household = new Household();
     boolean isAdmin = true;
+    boolean isPrimary = true;
 
-    HouseholdMembers householdMembers = new HouseholdMembers(user, household, isAdmin);
+    HouseholdMembers householdMembers = new HouseholdMembers(user, household, isAdmin, isPrimary);
 
     assertEquals(user, householdMembers.getUser());
     assertEquals(household, householdMembers.getHousehold());
     assertTrue(householdMembers.isAdmin());
+    assertTrue(householdMembers.isPrimary());
   }
 
   @Test

@@ -39,11 +39,19 @@ public interface HouseholdMembersRepo extends JpaRepository<HouseholdMembers, In
      */
     boolean existsByUserAndHousehold(User user, Household household);
 
-    /**
-     * Finds a HouseholdMember by its user.
-     *
-     * @param user The user.
-     * @return An Optional containing the HouseholdMember if found, or empty if not.
-     */
-  List<HouseholdMembers> findByUser(User user);
+        /**
+         * Finds a HouseholdMember by its user.
+         *
+         * @param user The user.
+         * @return An Optional containing the HouseholdMember if found, or empty if not.
+         */
+    List<HouseholdMembers> findByUser(User user);
+
+//    /**
+//     * Finds the primary Household of the user
+//     * @param user the user
+//     * @return Optional containing the primary household, empty Optional if the user has no primary household.
+//     */
+//    Optional<HouseholdMembers> findByUserAnd_isPrimaryTrue(User user);
+
 }
