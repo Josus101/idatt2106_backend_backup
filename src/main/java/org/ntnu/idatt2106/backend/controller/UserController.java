@@ -1,6 +1,7 @@
 package org.ntnu.idatt2106.backend.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -8,8 +9,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import java.util.Date;
 import org.ntnu.idatt2106.backend.dto.household.HouseholdCreate;
+import org.ntnu.idatt2106.backend.dto.news.NewsGetResponse;
 import org.ntnu.idatt2106.backend.dto.user.PasswordResetRequest;
 import org.ntnu.idatt2106.backend.dto.user.UserLoginRequest;
+import org.ntnu.idatt2106.backend.dto.user.UserPositionResponse;
 import org.ntnu.idatt2106.backend.dto.user.UserPositionUpdate;
 import org.ntnu.idatt2106.backend.dto.user.UserRegisterRequest;
 import org.ntnu.idatt2106.backend.dto.user.UserTokenResponse;
@@ -85,12 +88,12 @@ public class UserController {
                   @ExampleObject(
                       name = "InvalidUserData",
                       summary = "Invalid user data",
-                      value = "Invalid user data"
+                      value = "Error: Invalid user data"
                   ),
                   @ExampleObject(
                       name = "EmailAlreadyInUse",
                       summary = "Email already in use",
-                      value = "Email already in use"
+                      value = "Error: Email already in use"
                   )
               }
           )
@@ -116,16 +119,16 @@ public class UserController {
       catch (IllegalArgumentException e) {
           return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: " + e.getMessage());
       } catch (AlreadyInUseException e) {
-          return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Email already in use");
+          return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: Email already in use");
       } catch (MailSendingFailedException e) {
           System.out.println("Failed to send verification email. Either mail is invalid, or you're "
               + "missing .env file " + e.getMessage());
-          return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to send verification email");
+          return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: Failed to send verification email");
       } catch (IllegalStateException e) {
           System.out.println("You sure you have the .env file? " + e.getMessage());
-          return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to send verification email");
+          return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: Failed to send verification email");
       } catch (Exception e) {
-          return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred during registration");
+          return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: An error occurred during registration");
       }
   }
 
@@ -152,14 +155,14 @@ public class UserController {
           description = "No user found with given email and password",
           content = @Content(
               mediaType = "application/json",
-              schema = @Schema(example = "Invalid user data"))
+              schema = @Schema(example = "Error: Invalid user data"))
       ),
       @ApiResponse(
           responseCode = "400",
           description = "Invalid user data",
           content = @Content(
               mediaType = "application/json",
-              schema = @Schema(example = "No user found with given email and password"))
+              schema = @Schema(example = "Error: No user found with given email and password"))
       )
   })
   public ResponseEntity<?> login(
@@ -176,9 +179,9 @@ public class UserController {
       token = loginService.authenticate(userLogin.getEmail(), userLogin.getPassword());
     }
     catch (IllegalArgumentException e) {
-      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid user data");
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: Invalid user data");
     } catch (UserNotFoundException e) {
-      return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No user found with given email and password");
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: No user found with given email and password");
     }
     return ResponseEntity.ok(token);
   }
@@ -219,7 +222,7 @@ public class UserController {
             responseCode = "400",
             description = "Bad Request - Error message returned",
             content = @Content(
-                schema = @Schema(example = "Error occurred while validating token")
+                schema = @Schema(example = "Error: Error occurred while validating token")
             )
         )
   })
@@ -239,7 +242,7 @@ public class UserController {
     } catch (IllegalArgumentException | TokenExpiredException e) {
       return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(false);
     } catch (Exception e) {
-      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: "+ e.getMessage());
     }
   }
 
@@ -260,28 +263,28 @@ public class UserController {
           description = "Password reset successfully",
           content = @Content(
               mediaType = "application/json",
-              schema = @Schema(example = "Password reset successfully"))
+              schema = @Schema(example = "Error: Password reset successfully"))
       ),
       @ApiResponse(
           responseCode = "400",
           description = "Invalid password or token",
           content = @Content(
               mediaType = "application/json",
-              schema = @Schema(example = "rawPassword cannot be null"))
+              schema = @Schema(example = "Error: rawPassword cannot be null"))
       ),
       @ApiResponse(
           responseCode = "404",
           description = "User not found with given token",
           content = @Content(
               mediaType = "application/json",
-              schema = @Schema(example = "User not found with given token"))
+              schema = @Schema(example = "Error: User not found with given token"))
       ),
       @ApiResponse(
           responseCode = "500",
           description = "Internal server error",
           content = @Content(
               mediaType = "application/json",
-              schema = @Schema(example = "An unexpected error occurred during password reset"))
+              schema = @Schema(example = "Error: An unexpected error occurred during password reset"))
       )
   })
   public ResponseEntity<String> resetPassword(
@@ -300,13 +303,13 @@ public class UserController {
       return ResponseEntity.ok("Password reset successfully");
     } catch (UserNotFoundException e) {
       return ResponseEntity.status(HttpStatus.NOT_FOUND)
-          .body("User not found with given token");
+          .body("Error: User not found with given token");
     } catch (IllegalArgumentException e) {
       return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-          .body(e.getMessage());
+          .body("Error: "+e.getMessage());
     } catch (Exception e) {
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-          .body("An unexpected error occurred during password reset");
+          .body("Error: An unexpected error occurred during password reset");
     }
   }
 
@@ -332,7 +335,7 @@ public class UserController {
           description = "User not found with given token",
           content = @Content(
               mediaType = "application/json",
-              schema = @Schema(example = "User not found with given token"))
+              schema = @Schema(example = "Error: User not found with given token"))
       ),
       @ApiResponse(
           responseCode = "400",
@@ -343,12 +346,12 @@ public class UserController {
                   @ExampleObject(
                       name = "InvalidToken",
                       summary = "Token not valid",
-                      value = "Invalid token"
+                      value = "Error: Invalid token"
                   ),
                   @ExampleObject(
                       name = "ExpiredToken",
                       summary = "Token expired",
-                      value = "Token expired"
+                      value = "Error: Token expired"
                   )
               }
           )
@@ -366,16 +369,16 @@ public class UserController {
       return ResponseEntity.ok("Email verified successfully");
     } catch (UserNotFoundException e) {
       System.out.println("User not found with given token");
-      return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found with given token");
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: User not found with given token");
     } catch (IllegalArgumentException e) {
       System.out.println("Invalid token");
-      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid token");
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: Invalid token");
     } catch (TokenExpiredException e) {
       System.out.println("Token expired");
-      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Token expired");
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: Token expired");
     } catch (Exception e) {
       System.out.println("An error occurred during email verification: " + e.getMessage());
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred during email verification");
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: An error occurred during email verification");
     }
   }
 
@@ -403,21 +406,21 @@ public class UserController {
           description = "Invalid location data",
           content = @Content(
               mediaType = "application/json",
-              schema = @Schema(example = "Invalid location data"))
+              schema = @Schema(example = "Error: Invalid location data"))
       ),
       @ApiResponse(
           responseCode = "401",
           description = "Unauthorized - Invalid token",
           content = @Content(
               mediaType = "application/json",
-              schema = @Schema(example = "Unauthorized - Invalid token"))
+              schema = @Schema(example = "Error: Unauthorized - Invalid token"))
       ),
       @ApiResponse(
           responseCode = "500",
           description = "Internal server error",
           content = @Content(
               mediaType = "application/json",
-              schema = @Schema(example = "An unexpected error occurred during location update"))
+              schema = @Schema(example = "Error: An unexpected error occurred during location update"))
       )
   })
   public ResponseEntity<String> updateLocation(
@@ -434,12 +437,12 @@ public class UserController {
         user.setPosition(positionUpdate);
         return ResponseEntity.ok("Location updated successfully");
       } else {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized - Invalid token");
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Error: Unauthorized - Invalid token");
       }
     } catch (IllegalArgumentException e) {
-      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid location data");
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: Invalid location data");
     } catch (Exception e) {
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred during location update");
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: An unexpected error occurred during location update");
     }
   }
 
@@ -460,25 +463,27 @@ public class UserController {
           description = "Location retrieved successfully",
           content = @Content(
               mediaType = "application/json",
-              schema = @Schema(implementation = UserPositionUpdate.class))
+              array = @ArraySchema(
+                  schema = @Schema(implementation = UserPositionResponse.class))
+          )
       ),
       @ApiResponse(
           responseCode = "400",
-          description = "Invalid household ID",
+          description = "Error: Invalid household ID",
           content = @Content(
               mediaType = "application/json",
               schema = @Schema(example = "Invalid household ID"))
       ),
       @ApiResponse(
           responseCode = "401",
-          description = "Unauthorized - Invalid token",
+          description = "Error: Unauthorized - Invalid token",
           content = @Content(
               mediaType = "application/json",
               schema = @Schema(example = "Unauthorized - Invalid token"))
       ),
       @ApiResponse(
           responseCode = "500",
-          description = "Internal server error",
+          description = "Error: Internal server error",
           content = @Content(
               mediaType = "application/json",
               schema = @Schema(example = "An unexpected error occurred during location retrieval"))
@@ -495,12 +500,12 @@ public class UserController {
       if (user != null) {
         return ResponseEntity.ok(householdService.getUserPositions(householdId, user));
       } else {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized - Invalid token");
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Error: Unauthorized - Invalid token");
       }
     } catch (IllegalArgumentException e) {
-      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid household ID");
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: Invalid household ID");
     } catch (Exception e) {
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred during location retrieval");
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: An unexpected error occurred during location retrieval");
     }
   }
 
@@ -522,25 +527,27 @@ public class UserController {
           description = "Location retrieved successfully",
           content = @Content(
               mediaType = "application/json",
-              schema = @Schema(implementation = UserPositionUpdate.class))
+              array = @ArraySchema(
+                  schema = @Schema(implementation = UserPositionResponse.class))
+              )
       ),
       @ApiResponse(
           responseCode = "400",
-          description = "Invalid household ID",
+          description = "Error: Invalid household ID",
           content = @Content(
               mediaType = "application/json",
               schema = @Schema(example = "Invalid household ID"))
       ),
       @ApiResponse(
           responseCode = "401",
-          description = "Unauthorized - Invalid token",
+          description = "Error: Unauthorized - Invalid token",
           content = @Content(
               mediaType = "application/json",
               schema = @Schema(example = "Unauthorized - Invalid token"))
       ),
       @ApiResponse(
           responseCode = "500",
-          description = "Internal server error",
+          description = "Error: Internal server error",
           content = @Content(
               mediaType = "application/json",
               schema = @Schema(example = "An unexpected error occurred during location retrieval"))
@@ -555,12 +562,12 @@ public class UserController {
       if (user != null) {
         return ResponseEntity.ok(householdService.getUserPositions(user));
       } else {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized - Invalid token");
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Error: Unauthorized - Invalid token");
       }
     } catch (IllegalArgumentException e) {
-      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid household ID");
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: Invalid household ID");
     } catch (Exception e) {
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred during location retrieval");
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: An unexpected error occurred during location retrieval");
     }
   }
 

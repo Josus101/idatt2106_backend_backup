@@ -99,7 +99,7 @@ class UserControllerTest {
     ResponseEntity<String> response = userController.registerUser(invalidUser);
 
     assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-    assertEquals("Email already in use", response.getBody());
+    assertEquals("Error: Email already in use", response.getBody());
   }
 
   @Test
@@ -112,7 +112,7 @@ class UserControllerTest {
     ResponseEntity<String> response = userController.registerUser(invalidUser);
 
     assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-    assertEquals("Email already in use", response.getBody());
+    assertEquals("Error: Email already in use", response.getBody());
   }
 
   @Test
@@ -140,7 +140,7 @@ class UserControllerTest {
     ResponseEntity<?> response = userController.login(loginDTO);
 
     assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-    assertEquals("Invalid user data", response.getBody());
+    assertEquals("Error: Invalid user data", response.getBody());
   }
 
   @Test
@@ -154,7 +154,7 @@ class UserControllerTest {
     ResponseEntity<?> response = userController.login(loginDTO);
 
     assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-    assertEquals("No user found with given email and password", response.getBody());
+    assertEquals("Error: No user found with given email and password", response.getBody());
   }
 
   @Test
@@ -179,7 +179,7 @@ class UserControllerTest {
 
     ResponseEntity<?> response = userController.login(incompleteLoginDTO);
     assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-    assertEquals("Invalid user data", response.getBody());
+    assertEquals("Error: Invalid user data", response.getBody());
   }
 
   @Test
@@ -238,7 +238,7 @@ class UserControllerTest {
     ResponseEntity<String> response = userController.resetPassword(token, password);
 
     assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-    assertEquals("User not found with given token", response.getBody());
+    assertEquals("Error: User not found with given token", response.getBody());
   }
 
   @Test
@@ -254,7 +254,7 @@ class UserControllerTest {
     ResponseEntity<String> response = userController.resetPassword(token, password);
 
     assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-    assertEquals("Invalid password", response.getBody());
+    assertEquals("Error: Invalid password", response.getBody());
   }
 
   @Test
@@ -280,7 +280,7 @@ class UserControllerTest {
     ResponseEntity<String> response = userController.verifyEmail(token);
 
     assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-    assertEquals("User not found with given token", response.getBody());
+    assertEquals("Error: User not found with given token", response.getBody());
   }
 
   @Test
@@ -294,7 +294,7 @@ class UserControllerTest {
     ResponseEntity<String> response = userController.verifyEmail(token);
 
     assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-    assertEquals("Invalid token", response.getBody());
+    assertEquals("Error: Invalid token", response.getBody());
   }
 
   @Test
@@ -333,7 +333,7 @@ class UserControllerTest {
     ResponseEntity<?> response = userController.isAuth("Bearer " + token);
 
     assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-    assertEquals("Unexpected error", response.getBody());
+    assertEquals("Error: Unexpected error", response.getBody());
   }
 
   @Test
@@ -347,7 +347,7 @@ class UserControllerTest {
     ResponseEntity<String> response = userController.verifyEmail(token);
 
     assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-    assertEquals("Token expired", response.getBody());
+    assertEquals("Error: Token expired", response.getBody());
   }
 
   @Test
@@ -361,7 +361,7 @@ class UserControllerTest {
     ResponseEntity<String> response = userController.verifyEmail(token);
 
     assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-    assertEquals("An error occurred during email verification", response.getBody());
+    assertEquals("Error: An error occurred during email verification", response.getBody());
   }
   @Test
   @DisplayName("Should return 200 OK when location update is successful")
@@ -389,7 +389,7 @@ class UserControllerTest {
     ResponseEntity<String> response = userController.updateLocation(positionUpdate, token);
 
     assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
-    assertEquals("Unauthorized - Invalid token", response.getBody());
+    assertEquals("Error: Unauthorized - Invalid token", response.getBody());
   }
 
   @Test
@@ -404,7 +404,7 @@ class UserControllerTest {
     ResponseEntity<String> response = userController.updateLocation(positionUpdate, token);
 
     assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-    assertEquals("Invalid location data", response.getBody());
+    assertEquals("Error: Invalid location data", response.getBody());
   }
 
   @Test
@@ -418,7 +418,7 @@ class UserControllerTest {
     ResponseEntity<String> response = userController.updateLocation(positionUpdate, token);
 
     assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-    assertEquals("An unexpected error occurred during location update", response.getBody());
+    assertEquals("Error: An unexpected error occurred during location update", response.getBody());
   }
 
   @Test
@@ -446,7 +446,7 @@ class UserControllerTest {
     ResponseEntity<?> response = userController.getPositionsFromHousehold(1, token);
 
     assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
-    assertEquals("Unauthorized - Invalid token", response.getBody());
+    assertEquals("Error: Unauthorized - Invalid token", response.getBody());
   }
 
   @Test
@@ -459,7 +459,7 @@ class UserControllerTest {
     ResponseEntity<?> response = userController.getPositionsFromHousehold(1, token);
 
     assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-    assertEquals("Invalid household ID", response.getBody());
+    assertEquals("Error: Invalid household ID", response.getBody());
   }
 
   @Test
@@ -472,7 +472,7 @@ class UserControllerTest {
     ResponseEntity<?> response = userController.getPositionsFromHousehold(1, token);
 
     assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-    assertEquals("An unexpected error occurred during location retrieval", response.getBody());
+    assertEquals("Error: An unexpected error occurred during location retrieval", response.getBody());
   }
 
   @Test
@@ -500,7 +500,7 @@ class UserControllerTest {
     ResponseEntity<?> response = userController.getPositionsFromHousehold(token);
 
     assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
-    assertEquals("Unauthorized - Invalid token", response.getBody());
+    assertEquals("Error: Unauthorized - Invalid token", response.getBody());
   }
 
   @Test
@@ -513,7 +513,7 @@ class UserControllerTest {
     ResponseEntity<?> response = userController.getPositionsFromHousehold(token);
 
     assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-    assertEquals("Invalid household ID", response.getBody());
+    assertEquals("Error: Invalid household ID", response.getBody());
   }
 
   @Test
@@ -526,7 +526,7 @@ class UserControllerTest {
     ResponseEntity<?> response = userController.getPositionsFromHousehold(token);
 
     assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-    assertEquals("An unexpected error occurred during location retrieval", response.getBody());
+    assertEquals("Error: An unexpected error occurred during location retrieval", response.getBody());
   }
 
 
