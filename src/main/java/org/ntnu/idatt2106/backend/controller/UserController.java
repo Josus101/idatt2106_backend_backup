@@ -237,7 +237,7 @@ public class UserController {
   {
     try {
       String token = authorizationHeader.substring(7);
-      jwtToken.validateJwtToken(token);
+      jwtToken.validateJwtToken(token, false);
       return ResponseEntity.ok(true);
     } catch (IllegalArgumentException | TokenExpiredException e) {
       return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(false);

@@ -245,7 +245,7 @@ public class LoginServiceTest {
   @Test
   @DisplayName("Should throw TokenExpiredException when token is expired")
   void testValidateTokenExpired() {
-    doThrow(new TokenExpiredException("Token expired")).when(jwt).validateJwtToken("expiredToken");
+    doThrow(new TokenExpiredException("Token expired")).when(jwt).validateJwtToken("expiredToken", false);
 
     assertThrows(TokenExpiredException.class, () -> loginService.validateTokenAndGetUser("expiredToken"));
   }
@@ -253,7 +253,7 @@ public class LoginServiceTest {
   @Test
   @DisplayName("Should throw IllegalArgumentException when token is invalid")
   void testValidateTokenInvalid() {
-    doThrow(new IllegalArgumentException("Invalid")).when(jwt).validateJwtToken("invalid");
+    doThrow(new IllegalArgumentException("Invalid")).when(jwt).validateJwtToken("invalid", false);
 
     assertThrows(IllegalArgumentException.class, () -> loginService.validateTokenAndGetUser("invalid"));
   }
@@ -262,7 +262,7 @@ public class LoginServiceTest {
   @DisplayName("Test validateTokenAndGetUser throws IllegalArgumentException on generic error")
   void testValidateTokenError() {
     doThrow(new RuntimeException("Error"))
-            .when(jwt).validateJwtToken("errorToken");
+            .when(jwt).validateJwtToken("errorToken", false);
 
     IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
             loginService.validateTokenAndGetUser("errorToken")

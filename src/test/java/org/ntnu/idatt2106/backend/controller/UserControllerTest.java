@@ -314,7 +314,7 @@ class UserControllerTest {
     String token = "invalid-token";
 
     doThrow(new IllegalArgumentException("Token is invalid")).when(jwtToken)
-        .validateJwtToken(token);
+        .validateJwtToken(token, false);
 
     ResponseEntity<?> response = userController.isAuth("Bearer " + token);
 
@@ -328,7 +328,7 @@ class UserControllerTest {
     String token = "invalid-token";
 
     doThrow(new RuntimeException("Unexpected error")).when(jwtToken)
-        .validateJwtToken(token);
+        .validateJwtToken(token, false);
 
     ResponseEntity<?> response = userController.isAuth("Bearer " + token);
 
