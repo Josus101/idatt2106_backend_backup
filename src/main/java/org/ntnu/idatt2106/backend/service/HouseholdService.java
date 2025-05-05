@@ -403,6 +403,7 @@ public class HouseholdService {
           member.getUser().getId(),
           member.getUser().toString()
       );
+      userPositions.add(userPosition);
     }
     return userPositions;
   }
