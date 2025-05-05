@@ -1,4 +1,4 @@
-package org.ntnu.idatt2106.backend.dto.emergencyZones;
+package org.ntnu.idatt2106.backend.dto.map.zones;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
@@ -26,7 +26,7 @@ public class EmergencyZoneDescDTO {
       example = "A crash site from a plane accident in the area")
   private String description;
 
-  @Schema(description = "The address of the emergency zone, based on the coordinates of the centered point",
+  @Schema(description = "Address of the emergency zone, based on the coordinates of the centered point",
       example = "Bergen, Norway")
   private String address;
 }

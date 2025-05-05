@@ -1,17 +1,19 @@
-package org.ntnu.idatt2106.backend.dto.emergencyZones;
+package org.ntnu.idatt2106.backend.dto.map.zones;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.ntnu.idatt2106.backend.dto.map.CoordinatesDTO;
+
 import java.util.List;
 
 
 /**
- * Data transfer object for emergency zones with full details.
+ * Data transfer object for creating an emergency zone.
  * This class is used to transfer emergency zone data between the client and server.
- * It includes fields for the id, name, description, coordinates, type, and severity level of the emergency zone.
+ * It includes fields for the name, description, coordinates, type, and severity level of the emergency zone.
  *
  */
 @Getter
@@ -19,10 +21,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Schema(description = "Data transfer object for creating an emergency zone")
-public class EmergencyZoneFullDTO {
-  @Schema(description = "ID of the emergency zone", example = "12345")
-  private String id;
-
+public class EmergencyZoneCreateDTO {
   @Schema(description = "Name of the emergency zone", example = "Crash site")
   private String name;
 
@@ -30,11 +29,12 @@ public class EmergencyZoneFullDTO {
       example = "A crash site from a plane accident in the area")
   private String description;
 
-  @Schema(description = "Latitude of the center of the emergency zone", example = "60.39299")
-  private double centeredLatitude;
+  @Schema(description = "Address of the emergency zone", example = "Bergen, Norway")
+  private String address;
 
-  @Schema(description = "Longitude of the center of the emergency zone", example = "5.32415")
-  private double centeredLongitude;
+  @Schema(description = "Coordinates of the center of the emergency zone",
+      example = "[60.39299, 5.32415]")
+  private CoordinatesDTO coordinates;
 
   @Schema(description = "Type of the emergency zone", example = "Fire, Flood, Power outage, etc.")
   private String type;
@@ -45,5 +45,5 @@ public class EmergencyZoneFullDTO {
 
   @Schema(description = "Coordinates of the border of the emergency zone",
       example = "[[60.39299, 5.32415], [60.39299, 5.32415], [60.39299, 5.32415]]")
-  private List<List<Double>> borderCoordinates;
+  private List<CoordinatesDTO> borderCoordinates;
 }
