@@ -1,10 +1,16 @@
 package org.ntnu.idatt2106.backend.model;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import jakarta.persistence.*;
+import java.util.TimeZone;
 import lombok.Getter;
 import lombok.Setter;
+import org.ntnu.idatt2106.backend.dto.user.UserPositionUpdate;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 /**
  * User model for the database
@@ -41,6 +47,9 @@ public class User {
 
   @Column
   private double longitude;
+
+  @Column
+  private Date positionUpdateTime = new Date();
 
   @Column()
   private boolean verified;
@@ -124,4 +133,29 @@ public class User {
     return firstname + " " + lastname;
   }
 
+  /**
+   * Set the position of the user
+   * @param positionUpdate the new position of the user
+   */
+  public void setPosition(UserPositionUpdate positionUpdate) {
+    double latitude = positionUpdate.getLatitude();
+    double longitude = positionUpdate.getLongitude();
+    if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
+      throw new IllegalArgumentException("Invalid latitude or longitude");
+    }
+    this.setLongitude(longitude);
+    this.setLatitude(latitude);
+    this.setPositionUpdateTime(new Date(System.currentTimeMillis()));
+  }
+
+  /**
+   * Get formatted time of last position update
+   *
+   * @return formatted time of last position update
+   */
+  public String getFormattedPositionUpdateTime() {
+    SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm");
+    formatter.setTimeZone(TimeZone.getTimeZone("Europe/Oslo"));
+    return formatter.format(positionUpdateTime);
+  }
 }
