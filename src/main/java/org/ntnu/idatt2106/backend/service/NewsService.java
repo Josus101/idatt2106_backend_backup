@@ -135,7 +135,7 @@ public class NewsService {
             .collect(Collectors.groupingBy(NewsGetResponse::getCaseId))
             .values().stream()
             .map(list -> list.stream()
-                    .sorted(Comparator.comparing(NewsGetResponse::getDate).reversed())
+                    .sorted(Comparator.comparing(NewsGetResponse::getDate))
                     .collect(Collectors.toList()))
             .collect(Collectors.toList());
   }
