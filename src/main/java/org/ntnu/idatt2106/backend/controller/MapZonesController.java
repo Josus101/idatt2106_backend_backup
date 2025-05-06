@@ -8,9 +8,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.ntnu.idatt2106.backend.dto.map.CoordinatesDTO;
-import org.ntnu.idatt2106.backend.dto.map.zones.EmergencyZoneCreateDTO;
-import org.ntnu.idatt2106.backend.dto.map.zones.EmergencyZoneDescDTO;
-import org.ntnu.idatt2106.backend.dto.map.zones.EmergencyZoneFullDTO;
+import org.ntnu.idatt2106.backend.dto.map.zones.MapZoneCreateDTO;
+import org.ntnu.idatt2106.backend.dto.map.zones.MapZoneDescDTO;
+import org.ntnu.idatt2106.backend.dto.map.zones.MapZoneFullDTO;
 import org.ntnu.idatt2106.backend.service.MapZonesService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -49,7 +49,7 @@ public class MapZonesController {
           description = "Emergency zones retrieved successfully.",
           content = @Content(
               mediaType = "application/json",
-              schema = @Schema(implementation = EmergencyZoneFullDTO.class)
+              schema = @Schema(implementation = MapZoneFullDTO.class)
           )
       ),
       @ApiResponse(
@@ -62,7 +62,7 @@ public class MapZonesController {
       )
   })
   public ResponseEntity<?> getEmergencyZones() {
-    List<EmergencyZoneFullDTO> emergencyZones = mapZonesService.getAllEmergencyZones();
+    List<MapZoneFullDTO> emergencyZones = mapZonesService.getAllEmergencyZones();
     if (emergencyZones.isEmpty()) {
       return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: No emergency zones found.");
     }
@@ -87,7 +87,7 @@ public class MapZonesController {
           description = "Emergency zones retrieved successfully.",
           content = @Content(
               mediaType = "application/json",
-              schema = @Schema(implementation = EmergencyZoneFullDTO.class)
+              schema = @Schema(implementation = MapZoneFullDTO.class)
           )
       ),
       @ApiResponse(
@@ -110,7 +110,7 @@ public class MapZonesController {
           example = "[1, 2, 3]",
           required = true
       ) @PathVariable Long[] excludedZoneIds) {
-    List<EmergencyZoneFullDTO> emergencyZones = mapZonesService
+    List<MapZoneFullDTO> emergencyZones = mapZonesService
         .getEmergencyZonesInMapArea(mapArea, excludedZoneIds);
     if (emergencyZones.isEmpty()) {
       return ResponseEntity.status(HttpStatus.NOT_FOUND)
@@ -137,7 +137,7 @@ public class MapZonesController {
           description = "Emergency zone retrieved successfully.",
           content = @Content(
               mediaType = "application/json",
-              schema = @Schema(implementation = EmergencyZoneFullDTO.class)
+              schema = @Schema(implementation = MapZoneFullDTO.class)
           )
       ),
       @ApiResponse(
@@ -156,7 +156,7 @@ public class MapZonesController {
           required = true
       ) @PathVariable Long zoneId) {
     try {
-      EmergencyZoneFullDTO emergencyZone = mapZonesService.getEmergencyZoneById(zoneId);
+      MapZoneFullDTO emergencyZone = mapZonesService.getEmergencyZoneById(zoneId);
       return ResponseEntity.ok(emergencyZone);
     } catch (Exception e) {
       return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: Emergency zone not found." + e.getMessage());
@@ -180,7 +180,7 @@ public class MapZonesController {
           description = "Emergency zone description retrieved successfully.",
           content = @Content(
               mediaType = "application/json",
-              schema = @Schema(implementation = EmergencyZoneDescDTO.class)
+              schema = @Schema(implementation = MapZoneDescDTO.class)
           )
       ),
       @ApiResponse(
@@ -199,7 +199,7 @@ public class MapZonesController {
           required = true
       ) @PathVariable Long zoneId) {
     try {
-      EmergencyZoneDescDTO emergencyZoneDesc = mapZonesService.getEmergencyZoneDescById(zoneId);
+      MapZoneDescDTO emergencyZoneDesc = mapZonesService.getEmergencyZoneDescById(zoneId);
       return ResponseEntity.ok(emergencyZoneDesc);
     } catch (Exception e) {
       return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: Emergency zone not found." + e.getMessage());
@@ -208,7 +208,7 @@ public class MapZonesController {
 
 
   @PostMapping("/zone/create/")
-  public ResponseEntity<?> createZone(@RequestBody EmergencyZoneCreateDTO zone) {
+  public ResponseEntity<?> createZone(@RequestBody MapZoneCreateDTO zone) {
     try {
       Long zoneId = mapZonesService.createZone(zone);
       return ResponseEntity.status(HttpStatus.CREATED).body(zoneId);
@@ -218,7 +218,7 @@ public class MapZonesController {
   }
 
   @PutMapping("/zone/update/{zoneId}")
-  public ResponseEntity<?> updateZone(@PathVariable Long zoneId, @RequestBody EmergencyZoneCreateDTO zone) {
+  public ResponseEntity<?> updateZone(@PathVariable Long zoneId, @RequestBody MapZoneCreateDTO zone) {
     try {
       mapZonesService.updateZone(zoneId, zone);
       return ResponseEntity.ok("Zone updated successfully.");

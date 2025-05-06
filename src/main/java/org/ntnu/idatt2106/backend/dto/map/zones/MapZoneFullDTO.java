@@ -21,7 +21,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Schema(description = "Data transfer object for creating an emergency zone")
-public class EmergencyZoneFullDTO {
+public class MapZoneFullDTO {
   @Schema(description = "ID of the emergency zone", example = "12345")
   private Long id;
 

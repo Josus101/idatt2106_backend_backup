@@ -18,7 +18,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 @Schema(description = "Data transfer object for emergency zone descriptions")
-public class EmergencyZoneDescDTO {
+public class MapZoneDescDTO {
   @Schema(description = "Name of the emergency zone", example = "Crash site")
   private String name;
 

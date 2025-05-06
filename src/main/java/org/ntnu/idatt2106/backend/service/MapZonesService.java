@@ -1,9 +1,9 @@
 package org.ntnu.idatt2106.backend.service;
 
 import org.ntnu.idatt2106.backend.dto.map.CoordinatesDTO;
-import org.ntnu.idatt2106.backend.dto.map.zones.EmergencyZoneCreateDTO;
-import org.ntnu.idatt2106.backend.dto.map.zones.EmergencyZoneDescDTO;
-import org.ntnu.idatt2106.backend.dto.map.zones.EmergencyZoneFullDTO;
+import org.ntnu.idatt2106.backend.dto.map.zones.MapZoneCreateDTO;
+import org.ntnu.idatt2106.backend.dto.map.zones.MapZoneDescDTO;
+import org.ntnu.idatt2106.backend.dto.map.zones.MapZoneFullDTO;
 import org.ntnu.idatt2106.backend.model.map.Coordinate;
 import org.ntnu.idatt2106.backend.model.map.CoordinatePolygon;
 import org.ntnu.idatt2106.backend.model.map.CoordinateRing;
@@ -24,10 +24,10 @@ public class MapZonesService {
   @Autowired
   private MapZoneRepo mapZoneRepo;
 
-  public List<EmergencyZoneFullDTO> getAllEmergencyZones() {
+  public List<MapZoneFullDTO> getAllEmergencyZones() {
     return mapZoneRepo.findAll()
       .stream()
-      .map(zone -> new EmergencyZoneFullDTO(
+      .map(zone -> new MapZoneFullDTO(
         zone.getId(),
         zone.getName(),
         zone.getDescription(),
@@ -60,7 +60,7 @@ public class MapZonesService {
       .toList();
   }
 
-  public List<EmergencyZoneFullDTO> getEmergencyZonesInMapArea(List<CoordinatesDTO> coordinates, Long[] zoneIds) {
+  public List<MapZoneFullDTO> getEmergencyZonesInMapArea(List<CoordinatesDTO> coordinates, Long[] zoneIds) {
     double minLat = coordinates.stream().mapToDouble(CoordinatesDTO::getLatitude).min().orElseThrow(NumberFormatException::new);
     double maxLat = coordinates.stream().mapToDouble(CoordinatesDTO::getLatitude).max().orElseThrow(NumberFormatException::new);
     double minLng = coordinates.stream().mapToDouble(CoordinatesDTO::getLongitude).min().orElseThrow(NumberFormatException::new);
@@ -76,7 +76,7 @@ public class MapZonesService {
         double lng = zone.getCoordinatePoint().getLongitude();
         return lat >= minLat && lat <= maxLat && lng >= minLng && lng <= maxLng;
       })
-      .map(zone -> new EmergencyZoneFullDTO(
+      .map(zone -> new MapZoneFullDTO(
         zone.getId(),
         zone.getName(),
         zone.getDescription(),
@@ -109,9 +109,9 @@ public class MapZonesService {
       .toList();
   }
 
-  public EmergencyZoneFullDTO getEmergencyZoneById(Long id) {
+  public MapZoneFullDTO getEmergencyZoneById(Long id) {
     return mapZoneRepo.findById(id)
-      .map(zone -> new EmergencyZoneFullDTO(
+      .map(zone -> new MapZoneFullDTO(
         zone.getId(),
         zone.getName(),
         zone.getDescription(),
@@ -144,29 +144,29 @@ public class MapZonesService {
       .orElse(null);
   }
 
-  public EmergencyZoneDescDTO getEmergencyZoneDescById(Long id) {
+  public MapZoneDescDTO getEmergencyZoneDescById(Long id) {
     return mapZoneRepo.findById(id)
-      .map(zone -> new EmergencyZoneDescDTO(
+      .map(zone -> new MapZoneDescDTO(
         zone.getName(),
         zone.getDescription(),
         zone.getAddress()))
       .orElse(null);
   }
 
-  public Long createZone(EmergencyZoneCreateDTO emergencyZoneCreateDTO) {
+  public Long createZone(MapZoneCreateDTO mapZoneCreateDTO) {
     // Creating a zone
     MapZone mapZone = new MapZone(
-      emergencyZoneCreateDTO.getName(),
-      emergencyZoneCreateDTO.getDescription(),
-      emergencyZoneCreateDTO.getAddress(),
+      mapZoneCreateDTO.getName(),
+      mapZoneCreateDTO.getDescription(),
+      mapZoneCreateDTO.getAddress(),
       new Coordinate(
-        emergencyZoneCreateDTO.getCoordinates().getLatitude(),
-        emergencyZoneCreateDTO.getCoordinates().getLongitude()),
-      emergencyZoneCreateDTO.getType(),
-      emergencyZoneCreateDTO.getSeverityLevel());
+        mapZoneCreateDTO.getCoordinates().getLatitude(),
+        mapZoneCreateDTO.getCoordinates().getLongitude()),
+      mapZoneCreateDTO.getType(),
+      mapZoneCreateDTO.getSeverityLevel());
 
     // Creating polygons
-    List<CoordinatePolygon> polygons = emergencyZoneCreateDTO.getPolygonCoordinates().stream()
+    List<CoordinatePolygon> polygons = mapZoneCreateDTO.getPolygonCoordinates().stream()
       .map(polygon -> {
         CoordinateRing outerRing = new CoordinateRing(
           polygon.getFirst().stream()
@@ -193,24 +193,24 @@ public class MapZonesService {
     return mapZoneRepo.save(mapZone).getId();
   }
 
-  public void updateZone(Long zoneId, EmergencyZoneCreateDTO emergencyZoneCreateDTO) {
+  public void updateZone(Long zoneId, MapZoneCreateDTO mapZoneCreateDTO) {
     // Find existing zone
     MapZone mapZone = mapZoneRepo.findById(zoneId)
       .orElseThrow(() -> new IllegalArgumentException("Zone ("+ zoneId +") not found"));
 
     // Update zone properties
-    mapZone.setName(emergencyZoneCreateDTO.getName());
-    mapZone.setDescription(emergencyZoneCreateDTO.getDescription());
-    mapZone.setAddress(emergencyZoneCreateDTO.getAddress());
-    mapZone.setType(emergencyZoneCreateDTO.getType());
-    mapZone.setSeverityLevel(emergencyZoneCreateDTO.getSeverityLevel());
+    mapZone.setName(mapZoneCreateDTO.getName());
+    mapZone.setDescription(mapZoneCreateDTO.getDescription());
+    mapZone.setAddress(mapZoneCreateDTO.getAddress());
+    mapZone.setType(mapZoneCreateDTO.getType());
+    mapZone.setSeverityLevel(mapZoneCreateDTO.getSeverityLevel());
     mapZone.setCoordinatePoint(new Coordinate(
-      emergencyZoneCreateDTO.getCoordinates().getLatitude(),
-      emergencyZoneCreateDTO.getCoordinates().getLongitude()));
+      mapZoneCreateDTO.getCoordinates().getLatitude(),
+      mapZoneCreateDTO.getCoordinates().getLongitude()));
 
     // Update polygons
     mapZone.getPolygons().clear();
-    List<CoordinatePolygon> polygons = emergencyZoneCreateDTO.getPolygonCoordinates().stream()
+    List<CoordinatePolygon> polygons = mapZoneCreateDTO.getPolygonCoordinates().stream()
         .map(polygon -> {
           CoordinateRing outerRing = new CoordinateRing(
               polygon.get(0).stream()

@@ -7,99 +7,71 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.ntnu.idatt2106.backend.dto.map.CoordinatesDTO;
-import org.ntnu.idatt2106.backend.dto.map.zones.EmergencyZoneFullDTO;
+import org.ntnu.idatt2106.backend.dto.map.zones.MapZoneCreateDTO;
+import org.ntnu.idatt2106.backend.dto.map.zones.MapZoneDescDTO;
+import org.ntnu.idatt2106.backend.dto.map.zones.MapZoneFullDTO;
 import org.ntnu.idatt2106.backend.service.MapZonesService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
-/**
- * Unit tests for the MapZonesController class.
- */
-public class MapZonesControllerTest {
+class MapZonesControllerTest {
 
   @InjectMocks
   private MapZonesController mapZonesController;
 
   @Mock
-  MapZonesService mapZonesService;
+  private MapZonesService mapZonesService;
 
-  private List<EmergencyZoneFullDTO> mockedMapZones;
-
-  private List<List<CoordinatesDTO>> mockedPolygonJustOuterRing = List.of(
-      List.of(
-          new CoordinatesDTO(63.424494, 10.439154),
-          new CoordinatesDTO(63.424694, 10.448154),
-          new CoordinatesDTO(63.404494, 10.449154),
-          new CoordinatesDTO(63.394494, 10.439154),
-          new CoordinatesDTO(63.414494, 10.440154),
-          new CoordinatesDTO(63.413494, 10.442154)
-      )
-  );
-  private List<List<CoordinatesDTO>> mockedPolygonWithInnerRing = List.of(
-      List.of(
-          new CoordinatesDTO(63.424494, 10.439154),
-          new CoordinatesDTO(63.424694, 10.448154),
-          new CoordinatesDTO(63.404494, 10.449154),
-          new CoordinatesDTO(63.394494, 10.439154),
-          new CoordinatesDTO(63.414494, 10.440154),
-          new CoordinatesDTO(63.413494, 10.442154)
-      ),
-      List.of(
-          new CoordinatesDTO(63.414494, 10.440154),
-          new CoordinatesDTO(63.414994, 10.444154),
-          new CoordinatesDTO(63.410494, 10.444154),
-          new CoordinatesDTO(63.410494, 10.440154)
-      )
-  );
+  private List<MapZoneFullDTO> mockedMapZones;
+  private MapZoneFullDTO zone1;
+  private MapZoneFullDTO zone2;
 
   @BeforeEach
   void setUp() {
     MockitoAnnotations.openMocks(this);
-    MockMvcBuilders.standaloneSetup(mapZonesController).build();
 
-    EmergencyZoneFullDTO zone1 = new EmergencyZoneFullDTO(
+    List<List<CoordinatesDTO>> mockedPolygon = List.of(
+        List.of(
+            new CoordinatesDTO(63.424494, 10.439154),
+            new CoordinatesDTO(63.424694, 10.448154),
+            new CoordinatesDTO(63.404494, 10.449154),
+            new CoordinatesDTO(63.394494, 10.439154)
+        )
+    );
+
+    zone1 = new MapZoneFullDTO(
         1L,
         "Test Zone 1",
-        "This is a description for test zone 1",
-        "Address for zone 1",
+        "Description for Zone 1",
+        "Address 1",
         new CoordinatesDTO(63.424494, 10.439154),
         "Flood",
         2,
-        List.of(mockedPolygonJustOuterRing)
+        List.of(mockedPolygon)
     );
-    EmergencyZoneFullDTO zone2 = new EmergencyZoneFullDTO(
+
+    zone2 = new MapZoneFullDTO(
         2L,
         "Test Zone 2",
-        "This is a description for test zone 2",
-        "Address for zone 2",
+        "Description for Zone 2",
+        "Address 2",
         new CoordinatesDTO(63.424693, 10.448153),
         "Fire",
         3,
-        List.of(mockedPolygonWithInnerRing)
+        List.of(mockedPolygon)
     );
-    EmergencyZoneFullDTO zone3 = new EmergencyZoneFullDTO(
-        3L,
-        "Test Zone 3",
-        "This is a description for test zone 3",
-        "Address for zone 3",
-        new CoordinatesDTO(63.404494, 10.449154),
-        "Power Outage",
-        1,
-        List.of(mockedPolygonJustOuterRing, mockedPolygonWithInnerRing)
-    );
-    mockedMapZones = List.of(zone1, zone2, zone3);
+
+    mockedMapZones = List.of(zone1, zone2);
   }
 
   @Test
-  @DisplayName("getAllEmergencyZones method returns success on existing complete zones")
-  void testGetAllEmergencyZones() throws Exception {
+  @DisplayName("getAllEmergencyZones returns success with existing zones")
+  void testGetAllEmergencyZones() {
     when(mapZonesService.getAllEmergencyZones()).thenReturn(mockedMapZones);
 
     ResponseEntity<?> response = mapZonesController.getEmergencyZones();
@@ -107,5 +79,147 @@ public class MapZonesControllerTest {
     assertEquals(HttpStatus.OK, response.getStatusCode());
     assertEquals(mockedMapZones, response.getBody());
     verify(mapZonesService).getAllEmergencyZones();
+  }
+
+  @Test
+  @DisplayName("getAllEmergencyZones returns not found when no zones exist")
+  void testGetAllEmergencyZonesNotFound() {
+    when(mapZonesService.getAllEmergencyZones()).thenReturn(List.of());
+
+    ResponseEntity<?> response = mapZonesController.getEmergencyZones();
+
+    assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    assertEquals("Error: No emergency zones found.", response.getBody());
+  }
+
+  @Test
+  @DisplayName("getZoneById returns success for existing zone")
+  void testGetZoneByIdSuccess() {
+    when(mapZonesService.getEmergencyZoneById(1L)).thenReturn(zone1);
+
+    ResponseEntity<?> response = mapZonesController.getZoneById(1L);
+
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertEquals(zone1, response.getBody());
+  }
+
+  @Test
+  @DisplayName("getZoneById returns not found for non-existing zone")
+  void testGetZoneByIdNotFound() {
+    when(mapZonesService.getEmergencyZoneById(1L)).thenThrow(new RuntimeException("Zone not found"));
+
+    ResponseEntity<?> response = mapZonesController.getZoneById(1L);
+
+    assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    assertEquals("Error: Emergency zone not found.Zone not found", response.getBody());
+  }
+
+  @Test
+  @DisplayName("getZoneDescription returns success for existing zone")
+  void testGetZoneDescriptionSuccess() {
+    MapZoneDescDTO description = new MapZoneDescDTO(
+        "Test Zone 1", "Description for Zone 1", "Address 1");
+    when(mapZonesService.getEmergencyZoneDescById(1L)).thenReturn(description);
+
+    ResponseEntity<?> response = mapZonesController.getZoneDescription(1L);
+
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertEquals(description, response.getBody());
+  }
+
+  @Test
+  @DisplayName("getZoneDescription returns not found for non-existing zone")
+  void testGetZoneDescriptionNotFound() {
+    when(mapZonesService.getEmergencyZoneDescById(1L)).thenThrow(new RuntimeException("Zone not found"));
+
+    ResponseEntity<?> response = mapZonesController.getZoneDescription(1L);
+
+    assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    assertEquals("Error: Emergency zone not found.Zone not found", response.getBody());
+  }
+
+  @Test
+  @DisplayName("createZone returns success for valid input")
+  void testCreateZoneSuccess() {
+    MapZoneCreateDTO newZone = new MapZoneCreateDTO(
+        "New Zone",
+        "Description",
+        "Address",
+        new CoordinatesDTO(63.0, 10.0),
+        "Flood",
+        1,
+        List.of()
+    );
+    when(mapZonesService.createZone(newZone)).thenReturn(1L);
+
+    ResponseEntity<?> response = mapZonesController.createZone(newZone);
+
+    assertEquals(HttpStatus.CREATED, response.getStatusCode());
+    assertEquals(1L, response.getBody());
+  }
+
+  @Test
+  @DisplayName("createZone returns bad request for invalid input")
+  void testCreateZoneBadRequest() {
+    MapZoneCreateDTO newZone = new MapZoneCreateDTO();
+    when(mapZonesService.createZone(newZone)).thenThrow(new RuntimeException("Invalid input"));
+
+    ResponseEntity<?> response = mapZonesController.createZone(newZone);
+
+    assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    assertEquals("Error: Invalid input", response.getBody());
+  }
+
+  @Test
+  @DisplayName("updateZone returns success for valid input")
+  void testUpdateZoneSuccess() {
+    MapZoneCreateDTO updatedZone = new MapZoneCreateDTO(
+        "Updated Zone",
+        "Updated Description",
+        "Updated Address",
+        new CoordinatesDTO(63.0, 10.0),
+        "Fire",
+        2,
+        List.of()
+    );
+
+    ResponseEntity<?> response = mapZonesController.updateZone(1L, updatedZone);
+
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertEquals("Zone updated successfully.", response.getBody());
+    verify(mapZonesService).updateZone(1L, updatedZone);
+  }
+
+  @Test
+  @DisplayName("updateZone returns bad request for invalid input")
+  void testUpdateZoneBadRequest() {
+    MapZoneCreateDTO updatedZone = new MapZoneCreateDTO();
+    doThrow(new RuntimeException("Invalid input")).when(mapZonesService).updateZone(1L, updatedZone);
+
+    ResponseEntity<?> response = mapZonesController.updateZone(1L, updatedZone);
+
+    assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    assertEquals("Error: Invalid input", response.getBody());
+  }
+
+  @Test
+  @DisplayName("deleteZone returns success for valid input")
+  void testDeleteZoneSuccess() {
+    ResponseEntity<?> response = mapZonesController.deleteZone(1L);
+
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertEquals("Zone deleted successfully.", response.getBody());
+    verify(mapZonesService).deleteZone(1L);
+  }
+
+  @Test
+  @DisplayName("deleteZone returns bad request for invalid input")
+  void testDeleteZoneBadRequest() {
+    doThrow(new RuntimeException("Invalid input")).when(mapZonesService).deleteZone(1L);
+
+    ResponseEntity<?> response = mapZonesController.deleteZone(1L);
+
+    assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    assertEquals("Error: Invalid input", response.getBody());
   }
 }
