@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -26,38 +27,39 @@ public class MapZonesService {
 
   public List<MapZoneFullDTO> getAllEmergencyZones() {
     return mapZoneRepo.findAll()
-      .stream()
-      .map(zone -> new MapZoneFullDTO(
-        zone.getId(),
-        zone.getName(),
-        zone.getDescription(),
-        zone.getAddress(),
-        new CoordinatesDTO(
-          zone.getCoordinatePoint().getLatitude(),
-          zone.getCoordinatePoint().getLongitude()),
-        zone.getType(),
-        zone.getSeverityLevel(),
-        zone.getPolygons().stream()
-          .map(polygon -> {
-            List<CoordinatesDTO> outerRing = polygon.getOuterRing().getCoordinates().stream()
-              .map(coordinate -> new CoordinatesDTO(
-                coordinate.getLatitude(),
-                coordinate.getLongitude()))
-              .toList();
+        .stream()
+        .map(zone -> new MapZoneFullDTO(
+            zone.getId(),
+            zone.getName(),
+            zone.getDescription(),
+            zone.getAddress(),
+            new CoordinatesDTO(
+                zone.getCoordinatePoint().getLatitude(),
+                zone.getCoordinatePoint().getLongitude()),
+            zone.getType(),
+            zone.getSeverityLevel(),
+            zone.getPolygons().stream()
+                .map(polygon -> {
+                  List<CoordinatesDTO> outerRing = polygon.getOuterRing().getCoordinates().stream()
+                      .map(coordinate -> new CoordinatesDTO(
+                          coordinate.getLatitude(),
+                          coordinate.getLongitude()))
+                      .toList();
 
-            List<List<CoordinatesDTO>> polygonRings = polygon.getInnerRings().stream()
-              .map(innerRing -> innerRing.getCoordinates().stream()
-                .map(coordinate -> new CoordinatesDTO(
-                  coordinate.getLatitude(),
-                  coordinate.getLongitude()))
-                .toList())
-              .toList();
+                  List<List<CoordinatesDTO>> polygonRings = polygon.getInnerRings().stream()
+                      .map(innerRing -> innerRing.getCoordinates().stream()
+                          .map(coordinate -> new CoordinatesDTO(
+                              coordinate.getLatitude(),
+                              coordinate.getLongitude()))
+                          .toList())
+                      .toList();
 
-            polygonRings.addFirst(outerRing);
-            return polygonRings;
-          })
-          .toList()))
-      .toList();
+                  List<List<CoordinatesDTO>> modifiablePolygonRings = new ArrayList<>(polygonRings);
+                  modifiablePolygonRings.add(0, outerRing);
+                  return modifiablePolygonRings;
+                })
+                .toList()))
+        .toList();
   }
 
   public List<MapZoneFullDTO> getEmergencyZonesInMapArea(List<CoordinatesDTO> coordinates, Long[] zoneIds) {
@@ -111,37 +113,39 @@ public class MapZonesService {
 
   public MapZoneFullDTO getEmergencyZoneById(Long id) {
     return mapZoneRepo.findById(id)
-      .map(zone -> new MapZoneFullDTO(
-        zone.getId(),
-        zone.getName(),
-        zone.getDescription(),
-        zone.getAddress(),
-        new CoordinatesDTO(
-          zone.getCoordinatePoint().getLatitude(),
-          zone.getCoordinatePoint().getLongitude()),
-        zone.getType(),
-        zone.getSeverityLevel(),
-        zone.getPolygons().stream()
-          .map(polygon -> {
-            List<CoordinatesDTO> outerRing = polygon.getOuterRing().getCoordinates().stream()
-              .map(coordinate -> new CoordinatesDTO(
-                coordinate.getLatitude(),
-                coordinate.getLongitude()))
-              .toList();
+        .map(zone -> new MapZoneFullDTO(
+            zone.getId(),
+            zone.getName(),
+            zone.getDescription(),
+            zone.getAddress(),
+            new CoordinatesDTO(
+                zone.getCoordinatePoint().getLatitude(),
+                zone.getCoordinatePoint().getLongitude()),
+            zone.getType(),
+            zone.getSeverityLevel(),
+            zone.getPolygons().stream()
+                .map(polygon -> {
+                  List<CoordinatesDTO> outerRing = polygon.getOuterRing().getCoordinates().stream()
+                      .map(coordinate -> new CoordinatesDTO(
+                          coordinate.getLatitude(),
+                          coordinate.getLongitude()))
+                      .toList();
 
-            List<List<CoordinatesDTO>> polygonRings = polygon.getInnerRings().stream()
-              .map(innerRing -> innerRing.getCoordinates().stream()
-                .map(coordinate -> new CoordinatesDTO(
-                  coordinate.getLatitude(),
-                  coordinate.getLongitude()))
-                .toList())
-              .toList();
+                  List<List<CoordinatesDTO>> polygonRings = polygon.getInnerRings().stream()
+                      .map(innerRing -> innerRing.getCoordinates().stream()
+                          .map(coordinate -> new CoordinatesDTO(
+                              coordinate.getLatitude(),
+                              coordinate.getLongitude()))
+                          .toList())
+                      .toList();
 
-            polygonRings.addFirst(outerRing);
-            return polygonRings;
-          })
-          .toList()))
-      .orElse(null);
+                  // Convert to a modifiable list
+                  List<List<CoordinatesDTO>> modifiablePolygonRings = new ArrayList<>(polygonRings);
+                  modifiablePolygonRings.addFirst(outerRing); // Add the outer ring at the beginning
+                  return modifiablePolygonRings;
+                })
+                .toList()))
+        .orElse(null);
   }
 
   public MapZoneDescDTO getEmergencyZoneDescById(Long id) {
@@ -194,26 +198,22 @@ public class MapZonesService {
   }
 
   public void updateZone(Long zoneId, MapZoneCreateDTO mapZoneCreateDTO) {
-    // Find existing zone
     MapZone mapZone = mapZoneRepo.findById(zoneId)
-      .orElseThrow(() -> new IllegalArgumentException("Zone ("+ zoneId +") not found"));
+        .orElseThrow(() -> new IllegalArgumentException("Zone (" + zoneId + ") not found"));
 
-    // Update zone properties
     mapZone.setName(mapZoneCreateDTO.getName());
     mapZone.setDescription(mapZoneCreateDTO.getDescription());
     mapZone.setAddress(mapZoneCreateDTO.getAddress());
     mapZone.setType(mapZoneCreateDTO.getType());
     mapZone.setSeverityLevel(mapZoneCreateDTO.getSeverityLevel());
     mapZone.setCoordinatePoint(new Coordinate(
-      mapZoneCreateDTO.getCoordinates().getLatitude(),
-      mapZoneCreateDTO.getCoordinates().getLongitude()));
+        mapZoneCreateDTO.getCoordinates().getLatitude(),
+        mapZoneCreateDTO.getCoordinates().getLongitude()));
 
-    // Update polygons
-    mapZone.getPolygons().clear();
     List<CoordinatePolygon> polygons = mapZoneCreateDTO.getPolygonCoordinates().stream()
         .map(polygon -> {
           CoordinateRing outerRing = new CoordinateRing(
-              polygon.get(0).stream()
+              polygon.getFirst().stream()
                   .map(coord -> new Coordinate(coord.getLatitude(), coord.getLongitude()))
                   .toList()
           );
@@ -229,11 +229,9 @@ public class MapZonesService {
         })
         .toList();
 
-    // Link polygons to the zone
     polygons.forEach(polygon -> polygon.setMapZone(mapZone));
     mapZone.setPolygons(polygons);
 
-    // Save the updated zone to the database
     mapZoneRepo.save(mapZone);
   }
 
