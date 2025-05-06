@@ -324,7 +324,7 @@ public class AdminServiceTest {
     when(adminRepo.findById(1)).thenReturn(Optional.of(testAdmin));
     assertFalse(admin.isActive());
 
-    adminService.activateAdmin(admin, "token");
+    adminService.activateAdmin(admin, "damnthispasswordisCOol");
 
     assertTrue(admin.isActive());
     verify(adminRepo).save(admin);

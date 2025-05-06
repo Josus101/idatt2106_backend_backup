@@ -286,6 +286,6 @@ public class AdminService {
       throw new IllegalArgumentException("Admin is already active");
     }
     admin.setActive(true);
-    adminRepo.save(admin);
+    changePassword(admin, newPassword);
   }
 }
