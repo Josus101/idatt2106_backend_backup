@@ -23,7 +23,7 @@ import java.util.List;
 @Schema(description = "Data transfer object for creating an emergency zone")
 public class EmergencyZoneFullDTO {
   @Schema(description = "ID of the emergency zone", example = "12345")
-  private String id;
+  private Long id;
 
   @Schema(description = "Name of the emergency zone", example = "Crash site")
   private String name;
@@ -47,7 +47,10 @@ public class EmergencyZoneFullDTO {
       example = "1, 2, 3")
   private int severityLevel;
 
-  @Schema(description = "Coordinates of the border of the emergency zone",
-      example = "[[60.39299, 5.32415], [60.39299, 5.32415], [60.39299, 5.32415]]")
-  private List<CoordinatesDTO> borderCoordinates;
+  @Schema(description = "Coordinates of the borders of the emergency zone. The inner lists are the coordinates" +
+      " which makes up the rings that then make up the polygon. The outer list is the list of all polygons" +
+      " associated with this zone.",
+      example = "[[[[60.39299, 5.32415], [60.39299, 5.32415], [60.39299, 5.32415]]," +
+          " [[60.39299, 5.32415], [60.39299, 5.32415], [60.39299, 5.32415]]]]")
+  private List<List<List<CoordinatesDTO>>> polygonCoordinates;
 }
