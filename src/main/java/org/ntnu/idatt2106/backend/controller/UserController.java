@@ -21,6 +21,7 @@ import org.ntnu.idatt2106.backend.exceptions.MailSendingFailedException;
 import org.ntnu.idatt2106.backend.exceptions.TokenExpiredException;
 import org.ntnu.idatt2106.backend.exceptions.UserNotFoundException;
 import org.ntnu.idatt2106.backend.model.User;
+import org.ntnu.idatt2106.backend.repo.UserRepo;
 import org.ntnu.idatt2106.backend.security.JWT_token;
 import org.ntnu.idatt2106.backend.service.HouseholdService;
 import org.ntnu.idatt2106.backend.service.LoginService;
@@ -30,6 +31,7 @@ import org.ntnu.idatt2106.backend.service.VerifyEmailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -57,6 +59,9 @@ public class UserController {
 
   @Autowired
   private HouseholdService householdService;
+
+  @Autowired
+  private UserRepo userRepo;
   
   @Autowired
   private JWT_token jwtToken;
@@ -426,7 +431,7 @@ public class UserController {
   public ResponseEntity<String> updateLocation(
       @Parameter(description = "Position of the user", required = true,
           schema = @Schema(implementation = UserPositionUpdate.class))
-      @RequestParam UserPositionUpdate positionUpdate,
+      @RequestBody UserPositionUpdate positionUpdate,
       @Parameter(description = "Authorization header with JWT token", example = "Bearer <token>")
       @RequestHeader("Authorization") String authorizationHeader
   ) {
@@ -435,6 +440,7 @@ public class UserController {
       User user = jwtToken.getUserByToken(token);
       if (user != null) {
         user.setPosition(positionUpdate);
+        userRepo.save(user);
         return ResponseEntity.ok("Location updated successfully");
       } else {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Error: Unauthorized - Invalid token");
