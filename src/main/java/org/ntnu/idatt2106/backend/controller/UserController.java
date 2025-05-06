@@ -10,12 +10,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import java.util.Date;
 import org.ntnu.idatt2106.backend.dto.household.HouseholdCreate;
 import org.ntnu.idatt2106.backend.dto.news.NewsGetResponse;
-import org.ntnu.idatt2106.backend.dto.user.PasswordResetRequest;
-import org.ntnu.idatt2106.backend.dto.user.UserLoginRequest;
-import org.ntnu.idatt2106.backend.dto.user.UserPositionResponse;
-import org.ntnu.idatt2106.backend.dto.user.UserPositionUpdate;
-import org.ntnu.idatt2106.backend.dto.user.UserRegisterRequest;
-import org.ntnu.idatt2106.backend.dto.user.UserTokenResponse;
+import org.ntnu.idatt2106.backend.dto.user.*;
 import org.ntnu.idatt2106.backend.exceptions.AlreadyInUseException;
 import org.ntnu.idatt2106.backend.exceptions.MailSendingFailedException;
 import org.ntnu.idatt2106.backend.exceptions.TokenExpiredException;
@@ -575,6 +570,12 @@ public class UserController {
     } catch (Exception e) {
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: An unexpected error occurred during location retrieval");
     }
+  }
+
+
+  @PutMapping("/update-settings")
+  public ResponseEntity<?> updateSettings(@RequestBody UserStoreSettingsRequest userSettings) {
+    return ResponseEntity.status(HttpStatus.OK).body("Settings updated successfully");
   }
 
 
