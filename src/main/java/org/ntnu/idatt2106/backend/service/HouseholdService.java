@@ -1,12 +1,14 @@
 package org.ntnu.idatt2106.backend.service;
 
 import java.security.SecureRandom;
+import java.text.BreakIterator;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import org.ntnu.idatt2106.backend.dto.household.HouseholdCreate;
+import org.ntnu.idatt2106.backend.dto.household.HouseholdMinimalGetResponse;
 import org.ntnu.idatt2106.backend.dto.household.HouseholdRequest;
 import org.ntnu.idatt2106.backend.dto.user.UserPositionResponse;
 import org.ntnu.idatt2106.backend.exceptions.JoinCodeException;
@@ -111,10 +113,11 @@ public class HouseholdService {
       System.out.println(user + " already in household " + household.getName());
       return;
     }
-    HouseholdMembers householdMembers = new HouseholdMembers(user, household,false);
+    HouseholdMembers householdMembers = new HouseholdMembers(user, household,false, false);
     householdMembersRepo.save(householdMembers);
     user.getHouseholdMemberships().add(householdMembers);
-    household.getMembers().add(householdMembers);  }
+    household.getMembers().add(householdMembers);
+  }
 
   /**
    * Adds a user to a household.
@@ -122,15 +125,16 @@ public class HouseholdService {
    * @param household The household to which the user will be added.
    * @param user The user to be added.
    */
-  public void addUserToHousehold(Household household, User user, boolean isAdmin) {
+  public void addUserToHousehold(Household household, User user, boolean isAdmin, boolean isPrimary) {
     if (householdMembersRepo.existsByUserAndHousehold(user, household)) {
       System.out.println(user + " already in household " + household.getName());
       return;
     }
-    HouseholdMembers householdMembers = new HouseholdMembers(user, household,isAdmin);
+    HouseholdMembers householdMembers = new HouseholdMembers(user, household, isAdmin, isPrimary);
     householdMembersRepo.save(householdMembers);
     user.getHouseholdMemberships().add(householdMembers);
-    household.getMembers().add(householdMembers);  }
+    household.getMembers().add(householdMembers);
+  }
 
   /**
    * Verifies that a user is in the household.
@@ -379,6 +383,61 @@ public class HouseholdService {
     return households;
   }
 
+  /**
+   * Gets the primary household of a user.
+   *
+   * @param user The user whose primary household is to be retrieved.
+   * @return The primary household of the user.
+   * @throws NoSuchElementException if the user has no primary household.
+   */
+  public HouseholdMinimalGetResponse getPrimary(User user) {
+    List<HouseholdMinimalGetResponse> households = householdMembersRepo.findAllByUserAndIsPrimaryIsTrue(user)
+            .stream()
+            .map(
+                    entry -> new HouseholdMinimalGetResponse(
+                            entry.getHousehold().getId(),
+                            entry.getHousehold().getName()
+                    )
+            ).toList();
+
+    if(households.isEmpty()) {
+      throw new NoSuchElementException("User has no primary household");
+    }
+    if (households.size() > 1) {
+      throw new IllegalArgumentException("User has more than one primary household");
+      // TODO:??? Delete the other primary household or make the others not primary?
+    }
+    return households.getFirst();
+  }
+
+  /**
+   * Sets a household as the primary household for a user.
+   *
+   * @param householdId The id of the household to be set as primary.
+   * @param user The user who is setting the primary household.
+   * @throws NoSuchElementException if the household or user is not found.
+   */
+  public void setPrimary(int householdId, User user) {
+    Optional<Household> household = householdRepo.findById(householdId);
+    if (household.isEmpty()) {
+      throw new NoSuchElementException("Household not found");
+    }
+
+    List<HouseholdMembers> memberships = householdMembersRepo.findByUser(user);
+    for (HouseholdMembers membership : memberships) {
+      membership.setPrimary(false);
+      householdMembersRepo.save(membership);
+    }
+
+
+    Optional<HouseholdMembers> membership = householdMembersRepo.findByUserAndHousehold(user, household.get());
+    if (membership.isPresent()) {
+      membership.get().setPrimary(true);
+      householdMembersRepo.save(membership.get());
+    } else {
+      throw new NoSuchElementException("User is not a member of the household");
+    }
+  }
   /**
    * Gets all user positions in a household.
    *

@@ -134,7 +134,7 @@ public class UserTest {
   void testAddHousehold() {
     User user = new User();
     Household household = new Household();
-    HouseholdMembers householdMembership = new HouseholdMembers(user, household, false);
+    HouseholdMembers householdMembership = new HouseholdMembers(user, household, false, false);
     user.getHouseholdMemberships().add(householdMembership);
     assertTrue(user.getHouseholdMemberships().contains(householdMembership));
   }

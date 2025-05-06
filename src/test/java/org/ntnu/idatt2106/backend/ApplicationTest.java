@@ -37,5 +37,6 @@ class ApplicationTest {
     when(newsService.getAllNews()).thenReturn(Collections.emptyList());
 
     Application.main(new String[] {});
+
   }
 }

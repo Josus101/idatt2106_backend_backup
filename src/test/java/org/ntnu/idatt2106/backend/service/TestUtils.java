@@ -1,6 +1,7 @@
 package org.ntnu.idatt2106.backend.service;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 /**
@@ -33,15 +34,18 @@ public class TestUtils {
    * @param methodName  The name of the method to call.
    * @return The result of the method call.
    */
-  public static <T> T callPrivateMethod(Object target, Class<?>[] paramTypes, Object[] args, String methodName) {
+  @SuppressWarnings("unchecked")
+  public static <T> T callPrivateMethod(Object target, Class<?>[] paramTypes, Object[] args, String methodName) throws Exception {
+    Method method = target.getClass().getDeclaredMethod(methodName, paramTypes);
+    method.setAccessible(true);
     try {
-      Method method = target.getClass().getDeclaredMethod(methodName, paramTypes);
-      method.setAccessible(true);
       return (T) method.invoke(target, args);
-    } catch (Exception e) {
-      throw new RuntimeException(e);
+    } catch (InvocationTargetException e) {
+      // Unwrap and re-throw the original exception thrown inside the private method
+      throw (Exception) e.getCause();
     }
   }
+
   /**
    * Calls a private method on the given target object with no parameters.
    *
@@ -49,7 +53,7 @@ public class TestUtils {
    * @param methodName  The name of the method to call.
    * @return The result of the method call.
    */
-  public static <T> T callPrivateMethod(Object target, String methodName, Class<?>[] paramTypes, Object[] args) {
+  public static <T> T callPrivateMethod(Object target, String methodName, Class<?>[] paramTypes, Object[] args) throws Exception {
     return callPrivateMethod(target, paramTypes, args, methodName);
   }
 }

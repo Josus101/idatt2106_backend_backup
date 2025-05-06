@@ -6,7 +6,9 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.ntnu.idatt2106.backend.dto.household.MyHouseholdStatusGetResponse;
 import org.ntnu.idatt2106.backend.dto.household.PreparednessStatus;
+import org.ntnu.idatt2106.backend.exceptions.UserNotFoundException;
 import org.ntnu.idatt2106.backend.model.*;
 import org.ntnu.idatt2106.backend.repo.HouseholdRepo;
 import org.ntnu.idatt2106.backend.repo.UserRepo;
@@ -46,12 +48,12 @@ class PreparednessServiceTest {
         when(userRepo.findById(1)).thenReturn(java.util.Optional.of(user));
 
         // Act
-        List<PreparednessStatus> result = preparednessService.getPreparednessStatusByUserId(1);
+        List<MyHouseholdStatusGetResponse> result = preparednessService.getPreparednessStatusByUserId(1);
 
         // Assert
         assertEquals(1, result.size());
-        assertEquals(0, result.get(0).getDaysOfFood(), 0.01);
-        assertEquals(0, result.get(0).getDaysOfWater(), 0.01);
+        assertEquals(0, result.get(0).getStatus().getDaysOfFood(), 0.01);
+        assertEquals(0, result.get(0).getStatus().getDaysOfWater(), 0.01);
         verify(userRepo).findById(1);
     }
 
@@ -60,7 +62,7 @@ class PreparednessServiceTest {
     void testUserNotFound() {
         when(userRepo.findById(99)).thenReturn(java.util.Optional.empty());
 
-        assertThrows(NoSuchElementException.class, () ->
+        assertThrows(UserNotFoundException.class, () ->
                 preparednessService.getPreparednessStatusByUserId(99)
         );
 
@@ -89,10 +91,10 @@ class PreparednessServiceTest {
         emptyHousehold.setMembers(Collections.emptyList());
         emptyHousehold.setInventory(Collections.emptyList());
 
-        PreparednessStatus status = preparednessService.calculatePreparednessStatus(emptyHousehold);
+        MyHouseholdStatusGetResponse myHouseholdStatusGetResponse = preparednessService.calculatePreparednessStatus(emptyHousehold);
 
-        assertEquals(0, status.getDaysOfFood());
-        assertEquals(0, status.getDaysOfWater());
+        assertEquals(0, myHouseholdStatusGetResponse.getStatus().getDaysOfFood());
+        assertEquals(0, myHouseholdStatusGetResponse.getStatus().getDaysOfWater());
     }
 
     @Test
@@ -139,10 +141,10 @@ class PreparednessServiceTest {
 
         household.setInventory(List.of(expiredWater, invalidFood, validWater, validFood));
 
-        PreparednessStatus status = preparednessService.calculatePreparednessStatus(household);
+        MyHouseholdStatusGetResponse myHouseholdStatusGetResponse = preparednessService.calculatePreparednessStatus(household);
 
-        assertEquals(1, status.getDaysOfFood(), 0.01);
-        assertEquals(2, status.getDaysOfWater(), 0.01); // 6L / (1*3)
+        assertEquals(1, myHouseholdStatusGetResponse.getStatus().getDaysOfFood(), 0.01);
+        assertEquals(2, myHouseholdStatusGetResponse.getStatus().getDaysOfWater(), 0.01); // 6L / (1*3)
     }
 
 

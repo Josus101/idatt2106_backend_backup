@@ -112,7 +112,7 @@ class HouseholdTest {
   @DisplayName("Test constructor throws IllegalArgumentException when member is null")
   void testConstructorThrowsIllegalArgumentExceptionWhenMemberIsNull() {
     assertThrows(IllegalArgumentException.class, () -> {
-      new HouseholdMembers(null, testHousehold, false);
+      new HouseholdMembers(null, testHousehold, false, false);
     });
   }
 
@@ -120,7 +120,7 @@ class HouseholdTest {
   @DisplayName("Test constructor throws IllegalArgumentException when household is null")
   void testConstructorThrowsIllegalArgumentExceptionWhenHouseholdIsNull() {
     assertThrows(IllegalArgumentException.class, () -> {
-      new HouseholdMembers(new User(), null, false);
+      new HouseholdMembers(new User(), null, false, false);
     });
   }
 

@@ -158,4 +158,16 @@ public class User {
     formatter.setTimeZone(TimeZone.getTimeZone("Europe/Oslo"));
     return formatter.format(positionUpdateTime);
   }
+
+  /**
+   * Get the primary household of the user
+   * @return the primary household of the user
+   */
+  public Household getPrimaryHousehold() {
+    return householdMemberships.stream()
+            .filter(HouseholdMembers::isPrimary)
+            .map(HouseholdMembers::getHousehold)
+            .findFirst()
+            .orElse(null);
+  }
 }
