@@ -9,7 +9,7 @@ import lombok.Setter;
  * A response data transfer object for a household status, with id-, name-, and status-of the household
  *
  * @author Jonas Reiher
- * @version 1.0
+ * @version 0.2
  * @since 0.2
  */
 @Schema(description = "Response object for getting the status of a household")
