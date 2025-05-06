@@ -511,4 +511,15 @@ public class HouseholdService {
     }
     return userPositions;
   }
+
+  /**
+   * Verifies if a user is an admin of a household.
+   *
+   * @param userId The id of the user to verify.
+   * @param householdId The id of the household to verify.
+   * @return true if the user is an admin of the household, false otherwise.
+   */
+  public boolean verifyAdmin(int userId, int householdId) {
+    return householdMembersRepo.existsByUserIdAndHouseholdIdAndisAdminIsTrue(userId, householdId);
+  }
 }

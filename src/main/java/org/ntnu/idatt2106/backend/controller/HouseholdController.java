@@ -26,6 +26,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.HttpStatus;
 
+import java.lang.module.ResolvedModule;
 import java.util.List;
 import java.util.NoSuchElementException;
 
@@ -833,6 +834,23 @@ public class HouseholdController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: " + e.getMessage());
         } catch (NoSuchElementException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unexpected error: " + e.getMessage());
+        }
+    }
+
+
+    /**
+     * Endpoint for verifying if a user is an admin of a household.
+     *
+     * @param userId The ID of the user.
+     * @param householdId The ID of the household.
+     * @return ResponseEntity indicating whether the user is an admin of the household.
+     */
+    @GetMapping("/verify/{userId}/isAdmin/{householdId}")
+    public ResponseEntity<?> verifyUserIsAdminOfHousehold(@PathVariable int userId, @PathVariable int householdId) {
+        try {
+            return ResponseEntity.status(HttpStatus.OK).body(householdService.verifyAdmin(userId, householdId));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unexpected error: " + e.getMessage());
         }
