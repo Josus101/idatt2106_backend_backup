@@ -54,4 +54,12 @@ public interface HouseholdMembersRepo extends JpaRepository<HouseholdMembers, In
      */
     List<HouseholdMembers> findAllByUserAndIsPrimaryIsTrue(User user);
 
+
+    /**
+     * Finds all HouseholdMembers by their household.
+     *
+     * @param household The household.
+     * @return An Optional containing a list of HouseholdMembers if found, or empty if not.
+     */
+  List<HouseholdMembers> findAllByHousehold(Household household);
 }

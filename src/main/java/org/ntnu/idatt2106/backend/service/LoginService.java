@@ -188,7 +188,7 @@ public class LoginService {
    */
   public User validateTokenAndGetUser(String token) {
     try {
-      jwt.validateJwtToken(token);
+      jwt.validateJwtToken(token, false);
       return jwt.getUserByToken(token);
     } catch (IllegalArgumentException e) {
       throw new IllegalArgumentException("Invalid token");
