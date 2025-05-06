@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * THis class is used to handle all requests related to emergency zones.
+ * This class is used to handle all requests related to emergency zones.
  * It contains an endpoint for importing emergency zone data.
  *
  * @author André Merkesdal
