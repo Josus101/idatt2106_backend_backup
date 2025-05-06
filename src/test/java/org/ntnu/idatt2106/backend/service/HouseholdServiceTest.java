@@ -206,8 +206,8 @@ class HouseholdServiceTest {
     testHousehold.setMembers(new ArrayList<>());
 
     TestUtils.callPrivateMethod(householdService,
-        new Class[]{Household.class, User.class, boolean.class},
-        new Object[]{testHousehold, testUser, true},
+        new Class[]{Household.class, User.class, boolean.class, boolean.class},
+        new Object[]{testHousehold, testUser, true, false},
         "addUserToHousehold");
 
     assertEquals(1, testUser.getHouseholdMemberships().size());
@@ -251,8 +251,8 @@ class HouseholdServiceTest {
     testHousehold.setMembers(new ArrayList<>());
 
     TestUtils.callPrivateMethod(householdService,
-        new Class[]{Household.class, User.class, boolean.class},
-        new Object[]{testHousehold, testUser, true},
+        new Class[]{Household.class, User.class, boolean.class, boolean.class},
+        new Object[]{testHousehold, testUser, true, false},
         "addUserToHousehold");
 
     assertEquals(1, testHousehold.getMembers().size());
@@ -291,8 +291,8 @@ class HouseholdServiceTest {
     testHousehold.getMembers().add(existingMember);
 
     TestUtils.callPrivateMethod(householdService,
-        new Class[]{Household.class, User.class, boolean.class},
-        new Object[]{testHousehold, testUser, true},
+        new Class[]{Household.class, User.class, boolean.class, boolean.class},
+        new Object[]{testHousehold, testUser, true, false},
         "addUserToHousehold");
 
     verify(userRepo, never()).save(testUser);

@@ -8,6 +8,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.ntnu.idatt2106.backend.dto.household.MyHouseholdStatusGetResponse;
 import org.ntnu.idatt2106.backend.dto.household.PreparednessStatus;
+import org.ntnu.idatt2106.backend.exceptions.UserNotFoundException;
 import org.ntnu.idatt2106.backend.model.*;
 import org.ntnu.idatt2106.backend.repo.HouseholdRepo;
 import org.ntnu.idatt2106.backend.repo.UserRepo;
@@ -61,7 +62,7 @@ class PreparednessServiceTest {
     void testUserNotFound() {
         when(userRepo.findById(99)).thenReturn(java.util.Optional.empty());
 
-        assertThrows(NoSuchElementException.class, () ->
+        assertThrows(UserNotFoundException.class, () ->
                 preparednessService.getPreparednessStatusByUserId(99)
         );
 

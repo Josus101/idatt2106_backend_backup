@@ -101,32 +101,32 @@ class HouseholdControllerTest {
     @DisplayName("Should return essential items status from token")
     void testGetEssentialItemsStatusSuccess() {
         String token = "Bearer real.jwt.token";
-        int userId = 24;
+        int householdId = 1;
 
-        List<List<EssentialItemStatusDTO>> mockItems = List.of(
-                List.of(
-                        new EssentialItemStatusDTO("grill", true),
-                        new EssentialItemStatusDTO("jodtabletter", false)
-                )
+        List<EssentialItemStatusDTO> mockItems = List.of(
+            new EssentialItemStatusDTO("grill", true),
+            new EssentialItemStatusDTO("jodtabletter", false)
         );
 
-        when(jwtTokenService.extractIdFromJwt("real.jwt.token")).thenReturn(String.valueOf(userId));
-        when(essentialItemService.getEssentialItemStatusByUserId(userId)).thenReturn(mockItems);
+        when(jwtTokenService.getUserByToken("real.jwt.token")).thenReturn(new User());
+        when(essentialItemService.getEssentialItemStatus(householdId)).thenReturn(mockItems);
 
-        ResponseEntity<?> response = householdController.getEssentialItemsStatus(token);
+        ResponseEntity<?> response = householdController.getEssentialItemsStatus(token, householdId);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(mockItems, response.getBody());
     }
 
     @Test
-    @DisplayName("Should return 404 if user has no essential items")
+    @DisplayName("Should return 404 if household not found in getEssentialItemsStatus")
     void testGetEssentialItemsStatusNotFound() {
         String token = "Bearer token.test";
-        when(jwtTokenService.extractIdFromJwt("token.test")).thenReturn("88");
-        when(essentialItemService.getEssentialItemStatusByUserId(88)).thenThrow(new NoSuchElementException("Household not found"));
+        int householdId = 1;
 
-        ResponseEntity<?> response = householdController.getEssentialItemsStatus(token);
+        when(jwtTokenService.getUserByToken("token.test")).thenReturn(new User());
+        when(essentialItemService.getEssentialItemStatus(householdId)).thenThrow(new NoSuchElementException("Household not found"));
+
+        ResponseEntity<?> response = householdController.getEssentialItemsStatus(token, householdId);
 
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
         assertEquals("Error: Household not found", response.getBody());
@@ -136,10 +136,13 @@ class HouseholdControllerTest {
     @DisplayName("Should return 500 on essential item service failure")
     void testGetEssentialItemsStatusInternalError() {
         String token = "Bearer abc.123";
-        when(jwtTokenService.extractIdFromJwt("abc.123")).thenReturn("55");
-        when(essentialItemService.getEssentialItemStatusByUserId(55)).thenThrow(new RuntimeException("DB failure"));
 
-        ResponseEntity<?> response = householdController.getEssentialItemsStatus(token);
+        int householdId = 1;
+
+        when(jwtTokenService.getUserByToken("abc.123")).thenReturn(new User());
+        when(essentialItemService.getEssentialItemStatus(householdId)).thenThrow(new RuntimeException("DB failure"));
+
+        ResponseEntity<?> response = householdController.getEssentialItemsStatus(token, householdId);
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
         assertEquals("Unexpected error: DB failure", response.getBody());
