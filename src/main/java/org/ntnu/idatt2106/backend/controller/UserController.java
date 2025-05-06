@@ -7,9 +7,6 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import java.util.Date;
-import org.ntnu.idatt2106.backend.dto.household.HouseholdCreate;
-import org.ntnu.idatt2106.backend.dto.news.NewsGetResponse;
 import org.ntnu.idatt2106.backend.dto.user.PasswordResetRequest;
 import org.ntnu.idatt2106.backend.dto.user.UserLoginRequest;
 import org.ntnu.idatt2106.backend.dto.user.UserPositionResponse;
@@ -25,8 +22,7 @@ import org.ntnu.idatt2106.backend.security.JWT_token;
 import org.ntnu.idatt2106.backend.service.HouseholdService;
 import org.ntnu.idatt2106.backend.service.LoginService;
 import org.ntnu.idatt2106.backend.service.ReCaptchaService;
-import org.ntnu.idatt2106.backend.service.ResetPasswordService;
-import org.ntnu.idatt2106.backend.service.VerifyEmailService;
+import org.ntnu.idatt2106.backend.service.VerificationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -50,10 +46,10 @@ public class UserController {
   ReCaptchaService reCaptchaService;
 
   @Autowired
-  private ResetPasswordService resetPasswordService;
+  private VerificationService resetPasswordService;
 
   @Autowired
-  private VerifyEmailService verifyEmailService;
+  private VerificationService verifyEmailService;
 
   @Autowired
   private HouseholdService householdService;

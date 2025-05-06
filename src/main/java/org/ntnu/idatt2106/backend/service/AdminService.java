@@ -6,12 +6,14 @@ import java.util.Optional;
 import org.ntnu.idatt2106.backend.dto.admin.AdminGetResponse;
 import org.ntnu.idatt2106.backend.exceptions.UnauthorizedException;
 import org.ntnu.idatt2106.backend.exceptions.UserNotFoundException;
+import org.ntnu.idatt2106.backend.exceptions.UserNotVerifiedException;
 import org.ntnu.idatt2106.backend.model.Admin;
 import org.ntnu.idatt2106.backend.repo.AdminRepo;
 import org.ntnu.idatt2106.backend.security.BCryptHasher;
 import org.ntnu.idatt2106.backend.security.JWT_token;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.ntnu.idatt2106.backend.exceptions.MailSendingFailedException;
 
 /**
  * Service class for handling admin-related operations.
@@ -28,6 +30,9 @@ public class AdminService {
   @Autowired
   private JWT_token jwt;
 
+  @Autowired
+  private EmailService emailService;
+
   private final BCryptHasher hasher = new BCryptHasher();
 
 
@@ -38,7 +43,7 @@ public class AdminService {
    * @return true if the password is not empty, false otherwise.
    */
   public boolean validatePassword(String password) {
-    return !password.isEmpty();
+    return password.length() >= 8 && password.length() <= 50;
   }
 
 
@@ -108,6 +113,9 @@ public class AdminService {
     if (admin.isEmpty()) {
       throw new UserNotFoundException("No admin found with given username and password");
     }
+    if (!admin.get().isActive()) {
+      throw new UserNotVerifiedException("Admin is not active");
+    }
     if (!hasher.checkPassword(password, admin.get().getPassword())) {
       throw new IllegalArgumentException("Incorrect password for given username");
     }
@@ -133,7 +141,7 @@ public class AdminService {
     if (!verifyUsernameNotInUse(admin.getUsername())) {
       throw new IllegalArgumentException("Username is already in use");
     }
-    if (!validateAdminUser(admin.getUsername(), admin.getPassword())) {
+    if (!validateName(admin.getUsername()) || !verifyUsernameNotInUse(admin.getUsername())) {
       throw new IllegalArgumentException("Invalid admin data");
     }
     admin.setPassword(hasher.hashPassword(admin.getPassword()));
@@ -144,12 +152,11 @@ public class AdminService {
    * Registers a new admin user with the provided username and password.
    *
    * @param username The admin's username.
-   * @param password The admin's password.
    * @param token The token of the admin registering the new admin.
    * @throws IllegalArgumentException if admin data is invalid or username is already in use.
    */
-  public void register(String username, String password, String token) {
-    Admin admin = new Admin(username, password, false);
+  public void register(String username, String email, String token) {
+    Admin admin = new Admin(username, "", email, false);
     register(admin, token);
   }
 
@@ -227,5 +234,51 @@ public class AdminService {
     } catch (UnauthorizedException e) {
       throw new UnauthorizedException("You are not authorized to get all admins");
     }
+  }
+
+  /**
+   * Changes password for the admin user.
+   *
+   * @param admin The admin user.
+   * @param newPassword The new password.
+   * @throws IllegalArgumentException if the password is invalid.
+   *
+   */
+  public void changePassword(Admin admin, String newPassword) {
+    if (!validatePassword(newPassword)) {
+      throw new IllegalArgumentException("Invalid password");
+    }
+    admin.setPassword(hasher.hashPassword(newPassword));
+    if (!admin.isActive()) {
+      admin.setActive(true);
+    }
+    adminRepo.save(admin);
+  }
+
+  /**
+   * Send email to activate the admin user.
+   *
+   * @param admin The admin user.
+   * @throws IllegalArgumentException if the admin is already active.
+   * @throws MailSendingFailedException if the email sending fails.
+   */
+  public void sendActivateEmail(Admin admin) {
+
+
+  }
+
+  /**
+   * Activates the admin user.
+   *
+   * @param admin The admin user.
+   * @param newPassword The new password.
+   * @throws IllegalArgumentException if the token is invalid or the admin is already active.
+   */
+  public void activateAdmin(Admin admin, String newPassword) {
+    if (admin.isActive()) {
+      throw new IllegalArgumentException("Admin is already active");
+    }
+    admin.setActive(true);
+    adminRepo.save(admin);
   }
 }

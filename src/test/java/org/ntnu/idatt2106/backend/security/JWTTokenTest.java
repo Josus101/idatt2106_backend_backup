@@ -46,6 +46,7 @@ public class JWTTokenTest {
     admin = new Admin(
         "theBigBossMan",
         "password123",
+        "test@mail.com",
         false
     );
   }

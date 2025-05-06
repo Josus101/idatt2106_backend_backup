@@ -29,19 +29,19 @@ class AdminControllerTest {
   @Test
   @DisplayName("Should return 200 when admin is successfully created")
   void testAddAdminUserSuccess() {
-    AdminLoginRegisterRequest dto = new AdminLoginRegisterRequest("admin", "securePass");
+    AdminLoginRegisterRequest dto = new AdminLoginRegisterRequest("admin", "test@mail.com", "securePass");
 
     ResponseEntity<Boolean> response = adminController.addAdminUser(dto, "Bearer token");
 
     assertEquals(HttpStatus.OK, response.getStatusCode());
     assertTrue(response.getBody());
-    verify(adminService, times(1)).register("admin", "securePass", "Bearer token");
+    verify(adminService, times(1)).register("admin", "test@mail.com", "Bearer token");
   }
 
   @Test
   @DisplayName("Should return 401 if unauthorized during admin creation")
   void testAddAdminUserUnauthorized() {
-    AdminLoginRegisterRequest dto = new AdminLoginRegisterRequest("admin", "securePass");
+    AdminLoginRegisterRequest dto = new AdminLoginRegisterRequest("admin", "test@mail.com","securePass");
     doThrow(new UnauthorizedException("Not allowed")).when(adminService).register(anyString(), anyString(), anyString());
 
     ResponseEntity<Boolean> response = adminController.addAdminUser(dto, "Bearer token");
@@ -53,7 +53,7 @@ class AdminControllerTest {
   @Test
   @DisplayName("Should return 500 on exception during admin creation")
   void testAddAdminUserException() {
-    AdminLoginRegisterRequest dto = new AdminLoginRegisterRequest("admin", "securePass");
+    AdminLoginRegisterRequest dto = new AdminLoginRegisterRequest("admin","test@mail.com", "securePass");
     doThrow(new RuntimeException("Unexpected")).when(adminService).register(any(), any(), any());
 
     ResponseEntity<Boolean> response = adminController.addAdminUser(dto, "Bearer token");
@@ -108,7 +108,7 @@ class AdminControllerTest {
   @Test
   @DisplayName("Should return token on successful admin login")
   void testAdminLoginSuccess() {
-    AdminLoginRegisterRequest loginDTO = new AdminLoginRegisterRequest("admin", "securePass");
+    AdminLoginRegisterRequest loginDTO = new AdminLoginRegisterRequest("admin","test@mail.com", "securePass");
     when(adminService.authenticate("admin", "securePass")).thenReturn("validToken");
 
     ResponseEntity<?> response = adminController.login(loginDTO);
@@ -120,7 +120,7 @@ class AdminControllerTest {
   @Test
   @DisplayName("Should return 400 on invalid admin login")
   void testAdminLoginBadRequest() {
-    AdminLoginRegisterRequest loginDTO = new AdminLoginRegisterRequest("admin", "wrongPass");
+    AdminLoginRegisterRequest loginDTO = new AdminLoginRegisterRequest("admin","test@mail.com", "wrongPass");
     when(adminService.authenticate(any(), any()))
         .thenThrow(new IllegalArgumentException("Invalid credentials"));
 
@@ -133,7 +133,7 @@ class AdminControllerTest {
   @Test
   @DisplayName("Should return 500 on exception during login")
   void testAdminLoginException() {
-    AdminLoginRegisterRequest loginDTO = new AdminLoginRegisterRequest("admin", "pass");
+    AdminLoginRegisterRequest loginDTO = new AdminLoginRegisterRequest("admin","test@mail.com", "pass");
     when(adminService.authenticate(any(), any()))
         .thenThrow(new RuntimeException("Unexpected"));
 

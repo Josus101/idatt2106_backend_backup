@@ -5,13 +5,12 @@ import jakarta.mail.internet.MimeMessage;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
-import java.util.Objects;
 import java.util.Optional;
-import org.ntnu.idatt2106.backend.model.EmailVerifyToken;
-import org.ntnu.idatt2106.backend.model.ResetPasswordToken;
+import org.ntnu.idatt2106.backend.model.Admin;
 import org.ntnu.idatt2106.backend.model.User;
-import org.ntnu.idatt2106.backend.repo.EmailVerificationTokenRepo;
-import org.ntnu.idatt2106.backend.repo.ResetPasswordTokenRepo;
+import org.ntnu.idatt2106.backend.model.VerificationToken;
+import org.ntnu.idatt2106.backend.model.VerificationTokenType;
+import org.ntnu.idatt2106.backend.repo.VerificationTokenRepo;
 import org.ntnu.idatt2106.backend.security.JWT_token;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -38,10 +37,7 @@ public class EmailService {
   private JWT_token jwtTokenService;
 
   @Autowired
-  private EmailVerificationTokenRepo emailVerificationTokenRepo;
-
-  @Autowired
-  private ResetPasswordTokenRepo resetPasswordTokenRepo;
+  private VerificationTokenRepo verificationTokenRepo;
 
   @Value("${mail.from}")
   private String fromEmail;
@@ -189,7 +185,7 @@ public class EmailService {
    * @return The generated token.
    */
   private String generateEmailVerifyToken(User user) {
-    return generateToken(user, true);
+    return generateToken(user, VerificationTokenType.EMAIL_VERIFICATION);
   }
 
   /**
@@ -199,25 +195,35 @@ public class EmailService {
    * @return The generated token.
    */
   private String generateResetPasswordToken(User user) {
-    return generateToken(user, false);
+    return generateToken(user, VerificationTokenType.PASSWORD_RESET);
   }
 
   /**
    * Generates a token for the given user and saves it to the database.
    *
    * @param user The user for whom the token is generated.
-   * @param isVerificationToken Indicates whether the token is for email verification or password reset.
+   * @param type Indicates what type of token is being generated.
    * @return The generated token.
    */
-  private String generateToken(User user, boolean isVerificationToken) {
+  private String generateToken(User user, VerificationTokenType type) {
     String token = jwtTokenService.generateJwtToken(user).getToken();
     Date expirationDate = new Date(System.currentTimeMillis() + EXPIRATION_TIME);
 
-    if (isVerificationToken) {
-      emailVerificationTokenRepo.save(new EmailVerifyToken(token, user, expirationDate));
-    } else {
-      resetPasswordTokenRepo.save(new ResetPasswordToken(token, user, expirationDate));
-    }
+    verificationTokenRepo.save(new VerificationToken(token, user.getEmail(), expirationDate,
+        type));
+    return token;
+  }
+
+  /**
+   * Generates a verification token for the given admin and saves it to the database.
+   *
+   * @param admin The admin for whom the token is generated.
+   * @return The generated token.
+   */
+  private String generateAdminToken(Admin admin) {
+    String token = jwtTokenService.generateJwtToken(admin).getToken();
+    Date expirationDate = new Date(System.currentTimeMillis() + EXPIRATION_TIME);
+
     return token;
   }
 
@@ -247,8 +253,32 @@ public class EmailService {
    * @return true if the user has a valid verification email, false otherwise.
    */
   public boolean hasValidVerificationEmail(User user) {
-    Optional<EmailVerifyToken> token = emailVerificationTokenRepo.findByUser(user);
+    Optional<VerificationToken> token = verificationTokenRepo.findByEmail(user.getEmail());
     return token.filter(
         emailVerifyToken -> !emailVerifyToken.getExpirationDate().before(new Date())).isPresent();
+  }
+
+  /**
+   * Sends a mail to activate an admin user
+   *
+   * @param admin The admin to whom the email is sent.
+   * @throws MessagingException If there is an error while sending the email.
+   */
+  public void sendAdminActivationEmail(Admin admin) throws MessagingException {
+    String token = generateAdminToken(admin);
+    String encodedToken = URLEncoder.encode(token, StandardCharsets.UTF_8);
+    String verificationUrl = BASE_URL + "admin-activation/" + encodedToken;
+
+    String htmlContent = buildEmailTemplate(
+        "Activate Your Admin Account",
+        "An admin of Krisefikser has created an admin account for you, with the username "
+            + admin.getUsername() + ". "
+            + "Please click the button below to activate your account.",
+        verificationUrl,
+        "Activate Admin Account",
+        "This link will expire in 24 hour."
+    );
+
+    sendHtmlEmail(admin.getEmail(), "Activate Your Admin Account", htmlContent);
   }
 }

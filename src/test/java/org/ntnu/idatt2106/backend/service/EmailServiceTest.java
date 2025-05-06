@@ -1,6 +1,5 @@
 package org.ntnu.idatt2106.backend.service;
 
-import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -8,8 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.*;
 import org.ntnu.idatt2106.backend.dto.user.UserTokenResponse;
 import org.ntnu.idatt2106.backend.model.*;
-import org.ntnu.idatt2106.backend.repo.EmailVerificationTokenRepo;
-import org.ntnu.idatt2106.backend.repo.ResetPasswordTokenRepo;
+import org.ntnu.idatt2106.backend.repo.VerificationTokenRepo;
 import org.ntnu.idatt2106.backend.security.JWT_token;
 import org.springframework.mail.javamail.JavaMailSender;
 import static org.junit.jupiter.api.Assertions.*;
@@ -27,10 +25,7 @@ public class EmailServiceTest {
   private JWT_token jwtTokenService;
 
   @Mock
-  private EmailVerificationTokenRepo emailVerificationTokenRepo;
-
-  @Mock
-  private ResetPasswordTokenRepo resetPasswordTokenRepo;
+  private VerificationTokenRepo verificationTokenRepo;
 
   @Mock
   private MimeMessage mimeMessage;
@@ -65,7 +60,7 @@ public class EmailServiceTest {
   void testSendVerificationEmailSendsEmailAndSaves() throws Exception {
     emailService.sendVerificationEmail(testUser);
 
-    verify(emailVerificationTokenRepo).save(any(EmailVerifyToken.class));
+    verify(verificationTokenRepo).save(any(VerificationToken.class));
     verify(mailSender).send(any(MimeMessage.class));
   }
 
@@ -87,7 +82,7 @@ public class EmailServiceTest {
   void testSendResetPasswordEmailSendsValidEmail() throws Exception {
     emailService.sendResetPasswordEmail(testUser);
 
-    verify(resetPasswordTokenRepo).save(any(ResetPasswordToken.class));
+    verify(verificationTokenRepo).save(any(VerificationToken.class));
     verify(mailSender).send(any(MimeMessage.class));
   }
 

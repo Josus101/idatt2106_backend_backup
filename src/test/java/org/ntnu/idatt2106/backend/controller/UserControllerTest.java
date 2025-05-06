@@ -12,7 +12,6 @@ import org.ntnu.idatt2106.backend.dto.user.UserPositionUpdate;
 import org.ntnu.idatt2106.backend.dto.user.UserRegisterRequest;
 import org.ntnu.idatt2106.backend.dto.user.UserTokenResponse;
 import org.ntnu.idatt2106.backend.exceptions.AlreadyInUseException;
-import org.ntnu.idatt2106.backend.exceptions.MailSendingFailedException;
 import org.ntnu.idatt2106.backend.exceptions.TokenExpiredException;
 import org.ntnu.idatt2106.backend.exceptions.UserNotFoundException;
 import org.ntnu.idatt2106.backend.model.User;
@@ -20,8 +19,7 @@ import org.ntnu.idatt2106.backend.security.JWT_token;
 import org.ntnu.idatt2106.backend.service.HouseholdService;
 import org.ntnu.idatt2106.backend.service.LoginService;
 import org.ntnu.idatt2106.backend.service.ReCaptchaService;
-import org.ntnu.idatt2106.backend.service.ResetPasswordService;
-import org.ntnu.idatt2106.backend.service.VerifyEmailService;
+import org.ntnu.idatt2106.backend.service.VerificationService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.web.servlet.MockMvc;
@@ -42,10 +40,10 @@ class UserControllerTest {
   ReCaptchaService reCaptchaService;
 
   @Mock
-  private ResetPasswordService resetPasswordService;
+  private VerificationService resetPasswordService;
 
   @Mock
-  private VerifyEmailService verifyEmailService;
+  private VerificationService verifyEmailService;
 
   @Mock
   private HouseholdService householdService;

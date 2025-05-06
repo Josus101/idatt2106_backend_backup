@@ -19,6 +19,8 @@ import lombok.Setter;
 public class AdminLoginRegisterRequest {
   @Schema(description = "Username of the admin", example = "admin")
   private String username;
+  @Schema(description = "Email of the admin", example = "admin@example.fish")
+  private String email;
   @Schema(description = "Password of the admin", example = "admin123")
   private String password;
 }

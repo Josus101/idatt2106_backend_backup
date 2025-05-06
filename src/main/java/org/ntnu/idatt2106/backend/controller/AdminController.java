@@ -12,7 +12,9 @@ import org.ntnu.idatt2106.backend.dto.admin.AdminLoginRegisterRequest;
 import org.ntnu.idatt2106.backend.dto.news.NewsGetResponse;
 import org.ntnu.idatt2106.backend.exceptions.UnauthorizedException;
 import org.ntnu.idatt2106.backend.exceptions.UserNotFoundException;
+import org.ntnu.idatt2106.backend.exceptions.UserNotVerifiedException;
 import org.ntnu.idatt2106.backend.service.AdminService;
+import org.ntnu.idatt2106.backend.service.VerificationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -31,6 +33,9 @@ public class AdminController {
 
   @Autowired
   private AdminService adminService;
+
+  @Autowired
+  private VerificationService verificationService;
 
 
   /**
@@ -91,7 +96,7 @@ public class AdminController {
       @RequestHeader("Authorization") String authorizationHeader) {
 
     try {
-      adminService.register(admin.getUsername(), admin.getPassword(), authorizationHeader);
+      adminService.register(admin.getUsername(), admin.getEmail(), authorizationHeader);
     } catch (UnauthorizedException e) {
       return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(false);
     } catch (Exception e) {
@@ -237,6 +242,8 @@ public class AdminController {
       return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: Invalid admin data");
     } catch (UserNotFoundException e) {
       return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: " + e.getMessage());
+    } catch (UserNotVerifiedException e) {
+      return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Error: " + e.getMessage() + ". Please activate your account via the email.");
     } catch (Exception e) {
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: An unexpected error occurred");
     }
@@ -371,7 +378,7 @@ public class AdminController {
                   required = true,
                   example = "Bearer eyJhbGciOiJIUzI1N.iIsInR5cCI6IkpXVCJ9..."
           ) @RequestHeader("Authorization") String authorizationHeader
-  ){
+  ) {
     try {
       return ResponseEntity.ok(adminService.getAllAdmins(authorizationHeader));
     } catch (UnauthorizedException e) {
@@ -383,4 +390,79 @@ public class AdminController {
     }
   }
 
+    /**
+     * Activates the admin account using the provided token.
+     *
+     * @param token The token to activate the admin account.
+     * @param newPassword The new password to set for the admin account.
+     * @return a response entity containing the result of the operation
+     */
+  @PutMapping("/activate/{token}")
+  @Operation(
+      summary = "Activate an admin account",
+      description = "Put request to activate an admin account. "
+          + "Requires superuser privileges. "
+          + "Returns true if the admin was activated successfully, false otherwise."
+  )
+  @ApiResponses(value = {
+      @ApiResponse(
+          responseCode = "200",
+          description = "Admin account activated successfully",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(type = "boolean", example = "true")
+          )
+      ),
+      @ApiResponse(
+          responseCode = "400",
+          description = "Invalid request",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(type = "boolean", example = "false")
+          )
+      ),
+      @ApiResponse(
+          responseCode = "401",
+          description = "Unauthorized",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(type = "boolean", example = "false")
+          )
+      ),
+      @ApiResponse(
+        responseCode = "500",
+        description = "Internal Server Error",
+        content = @Content(
+            mediaType = "application/json",
+            schema = @Schema(type = "boolean", example = "false")
+        )
+      )
+  })
+  public ResponseEntity<?> activateAdmin(
+      @Parameter(
+          name = "token",
+          description = "The token to activate the admin account",
+          required = true,
+          example = "eyJhbGciOiJIUzI1N.iIsInR5cCI6IkpXVCJ9..."
+      )
+      @PathVariable String token,
+      @Parameter(
+          name = "newPassword",
+          description = "The new password to set for the admin account",
+          required = true,
+          example = "newpassword123"
+      )
+      @RequestParam String newPassword)
+    {
+      try {
+        verificationService.activateAdmin(token, newPassword);
+      } catch (IllegalArgumentException e) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(false);
+      } catch (UnauthorizedException e) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(false);
+      } catch (Exception e) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(false);
+      }
+      return ResponseEntity.ok(true);
+    }
 }

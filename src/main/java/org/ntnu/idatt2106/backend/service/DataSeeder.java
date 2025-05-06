@@ -136,10 +136,10 @@ public class DataSeeder implements CommandLineRunner {
    */
   public void seedAdminUsers() {
     if (!adminRepo.existsByUsername("admin")) {
-      adminRepo.save(new Admin("admin", hasher.hashPassword("admin123"), false));
+      adminRepo.save(new Admin("admin", hasher.hashPassword("admin123"), "admin@krisefikser.no", false));
     }
     if (!adminRepo.existsByUsername("urekmazino")) {
-      adminRepo.save(new Admin("urekmazino", hasher.hashPassword("admin123"), true));
+      adminRepo.save(new Admin("urekmazino", hasher.hashPassword("admin123"), "urek@krisefikser.no", true));
     }
   }
 

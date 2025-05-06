@@ -43,4 +43,11 @@ public interface AdminRepo extends JpaRepository<Admin, Integer> {
   */
   boolean existsById(int id);
 
+  /**
+   * Finds an Admin by their email.
+   *
+   * @param email the email of the Admin
+   * @return an Optional containing the Admin if found, or empty if not
+   */
+  Optional<Admin> findByEmail(String email);
 }

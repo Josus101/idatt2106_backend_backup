@@ -34,13 +34,14 @@ public class AdminServiceTest {
   void setUp() {
     MockitoAnnotations.openMocks(this);
     BCryptHasher hasher = new BCryptHasher();
-    testAdmin = new Admin("admin", hasher.hashPassword("password"), true);
+    testAdmin = new Admin("admin", hasher.hashPassword("password"), "test@mail.com",
+        true);
   }
 
   @Test
   @DisplayName("Should validate non-empty password")
   void testValidatePassword() {
-    assertTrue(adminService.validatePassword("admin123"));
+    assertTrue(adminService.validatePassword("adminuser123"));
     assertFalse(adminService.validatePassword(""));
   }
 
@@ -70,7 +71,7 @@ public class AdminServiceTest {
   @DisplayName("Should validate admin user with correct data")
   void testValidateAdminUserTrue() {
     when(adminRepo.existsByUsername("admin")).thenReturn(false);
-    assertTrue(adminService.validateAdminUser("admin", "password"));
+    assertTrue(adminService.validateAdminUser("admin", "password123"));
   }
 
   @Test
@@ -89,7 +90,7 @@ public class AdminServiceTest {
   @Test
   @DisplayName("Should throw if admin is not super user")
   void testVerifyAdminIsSuperUserThrows() {
-    Admin nonSuperAdmin = new Admin("admin", "pass", false);
+    Admin nonSuperAdmin = new Admin("admin", "pass", "test@mail.com", false);
     when(jwt.getAdminUserByToken("token")).thenReturn(nonSuperAdmin);
 
     assertThrows(UnauthorizedException.class, () -> {
@@ -103,8 +104,10 @@ public class AdminServiceTest {
     when(adminRepo.findByUsername("admin")).thenReturn(Optional.of(testAdmin));
     when(jwt.generateJwtToken(any(Admin.class)))
         .thenReturn(new UserTokenResponse("jwtToken", System.currentTimeMillis()));
-
+    when(jwt.getAdminUserByToken("token")).thenReturn(testAdmin);
+    testAdmin.setActive(true);
     String token = adminService.authenticate("admin", "password");
+    testAdmin.setActive(false);
     assertNotNull(token);
     assertEquals("jwtToken", token);
   }
@@ -122,9 +125,9 @@ public class AdminServiceTest {
   @Test
   @DisplayName("Should throw if admin password is incorrect")
   void testAuthenticateWrongPassword() {
-    Admin wrongPassAdmin = new Admin("admin", new BCryptHasher().hashPassword("otherpass"), true);
+    Admin wrongPassAdmin = new Admin("admin", new BCryptHasher().hashPassword("otherpass"),"test@mail.com", true);
     when(adminRepo.findByUsername("admin")).thenReturn(Optional.of(wrongPassAdmin));
-
+    wrongPassAdmin.setActive(true);
     assertThrows(IllegalArgumentException.class, () -> {
       adminService.authenticate("admin", "wrongpassword");
     });
@@ -133,7 +136,7 @@ public class AdminServiceTest {
   @Test
   @DisplayName("Should register new admin if valid and super user")
   void testRegisterSuccess() {
-    Admin newAdmin = new Admin("newadmin", "password", false);
+    Admin newAdmin = new Admin("newadmin", "password","test@mail.com", false);
 
     when(jwt.getAdminUserByToken("token")).thenReturn(testAdmin);
     when(adminRepo.existsByUsername("newadmin")).thenReturn(false);
@@ -146,7 +149,7 @@ public class AdminServiceTest {
   @Test
   @DisplayName("Test register should throw if username is invalid")
   void testRegisterThrowsIfUsernameInvalid() {
-    Admin newAdmin = new Admin("", "password", false);
+    Admin newAdmin = new Admin("", "password","test@mail.com", false);
 
     when(jwt.getAdminUserByToken("token")).thenReturn(testAdmin);
     when(adminRepo.existsByUsername("newadmin")).thenReturn(false);
@@ -155,23 +158,10 @@ public class AdminServiceTest {
       adminService.register(newAdmin, "token");
     });
   }
-  @Test
-  @DisplayName("Test register should throw if password is invalid")
-  void testRegisterThrowsIfPasswordInvalid() {
-    Admin newAdmin = new Admin("usernamerson", "", false);
-
-    when(jwt.getAdminUserByToken("token")).thenReturn(testAdmin);
-    when(adminRepo.existsByUsername("newadmin")).thenReturn(false);
-
-    assertThrows(IllegalArgumentException.class, () -> {
-      adminService.register(newAdmin, "token");
-    });
-  }
-
   @Test
   @DisplayName("Should not register if username is taken")
   void testRegisterUsernameInUse() {
-    Admin newAdmin = new Admin("admin", "password", false);
+    Admin newAdmin = new Admin("admin", "password","test@mail.com", false);
 
     when(jwt.getAdminUserByToken("token")).thenReturn(testAdmin);
     when(adminRepo.existsByUsername("admin")).thenReturn(true);
@@ -189,7 +179,7 @@ public class AdminServiceTest {
     doThrow(new UnauthorizedException("Not authorized"))
         .when(spyService).verifyAdminIsSuperUser("token");
 
-    Admin newAdmin = new Admin("new", "pass", false);
+    Admin newAdmin = new Admin("new", "pass","test@mail.com", false);
 
     assertThrows(UnauthorizedException.class, () -> {
       spyService.register(newAdmin, "token");
@@ -202,7 +192,7 @@ public class AdminServiceTest {
     when(jwt.getAdminUserByToken("token")).thenReturn(testAdmin);
     when(adminRepo.existsByUsername("newadmin")).thenReturn(false);
 
-    adminService.register("newadmin", "password", "token");
+    adminService.register("newadmin", "password@pass.com", "token");
 
     verify(adminRepo).save(any(Admin.class));
   }
@@ -221,7 +211,7 @@ public class AdminServiceTest {
   @Test
   @DisplayName("Should throw if elevating already super user")
   void testElevateAdminAlreadySuperUser() {
-    Admin superAdmin = new Admin("super", "pass", true);
+    Admin superAdmin = new Admin("super", "pass","test@mail.com", true);
 
     when(jwt.getAdminUserByToken("token")).thenReturn(testAdmin);
     when(adminRepo.findById(1)).thenReturn(Optional.of(superAdmin));
@@ -234,7 +224,7 @@ public class AdminServiceTest {
   @Test
   @DisplayName("Should elevate a non-super admin to super user")
   void testElevateAdminSuccess() {
-    Admin nonSuper = new Admin("user", "pass", false);
+    Admin nonSuper = new Admin("user", "pass","test@mail.com", false);
 
     when(jwt.getAdminUserByToken("token")).thenReturn(testAdmin);
     when(adminRepo.findById(1)).thenReturn(Optional.of(nonSuper));
@@ -247,8 +237,8 @@ public class AdminServiceTest {
   @Test
   @DisplayName("Test elevateAdmin throws if not super user")
   void testElevateAdminThrowsWhenUnauthorized() {
-    Admin nonSuper = new Admin("user", "pass", false);
-    Admin notVerySuper2 = new Admin("weakling", "pass", false);
+    Admin nonSuper = new Admin("user", "pass","test@mail.com", false);
+    Admin notVerySuper2 = new Admin("weakling", "pass","test@mail.com", false);
     when(jwt.getAdminUserByToken("token")).thenReturn(notVerySuper2);
     when(adminRepo.findById(1)).thenReturn(Optional.of(nonSuper));
 
@@ -272,7 +262,7 @@ public class AdminServiceTest {
   @Test
   @DisplayName("Should throw if trying to delete super user")
   void testExterminateSuperUserThrows() {
-    Admin superAdmin = new Admin("super", "pass", true);
+    Admin superAdmin = new Admin("super", "pass","test@mail.com", true);
 
     when(jwt.getAdminUserByToken("token")).thenReturn(testAdmin);
     when(adminRepo.findById(1)).thenReturn(Optional.of(superAdmin));
@@ -285,7 +275,7 @@ public class AdminServiceTest {
   @Test
   @DisplayName("Should delete a non-super admin successfully")
   void testExterminateAdminSuccess() {
-    Admin nonSuper = new Admin("normal", "pass", false);
+    Admin nonSuper = new Admin("normal", "pass","test@mail.com", false);
 
     when(jwt.getAdminUserByToken("token")).thenReturn(testAdmin);
     when(adminRepo.findById(1)).thenReturn(Optional.of(nonSuper));
@@ -298,8 +288,8 @@ public class AdminServiceTest {
   @Test
   @DisplayName("Test exterminateAdmin throws if not super user")
   void testExterminateAdminThrowsWhenUnauthorized() {
-    Admin nonSuper = new Admin("user", "pass", false);
-    Admin notVerySuper2 = new Admin("weakling", "pass", false);
+    Admin nonSuper = new Admin("user", "pass","test@mail.com", false);
+    Admin notVerySuper2 = new Admin("weakling", "pass","test@mail.com", false);
     when(jwt.getAdminUserByToken("token")).thenReturn(notVerySuper2);
     when(adminRepo.findById(1)).thenReturn(Optional.of(nonSuper));
 
