@@ -109,11 +109,7 @@ public class PreparednessService {
                 .map(this::calculatePreparednessStatus)
                 .toList();
 
-        Household primaryHousehold = memberships.stream()
-                .filter(HouseholdMembers::isPrimary)
-                .map(HouseholdMembers::getHousehold)
-                .findFirst()
-                .orElse(null);
+        Household primaryHousehold = user.getPrimaryHousehold();
 
         if (primaryHousehold == null) return householdStatuses;
         return householdStatuses.stream()
