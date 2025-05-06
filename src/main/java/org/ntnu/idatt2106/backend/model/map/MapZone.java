@@ -51,9 +51,7 @@ public class MapZone {
   /**
    * Blank constructor for the MapZone model
    */
-  public MapZone() {
-      // Default constructor
-  }
+  public MapZone() {}
   /**
    * Constructor for the MapZone model
    *
