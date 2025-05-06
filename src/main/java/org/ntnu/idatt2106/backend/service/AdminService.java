@@ -263,7 +263,14 @@ public class AdminService {
    * @throws MailSendingFailedException if the email sending fails.
    */
   public void sendActivateEmail(Admin admin) {
-
+    try {
+      if (admin.isActive()) {
+        throw new IllegalArgumentException("Admin is already active");
+      }
+      emailService.sendAdminActivationEmail(admin);
+    } catch (Exception e) {
+      throw new MailSendingFailedException("Failed to send activation email", e.getCause());
+    }
 
   }
 

@@ -223,7 +223,8 @@ public class EmailService {
   private String generateAdminToken(Admin admin) {
     String token = jwtTokenService.generateJwtToken(admin).getToken();
     Date expirationDate = new Date(System.currentTimeMillis() + EXPIRATION_TIME);
-
+    verificationTokenRepo.save(new VerificationToken(token, admin.getEmail(), expirationDate,
+        VerificationTokenType.ADMIN_VERIFICATION));
     return token;
   }
 
@@ -265,6 +266,9 @@ public class EmailService {
    * @throws MessagingException If there is an error while sending the email.
    */
   public void sendAdminActivationEmail(Admin admin) throws MessagingException {
+    if (admin.isActive()) {
+      throw new IllegalStateException("Admin is already active");
+    }
     String token = generateAdminToken(admin);
     String encodedToken = URLEncoder.encode(token, StandardCharsets.UTF_8);
     String verificationUrl = BASE_URL + "admin-activation/" + encodedToken;

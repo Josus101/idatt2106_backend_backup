@@ -1,12 +1,18 @@
 package org.ntnu.idatt2106.backend.service;
 
+import jakarta.validation.constraints.Email;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
+import org.ntnu.idatt2106.backend.dto.admin.AdminGetResponse;
+import org.ntnu.idatt2106.backend.exceptions.MailSendingFailedException;
 import org.ntnu.idatt2106.backend.exceptions.UnauthorizedException;
 import org.ntnu.idatt2106.backend.exceptions.UserNotFoundException;
+import org.ntnu.idatt2106.backend.exceptions.UserNotVerifiedException;
 import org.ntnu.idatt2106.backend.model.Admin;
+import org.ntnu.idatt2106.backend.model.User;
 import org.ntnu.idatt2106.backend.repo.AdminRepo;
 import org.ntnu.idatt2106.backend.security.BCryptHasher;
 import org.ntnu.idatt2106.backend.security.JWT_token;
@@ -29,6 +35,9 @@ public class AdminServiceTest {
   private JWT_token jwt;
 
   private Admin testAdmin;
+
+  @Mock
+  private EmailService emailService;
 
   @BeforeEach
   void setUp() {
@@ -295,6 +304,139 @@ public class AdminServiceTest {
 
     assertThrows(UnauthorizedException.class, () -> {
       adminService.exterminateAdmin("1", "token");
+    });
+  }
+
+  @Test
+  @DisplayName("Test Autheticate throws when logging in to unactivated admin")
+  void testAuthenticateThrowsWhenUnactivated() {
+    when(adminRepo.findByUsername("admin")).thenReturn(Optional.of(testAdmin));
+    testAdmin.setActive(false);
+    assertThrows(UserNotVerifiedException.class, () -> {
+      adminService.authenticate("admin", "password");
+    });
+  }
+
+  @Test
+  @DisplayName("Activate admin user should set active to true")
+  void testActivateAdminUser() {
+    Admin admin = new Admin("test","","test",false);
+    when(adminRepo.findById(1)).thenReturn(Optional.of(testAdmin));
+    assertFalse(admin.isActive());
+
+    adminService.activateAdmin(admin, "token");
+
+    assertTrue(admin.isActive());
+    verify(adminRepo).save(admin);
+  }
+
+  @Test
+  @DisplayName("changePassword changes password to new password")
+  void testResetPassword() {
+    String newPassword = "newpassword123";
+    Admin adminJr = new Admin("ape", "oldpass", "ape", false);
+
+    adminService.changePassword(adminJr, newPassword);
+
+    assertNotEquals("oldpass", testAdmin.getPassword());
+    verify(adminRepo).save(adminJr);
+  }
+
+  @Test
+  @DisplayName("changePassword throws if password is empty")
+  void testResetPasswordEmpty() {
+    String newPassword = "";
+
+    assertThrows(IllegalArgumentException.class, () -> {
+      adminService.changePassword(testAdmin, newPassword);
+    });
+  }
+
+  @Test
+  @DisplayName("activateAdmin throws if admin is already active")
+  void testActivateAdminUserAlreadyActive() {
+    when(adminRepo.findById(1)).thenReturn(Optional.of(testAdmin));
+    testAdmin.setActive(true);
+
+    assertThrows(IllegalArgumentException.class, () -> {
+      adminService.activateAdmin(testAdmin, "token");
+    });
+  }
+
+  @Test
+  @DisplayName("getAllAdmins returns all admins")
+  void testGetAllAdmins() {
+    when(adminRepo.findAll()).thenReturn(List.of(testAdmin));
+    when(jwt.getAdminUserByToken("token")).thenReturn(testAdmin);
+
+    List<AdminGetResponse> admins = adminService.getAllAdmins("token");
+    assertEquals(1, admins.size());
+    assertEquals(testAdmin.getUsername(), admins.get(0).getUsername());
+    assertEquals(testAdmin.isSuperUser(), admins.get(0).isSuperUser());
+    verify(adminRepo).findAll();
+  }
+
+  @Test
+  @DisplayName("getAllAdmins throws if no admins")
+  void testGetAllAdminsThrowsNoAdmin() {
+    when(adminRepo.findAll()).thenReturn(List.of());
+    when(jwt.getAdminUserByToken("token")).thenReturn(testAdmin);
+
+    assertThrows(UserNotFoundException.class, () -> {
+      adminService.getAllAdmins("token");
+    });
+  }
+
+  @Test
+  @DisplayName("getAllAdmins throws if not super user")
+  void testGetAllAdminsThrowsNotSuperUser() {
+    Admin notVerySuper = new Admin("smallDog", "strongpass", "test@est.t", false);
+    when(jwt.getAdminUserByToken("token")).thenReturn(notVerySuper);
+    when(adminRepo.findAll()).thenReturn(List.of(testAdmin));
+
+    assertThrows(UnauthorizedException.class, () -> {
+      adminService.getAllAdmins("token");
+    });
+  }
+
+
+  @Test
+  @DisplayName("sendActivateEmail sends email to activate admin")
+  void testSendActivateEmail() {
+    when(adminRepo.findById(1)).thenReturn(Optional.of(testAdmin));
+    try {
+      doNothing().when(emailService).sendAdminActivationEmail(any(Admin.class));
+    } catch (Exception e) {
+      fail();
+    }
+
+    adminService.sendActivateEmail(testAdmin);
+  }
+
+  @Test
+  @DisplayName("sendActivateEmail throws if admin is already active")
+  void testSendActivateEmailAlreadyActive() {
+    when(adminRepo.findById(1)).thenReturn(Optional.of(testAdmin));
+    testAdmin.setActive(true);
+
+    assertThrows(MailSendingFailedException.class, () -> {
+      adminService.sendActivateEmail(testAdmin);
+    });
+  }
+
+  @Test
+  @DisplayName("sendActivateEmail throws if mail sending failed")
+  void testSendActivateEmailMailSendingFailed() {
+    when(adminRepo.findById(1)).thenReturn(Optional.of(testAdmin));
+    try {
+      doThrow(new RuntimeException("Mail sending failed")).when(emailService)
+          .sendAdminActivationEmail(any(Admin.class));
+    } catch (Exception e) {
+      fail();
+    }
+
+    assertThrows(RuntimeException.class, () -> {
+      adminService.sendActivateEmail(testAdmin);
     });
   }
 

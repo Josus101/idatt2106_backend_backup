@@ -1,11 +1,14 @@
 package org.ntnu.idatt2106.backend.controller;
 
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
+import org.ntnu.idatt2106.backend.dto.admin.AdminGetResponse;
 import org.ntnu.idatt2106.backend.dto.admin.AdminLoginRegisterRequest;
 import org.ntnu.idatt2106.backend.exceptions.UnauthorizedException;
+import org.ntnu.idatt2106.backend.exceptions.UserNotFoundException;
 import org.ntnu.idatt2106.backend.service.AdminService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -185,4 +188,54 @@ class AdminControllerTest {
     assertEquals(false, response.getBody());
     assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
   }
+
+  @Test
+  @DisplayName("Should return 200 with admin list on success")
+  void testGetAllAdminsSuccess() {
+    List<AdminGetResponse> mockAdmins = List.of(
+        new AdminGetResponse(1, "admin1", true),
+        new AdminGetResponse(2, "admin2", false)
+    );
+    when(adminService.getAllAdmins("Bearer token")).thenReturn(mockAdmins);
+
+    ResponseEntity<?> response = adminController.getAllAdmins("Bearer token");
+
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertEquals(mockAdmins, response.getBody());
+    verify(adminService, times(1)).getAllAdmins("Bearer token");
+  }
+
+  @Test
+  @DisplayName("Should return 401 when unauthorized")
+  void testGetAllAdminsUnauthorized() {
+    doThrow(new UnauthorizedException("No access")).when(adminService).getAllAdmins("Bearer token");
+
+    ResponseEntity<?> response = adminController.getAllAdmins("Bearer token");
+
+    assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    assertFalse((Boolean) response.getBody());
+  }
+
+  @Test
+  @DisplayName("Should return 404 when no admins found")
+  void testGetAllAdminsNotFound() {
+    doThrow(new UserNotFoundException("No admins found")).when(adminService).getAllAdmins("Bearer token");
+
+    ResponseEntity<?> response = adminController.getAllAdmins("Bearer token");
+
+    assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    assertEquals("Error: No admins found", response.getBody());
+  }
+
+  @Test
+  @DisplayName("Should return 500 on internal error")
+  void testGetAllAdminsException() {
+    doThrow(new RuntimeException("Unexpected")).when(adminService).getAllAdmins("Bearer token");
+
+    ResponseEntity<?> response = adminController.getAllAdmins("Bearer token");
+
+    assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+    assertFalse((Boolean) response.getBody());
+  }
+
 }
