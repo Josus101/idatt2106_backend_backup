@@ -790,7 +790,7 @@ class HouseholdServiceTest {
   @DisplayName("getUserPositions should return positions for users in the household")
   void testGetUserPositionShouldReturnCorrectPosition() {
     when(householdMembersRepo.existsByUserAndHousehold(testUser, testHousehold)).thenReturn(true);
-    HouseholdMembers member = new HouseholdMembers(testUser, testHousehold, false);
+    HouseholdMembers member = new HouseholdMembers(testUser, testHousehold, false, false);
     when(householdMembersRepo.findByUser(testUser)).thenReturn(List.of(member));
     when(householdMembersRepo.findByUserAndHousehold(testUser, testHousehold)).thenReturn(Optional.of(member));
     when(householdMembersRepo.findAllByHousehold(testHousehold)).thenReturn(List.of(member));
@@ -820,7 +820,7 @@ class HouseholdServiceTest {
   void testGetUserPositionsShouldReturnCorrectWithId() {
     when(householdRepo.findById(42)).thenReturn(Optional.of(testHousehold));
     when(householdMembersRepo.existsByUserAndHousehold(testUser, testHousehold)).thenReturn(true);
-    HouseholdMembers member = new HouseholdMembers(testUser, testHousehold, false);
+    HouseholdMembers member = new HouseholdMembers(testUser, testHousehold, false, false);
     when(householdMembersRepo.findAllByHousehold(testHousehold)).thenReturn(List.of(member));
 
     List<UserPositionResponse> result = householdService.getUserPositions(42, testUser);
@@ -843,7 +843,7 @@ class HouseholdServiceTest {
     HouseholdMembers memberInHousehold = mock(HouseholdMembers.class);
     Household anotherHousehold = mock(Household.class);
 
-    HouseholdMembers member = new HouseholdMembers(testUser, anotherHousehold, false);
+    HouseholdMembers member = new HouseholdMembers(testUser, anotherHousehold, false, false);
     testUser.setHouseholdMemberships(List.of(memberInHousehold, member));
     when(householdMembersRepo.existsByUserAndHousehold(testUser, anotherHousehold)).thenReturn(true);
     when(householdMembersRepo.findByUser(testUser)).thenReturn(List.of(memberInHousehold, member));
