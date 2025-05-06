@@ -144,8 +144,8 @@ public class AdminService {
     if (!validateName(admin.getUsername()) || !verifyUsernameNotInUse(admin.getUsername())) {
       throw new IllegalArgumentException("Invalid admin data");
     }
-    admin.setPassword(hasher.hashPassword(admin.getPassword()));
     adminRepo.save(admin);
+    sendActivateEmail(admin);
   }
 
   /**
