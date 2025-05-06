@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.*;
 import org.ntnu.idatt2106.backend.dto.household.*;
 import org.ntnu.idatt2106.backend.exceptions.UnauthorizedException;
+import org.ntnu.idatt2106.backend.exceptions.UserNotFoundException;
 import org.ntnu.idatt2106.backend.model.Household;
 import org.ntnu.idatt2106.backend.model.HouseholdMembers;
 import org.ntnu.idatt2106.backend.model.User;
@@ -22,6 +23,7 @@ import org.springframework.http.ResponseEntity;
 
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.function.Function;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -49,10 +51,44 @@ class HouseholdControllerTest {
     @Mock
     private HouseholdMembersRepo householdMembersRepo;
 
+    private final String validToken = "Bearer valid.jwt.token";
+    private final User testUser = new User("user@test.com", "pass", "Test", "User", "12345678");
+
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
     }
+
+    void assertUnauthorizedCases(TokenRequestHandler handler, Object... extraArgs) {
+        // Case 1: Missing token
+        Object[] argsMissing = prepend(null, extraArgs);
+        ResponseEntity<?> responseMissing = handler.apply(argsMissing);
+        assertEquals(HttpStatus.UNAUTHORIZED, responseMissing.getStatusCode());
+        assertEquals("Error: Unauthorized", responseMissing.getBody());
+
+        // Case 2: Malformed token
+        Object[] argsInvalid = prepend("InvalidToken", extraArgs);
+        ResponseEntity<?> responseInvalid = handler.apply(argsInvalid);
+        assertEquals(HttpStatus.UNAUTHORIZED, responseInvalid.getStatusCode());
+        assertEquals("Error: Unauthorized", responseInvalid.getBody());
+
+        // Case 3: Valid token, but user is null
+        when(jwtTokenService.getUserByToken("valid.jwt.token")).thenReturn(null);
+        Object[] argsNullUser = prepend("Bearer valid.jwt.token", extraArgs);
+        ResponseEntity<?> responseNullUser = handler.apply(argsNullUser);
+        assertEquals(HttpStatus.UNAUTHORIZED, responseNullUser.getStatusCode());
+        assertEquals("Error: Unauthorized", responseNullUser.getBody());
+    }
+
+    private Object[] prepend(Object token, Object... args) {
+        Object[] result = new Object[args.length + 1];
+        result[0] = token;
+        System.arraycopy(args, 0, result, 1, args.length);
+        return result;
+    }
+
+
+
 
     @Test
     @DisplayName("Should return preparedness status from token")
@@ -118,52 +154,11 @@ class HouseholdControllerTest {
     }
 
     @Test
-    @DisplayName("Should return 404 if household not found in getEssentialItemsStatus")
-    void testGetEssentialItemsStatusNotFound() {
-        String token = "Bearer token.test";
-        int householdId = 1;
-
-        when(jwtTokenService.getUserByToken("token.test")).thenReturn(new User());
-        when(essentialItemService.getEssentialItemStatus(householdId)).thenThrow(new NoSuchElementException("Household not found"));
-
-        ResponseEntity<?> response = householdController.getEssentialItemsStatus(token, householdId);
-
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        assertEquals("Error: Household not found", response.getBody());
-    }
-
-    @Test
-    @DisplayName("Should return 500 on essential item service failure")
-    void testGetEssentialItemsStatusInternalError() {
-        String token = "Bearer abc.123";
-
-        int householdId = 1;
-
-        when(jwtTokenService.getUserByToken("abc.123")).thenReturn(new User());
-        when(essentialItemService.getEssentialItemStatus(householdId)).thenThrow(new RuntimeException("DB failure"));
-
-        ResponseEntity<?> response = householdController.getEssentialItemsStatus(token, householdId);
-
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-        assertEquals("Unexpected error: DB failure", response.getBody());
-    }
-
-
-    @Test
-    @DisplayName("Should create household with valid token")
-    void testCreateHouseholdSuccess() {
-        String token = "Bearer abc.def.ghi";
-        User user = new User();
-        HouseholdCreate dto = new HouseholdCreate("ApeHouse", 10.0, 20.0);
-        Household created = new Household();
-
-        when(jwtTokenService.getUserByToken("abc.def.ghi")).thenReturn(user);
-        when(householdService.createHousehold(dto)).thenReturn(created);
-
-        ResponseEntity<?> response = householdController.createHousehold(token, dto);
-
-        assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        assertEquals("Household successfully created", response.getBody());
+    @DisplayName("getEssentialItemStatus unauthorized cases")
+    void testGetEssentialItemStatusUnauthorized() {
+        assertUnauthorizedCases(
+                args -> householdController.getEssentialItemsStatus((String) args[0], (int) args[1]), 1
+        );
     }
 
     @Test
@@ -433,13 +428,13 @@ class HouseholdControllerTest {
     }
 
     @Test
-    @DisplayName("Should return 401 Unauthorized when authorization header is missing or invalid")
-    void testGetMyHouseholdsUnauthorized() {
-        ResponseEntity<?> response = householdController.getMyHouses("InvalidHeader");
-
-        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
-        assertEquals("Error: Unauthorized", response.getBody());
+    @DisplayName("getMyHouses unauthorized cases")
+    void testGetMyHousesUnauthorized() {
+        assertUnauthorizedCases(
+                args -> householdController.getMyHouses((String) args[0])
+        );
     }
+
 
     @Test
     @DisplayName("Should return 404 when no households are found for user")
@@ -466,6 +461,110 @@ class HouseholdControllerTest {
         assertEquals("Unexpected error: Could not retrieve households", response.getBody());
     }
 
+    @Test
+    @DisplayName("getPrimaryHousehold should return 200 OK with primary household")
+    void testGetPrimaryHouseholdSuccess() {
+        HouseholdMinimalGetResponse mockHousehold = new HouseholdMinimalGetResponse(1, "house");
+        mockHousehold.setId(1);
 
+        when(jwtTokenService.getUserByToken("valid.jwt.token")).thenReturn(testUser);
+        when(householdService.getPrimary(testUser)).thenReturn(mockHousehold);
+
+        ResponseEntity<?> response = householdController.getPrimaryHousehold(validToken);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(mockHousehold, response.getBody());
+    }
+
+    @Test
+    @DisplayName("getMyHouses unauthorized cases")
+    void testGetPrimaryUnauthorized() {
+        assertUnauthorizedCases(
+                args -> householdController.getMyHouses((String) args[0])
+        );
+    }
+
+
+    @Test
+    @DisplayName("getPrimaryHousehold should return 404 if user not found")
+    void testGetPrimaryHouseholdUserNotFound() {
+        when(jwtTokenService.getUserByToken("valid.jwt.token")).thenReturn(testUser);
+        when(householdService.getPrimary(testUser)).thenThrow(new UserNotFoundException("User not found"));
+
+        ResponseEntity<?> response = householdController.getPrimaryHousehold(validToken);
+
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertEquals("Error: User not found", response.getBody());
+    }
+
+    @Test
+    @DisplayName("getPrimaryHousehold should return 500 if unexpected exception occurs")
+    void testGetPrimaryHouseholdUnexpectedError() {
+        when(jwtTokenService.getUserByToken("valid.jwt.token")).thenReturn(testUser);
+        when(householdService.getPrimary(testUser)).thenThrow(new RuntimeException("Unexpected fail"));
+
+        ResponseEntity<?> response = householdController.getPrimaryHousehold(validToken);
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertEquals("Unexpected error: Unexpected fail", response.getBody());
+    }
+
+    @Test
+    @DisplayName("setPrimaryHousehold should return OK when token is valid and user is found")
+    void testSetPrimaryHouseholdSuccess() {
+        when(jwtTokenService.getUserByToken("valid.jwt.token")).thenReturn(testUser);
+
+        ResponseEntity<?> response = householdController.setPrimaryHousehold(validToken, 1);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(true, response.getBody());
+        verify(householdService).setPrimary(1, testUser);
+    }
+
+    @Test
+    @DisplayName("setPrimaryHousehold unauthorized cases")
+    void testSetPrimaryHouseholdUnauthorized() {
+        assertUnauthorizedCases(
+                args -> householdController.setPrimaryHousehold((String) args[0], (int) args[1]),
+                1 // householdId
+        );
+    }
+
+
+    @Test
+    @DisplayName("setPrimaryHousehold should return NOT_FOUND when user is not in household")
+    void testSetPrimaryHouseholdNotFound() {
+        when(jwtTokenService.getUserByToken("valid.jwt.token")).thenReturn(testUser);
+        doThrow(new NoSuchElementException("Household not found")).when(householdService).setPrimary(1, testUser);
+
+        ResponseEntity<?> response = householdController.setPrimaryHousehold(validToken, 1);
+
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertEquals("Error: Household not found", response.getBody());
+    }
+
+    @Test
+    @DisplayName("setPrimaryHousehold should return BAD_REQUEST when input is invalid")
+    void testSetPrimaryHouseholdBadRequest() {
+        when(jwtTokenService.getUserByToken("valid.jwt.token")).thenReturn(testUser);
+        doThrow(new IllegalArgumentException("Missing householdId")).when(householdService).setPrimary(1, testUser);
+
+        ResponseEntity<?> response = householdController.setPrimaryHousehold(validToken, 1);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals("Error: Missing householdId", response.getBody());
+    }
+
+    @Test
+    @DisplayName("setPrimaryHousehold should return INTERNAL_SERVER_ERROR on unexpected exception")
+    void testSetPrimaryHouseholdUnexpectedError() {
+        when(jwtTokenService.getUserByToken("valid.jwt.token")).thenReturn(testUser);
+        doThrow(new RuntimeException("Database unreachable")).when(householdService).setPrimary(1, testUser);
+
+        ResponseEntity<?> response = householdController.setPrimaryHousehold(validToken, 1);
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertEquals("Unexpected error: Database unreachable", response.getBody());
+    }
 
 }

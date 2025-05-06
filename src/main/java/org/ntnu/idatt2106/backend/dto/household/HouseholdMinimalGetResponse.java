@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 /**
  * A response data transfer object for a household, with id and name of the household.
@@ -16,6 +17,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @AllArgsConstructor
+@ToString
 public class HouseholdMinimalGetResponse {
   @Schema(description = "The Id of the household", example = "1")
   private int id;

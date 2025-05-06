@@ -3,6 +3,7 @@ package org.ntnu.idatt2106.backend.service;
 import org.junit.jupiter.api.*;
 import org.mockito.*;
 import org.ntnu.idatt2106.backend.dto.household.HouseholdCreate;
+import org.ntnu.idatt2106.backend.dto.household.HouseholdMinimalGetResponse;
 import org.ntnu.idatt2106.backend.dto.household.HouseholdRequest;
 import org.ntnu.idatt2106.backend.exceptions.UnauthorizedException;
 import org.ntnu.idatt2106.backend.model.*;
@@ -157,7 +158,7 @@ class HouseholdServiceTest {
 
   @Test
   @DisplayName("Should remove user from household if member exists")
-  void testRemoveUserFromHouseholdSuccess() {
+  void testRemoveUserFromHouseholdSuccess() throws Exception {
     HouseholdMembers member = new HouseholdMembers(testUser, testHousehold, false, false);
 
     when(householdMembersRepo.findByUserAndHousehold(testUser, testHousehold))
@@ -173,7 +174,7 @@ class HouseholdServiceTest {
 
   @Test
   @DisplayName("Should do nothing when removing non-member user from household")
-  void testRemoveUserFromHouseholdNotPresent() {
+  void testRemoveUserFromHouseholdNotPresent() throws Exception {
     when(householdMembersRepo.findByUserAndHousehold(testUser, testHousehold))
         .thenReturn(Optional.empty());
 
@@ -201,7 +202,7 @@ class HouseholdServiceTest {
 
   @Test
   @DisplayName("Should update the users memberships when adding admin to household")
-  void testUpdateUserMembershipsWhenAdmin() {
+  void testUpdateUserMembershipsWhenAdmin() throws Exception {
     testUser.setHouseholdMemberships(new ArrayList<>());
     testHousehold.setMembers(new ArrayList<>());
 
@@ -216,7 +217,7 @@ class HouseholdServiceTest {
 
   @Test
   @DisplayName("Should update the users memberships when adding to household")
-  void testUpdateUserMemberships() {
+  void testUpdateUserMemberships() throws Exception {
     testUser.setHouseholdMemberships(new ArrayList<>());
     testHousehold.setMembers(new ArrayList<>());
 
@@ -231,7 +232,7 @@ class HouseholdServiceTest {
 
   @Test
   @DisplayName("Should update the household members when adding a user")
-  void testUpdateMembersWhenAddingUser() {
+  void testUpdateMembersWhenAddingUser() throws Exception {
     testUser.setHouseholdMemberships(new ArrayList<>());
     testHousehold.setMembers(new ArrayList<>());
 
@@ -246,7 +247,7 @@ class HouseholdServiceTest {
 
   @Test
   @DisplayName("Should update the household members when adding an admin user")
-  void testUpdateMembersWhenAddingAdminUser() {
+  void testUpdateMembersWhenAddingAdminUser() throws Exception {
     testUser.setHouseholdMemberships(new ArrayList<>());
     testHousehold.setMembers(new ArrayList<>());
 
@@ -261,7 +262,7 @@ class HouseholdServiceTest {
 
   @Test
   @DisplayName("Should not update the household members when adding a user that already exists")
-  void testUpdateMembersWhenAddingExistingUser() {
+  void testUpdateMembersWhenAddingExistingUser() throws Exception {
     testUser.setHouseholdMemberships(new ArrayList<>());
     testHousehold.setMembers(new ArrayList<>());
 
@@ -281,7 +282,7 @@ class HouseholdServiceTest {
 
   @Test
   @DisplayName("Should not update the household members when adding an admin user that already exists")
-  void testUpdateMembersWhenAddingExistingAdminUser() {
+  void testUpdateMembersWhenAddingExistingAdminUser() throws Exception {
     testUser.setHouseholdMemberships(new ArrayList<>());
     testHousehold.setMembers(new ArrayList<>());
 
@@ -311,7 +312,7 @@ class HouseholdServiceTest {
 
   @Test
   @DisplayName("Private verifyTokenNotTaken should return true for unused code")
-  void testPrivateVerifyTokenNotTaken() {
+  void testPrivateVerifyTokenNotTaken() throws Exception {
     when(joinCodeRepo.existsByCode("UNUSED")).thenReturn(false);
 
     boolean result = TestUtils.callPrivateMethod(householdService,
@@ -324,7 +325,7 @@ class HouseholdServiceTest {
 
   @Test
   @DisplayName("Private verifyTokenNotTaken should return false for used code")
-  void testPrivateVerifyTokenIsTaken() {
+  void testPrivateVerifyTokenIsTaken() throws Exception {
     when(joinCodeRepo.existsByCode("USED")).thenReturn(true);
 
     boolean result = TestUtils.callPrivateMethod(householdService,
@@ -337,7 +338,7 @@ class HouseholdServiceTest {
 
   @Test
   @DisplayName("Private verifyTokenNotExpired should return true for valid token")
-  void testPrivateVerifyTokenNotExpired() {
+  void testPrivateVerifyTokenNotExpired() throws Exception {
     HouseholdJoinCode validCode = new HouseholdJoinCode("VALID", testHousehold,
         new Date(System.currentTimeMillis() + 10000));
 
@@ -351,7 +352,7 @@ class HouseholdServiceTest {
 
   @Test
   @DisplayName("Private verifyTokenNotExpired should return false for expired token")
-  void testPrivateVerifyTokenExpired() {
+  void testPrivateVerifyTokenExpired() throws Exception {
     HouseholdJoinCode expiredCode = new HouseholdJoinCode("EXPIRED", testHousehold,
         new Date(System.currentTimeMillis() - 10000));
 
@@ -365,7 +366,7 @@ class HouseholdServiceTest {
 
   @Test
   @DisplayName("Private verifyTokenNotExpired should return false for null token")
-  void testPrivateVerifyTokenNull() {
+  void testPrivateVerifyTokenNull() throws Exception {
     boolean result = TestUtils.callPrivateMethod(householdService,
         new Class[]{String.class},
         new Object[]{null},
@@ -376,7 +377,7 @@ class HouseholdServiceTest {
 
   @Test
   @DisplayName("Private getHouseholdByCode should return household for valid code")
-  void testPrivateGetHouseholdByValidCode() {
+  void testPrivateGetHouseholdByValidCode() throws Exception {
     HouseholdJoinCode joinCode = new HouseholdJoinCode("VALID", testHousehold,
         new Date(System.currentTimeMillis() + 10000));
     when(joinCodeRepo.findByCode("VALID")).thenReturn(Optional.of(joinCode));
@@ -391,7 +392,7 @@ class HouseholdServiceTest {
 
   @Test
   @DisplayName("Private getHouseholdByCode should return null for invalid code")
-  void testPrivateGetHouseholdByInvalidCode() {
+  void testPrivateGetHouseholdByInvalidCode() throws Exception {
     when(joinCodeRepo.findByCode("INVALID")).thenReturn(Optional.empty());
 
     Household result = TestUtils.callPrivateMethod(householdService,
@@ -404,7 +405,7 @@ class HouseholdServiceTest {
 
   @Test
   @DisplayName("Private removeUserFromHousehold should remove existing member")
-  void testPrivateRemoveUserFromHousehold() {
+  void testPrivateRemoveUserFromHousehold() throws Exception {
     HouseholdMembers member = new HouseholdMembers(testUser, testHousehold, false, false);
     when(householdMembersRepo.findByUserAndHousehold(testUser, testHousehold))
         .thenReturn(Optional.of(member));
@@ -419,7 +420,7 @@ class HouseholdServiceTest {
 
   @Test
   @DisplayName("Private removeUserFromHousehold should handle non-existent member")
-  void testPrivateRemoveNonExistentMember() {
+  void testPrivateRemoveNonExistentMember() throws Exception {
     when(householdMembersRepo.findByUserAndHousehold(testUser, testHousehold))
         .thenReturn(Optional.empty());
 
@@ -447,7 +448,7 @@ class HouseholdServiceTest {
 
   @Test
   @DisplayName("Private generateRandomCode should generate code of correct length")
-  void testPrivateGenerateRandomCodeLength() {
+  void testPrivateGenerateRandomCodeLength() throws Exception {
     String code = TestUtils.callPrivateMethod(householdService,
         new Class[]{int.class},
         new Object[]{8},
@@ -459,7 +460,7 @@ class HouseholdServiceTest {
 
   @Test
   @DisplayName("Private generateRandomCode should generate alphanumeric code")
-  void testPrivateGenerateRandomCodeCharacters() {
+  void testPrivateGenerateRandomCodeCharacters() throws Exception {
     String code = TestUtils.callPrivateMethod(householdService,
         new Class[]{int.class},
         new Object[]{8},
@@ -507,6 +508,43 @@ class HouseholdServiceTest {
 
     assertThrows(NoSuchElementException.class, () -> {
       householdService.leaveHousehold(testHousehold, testUser);
+    });
+  }
+
+  @Test
+  @DisplayName("Should throw when user not in household tries to leave")
+  void testLeaveHouseholdNonMemberById() {
+    when(householdMembersRepo.findByUserAndHousehold(testUser, testHousehold))
+        .thenReturn(Optional.empty());
+
+    assertThrows(NoSuchElementException.class, () -> {
+      householdService.leaveHousehold(testHousehold, testUser);
+    });
+  }
+
+  @Test
+  @DisplayName("leaveHousehold success with householdId")
+  void testLeaveHouseholdSuccessWithHouseholdId() {
+    HouseholdMembers member = new HouseholdMembers(testUser, testHousehold, false, false);
+    when(householdRepo.findById(1)).thenReturn(Optional.of(testHousehold));
+    when(householdMembersRepo.existsByUserAndHousehold(testUser, testHousehold))
+        .thenReturn(true);
+    when(householdMembersRepo.findByUserAndHousehold(testUser, testHousehold))
+        .thenReturn(Optional.of(member));
+
+    householdService.leaveHousehold(1, testUser);
+
+    verify(householdMembersRepo).delete(member);
+    verify(householdRepo).save(testHousehold);
+  }
+
+  @Test
+  @DisplayName("leaveHousehold should throw when household not found")
+  void testLeaveHouseholdShouldThrowIfNotFound() {
+    when(householdRepo.findById(1)).thenReturn(Optional.empty());
+
+    assertThrows(NoSuchElementException.class, () -> {
+      householdService.leaveHousehold(1, testUser);
     });
   }
 
@@ -593,6 +631,32 @@ class HouseholdServiceTest {
   }
 
   @Test
+  @DisplayName("Should not allow non-admin to kick user")
+  void testVerifyCanKickUserFromHouseholdInvalidAdmin() {
+    User adminUser = new User("admin@test.com", "password", "Admin", "User", "12345678");
+    HouseholdMembers nonAdminMember = new HouseholdMembers(adminUser, testHousehold, false, false);
+    HouseholdMembers targetMember = new HouseholdMembers(testUser, testHousehold, false, false);
+
+    when(householdMembersRepo.existsByUserAndHousehold(testUser, testHousehold)).thenReturn(true);
+    when(householdMembersRepo.existsByUserAndHousehold(adminUser, testHousehold)).thenReturn(true);
+
+    when(householdMembersRepo.findByUserAndHousehold(testUser, testHousehold))
+            .thenReturn(Optional.of(targetMember));
+    when(householdMembersRepo.findByUserAndHousehold(adminUser, testHousehold))
+            .thenReturn(Optional.of(nonAdminMember));
+
+    UnauthorizedException exception = assertThrows(UnauthorizedException.class, () -> {
+      TestUtils.callPrivateMethod(householdService,
+              new Class[]{Household.class, User.class, User.class},
+              new Object[]{testHousehold, testUser, adminUser},
+              "verifyCanKickUserFromHousehold");
+    });
+
+    assertEquals("Admin does not have authority to kick user", exception.getMessage());
+  }
+
+
+  @Test
   @DisplayName("getHouseholdsByUser should return households for user")
   void testGetHouseholdsByUser() {
     testUser.getHouseholdMemberships().add(new HouseholdMembers(testUser, testHousehold, false, false));
@@ -618,5 +682,109 @@ class HouseholdServiceTest {
       householdService.getHouseholdsByUser(null);
     });
   }
+
+  @Test
+  @DisplayName("getPrimary should return primary household for user")
+  void testGetPrimarySuccess() {
+    HouseholdMembers primaryMember = new HouseholdMembers(testUser, testHousehold, false, true);
+
+    HouseholdMinimalGetResponse minimalTestHousehold = new HouseholdMinimalGetResponse(testHousehold.getId(), testHousehold.getName());
+
+    when(householdMembersRepo.findAllByUserAndIsPrimaryIsTrue(testUser)).thenReturn(List.of(primaryMember));
+    when(householdRepo.findById(primaryMember.getHousehold().getId())).thenReturn(Optional.of(testHousehold));
+
+    when(householdMembersRepo.findAllByUserAndIsPrimaryIsTrue(testUser)).thenReturn(List.of(primaryMember));
+
+    assertEquals(minimalTestHousehold.toString(), householdService.getPrimary(testUser).toString());
+  }
+
+  @Test
+  @DisplayName("getPrimary should return null for user with no primary household")
+  void testGetPrimaryNoPrimary() {
+    when(householdMembersRepo.findAllByUserAndIsPrimaryIsTrue(testUser)).thenReturn(List.of());
+
+    assertThrows(NoSuchElementException.class, () -> {
+      householdService.getPrimary(testUser);
+    });
+  }
+
+  @Test
+  @DisplayName("getPrimary should throw illegalargument for more than one primary household")
+  void testGetPrimaryMoreThanOnePrimary() {
+    HouseholdMembers primaryMember1 = new HouseholdMembers(testUser, testHousehold, false, true);
+    HouseholdMembers primaryMember2 = new HouseholdMembers(testUser, new Household(2, "AnotherHouse", 10.0, 20.0), false, true);
+
+    when(householdMembersRepo.findAllByUserAndIsPrimaryIsTrue(testUser)).thenReturn(List.of(primaryMember1, primaryMember2));
+
+    assertThrows(IllegalArgumentException.class, () -> {
+      householdService.getPrimary(testUser);
+    });
+  }
+
+  @Test
+  @DisplayName("setPrimary should set household as primary")
+  void testSetPrimary() {
+    HouseholdMembers member = new HouseholdMembers(testUser, testHousehold, false, false);
+    when(householdMembersRepo.findByUserAndHousehold(testUser, testHousehold)).thenReturn(Optional.of(member));
+    when(householdRepo.findById(testHousehold.getId())).thenReturn(Optional.of(testHousehold));
+
+    householdService.setPrimary(testHousehold.getId(), testUser);
+
+    assertTrue(member.isPrimary());
+    verify(householdMembersRepo).save(member);
+  }
+
+  @Test
+  @DisplayName("setPrimary should set only the target household as primary")
+  void testSetPrimarySetsOnlyOneAsPrimary() {
+    // given
+    Household otherHousehold = new Household();
+    otherHousehold.setId(999);
+
+    HouseholdMembers m1 = new HouseholdMembers(testUser, testHousehold, true, false);
+    HouseholdMembers m2 = new HouseholdMembers(testUser, otherHousehold, true, false);
+
+    when(householdRepo.findById(testHousehold.getId())).thenReturn(Optional.of(testHousehold));
+    when(householdMembersRepo.findByUser(testUser)).thenReturn(List.of(m1, m2));
+    when(householdMembersRepo.findByUserAndHousehold(testUser, testHousehold)).thenReturn(Optional.of(m1));
+
+    // when
+    householdService.setPrimary(testHousehold.getId(), testUser);
+
+    // then
+    assertTrue(m1.isPrimary());
+    assertFalse(m2.isPrimary());
+
+    verify(householdMembersRepo, atLeastOnce()).save(m1);
+    verify(householdMembersRepo, atLeastOnce()).save(m2);
+  }
+
+
+  @Test
+  @DisplayName("setPrimary should throw exception if household not found")
+  void testSetPrimaryHouseholdNotFound() {
+    HouseholdMembers member = new HouseholdMembers(testUser, testHousehold, false, false);
+    when(householdMembersRepo.findByUserAndHousehold(testUser, testHousehold)).thenReturn(Optional.of(member));
+    when(householdRepo.findById(testHousehold.getId())).thenReturn(Optional.empty());
+
+    assertThrows(NoSuchElementException.class, () -> {
+      householdService.setPrimary(testHousehold.getId(), testUser);
+    });
+  }
+
+  @Test
+  @DisplayName("setPrimary should throw if user is not a member of the household")
+  void testSetPrimaryThrowsIfUserNotInHousehold() {
+    when(householdRepo.findById(testHousehold.getId())).thenReturn(Optional.of(testHousehold));
+    when(householdMembersRepo.findByUser(testUser)).thenReturn(List.of()); // no memberships
+    when(householdMembersRepo.findByUserAndHousehold(testUser, testHousehold)).thenReturn(Optional.empty());
+
+    assertThrows(NoSuchElementException.class, () -> {
+      householdService.setPrimary(testHousehold.getId(), testUser);
+    });
+  }
+
+
+
 
 }
