@@ -10,6 +10,7 @@ import java.util.Optional;
 import org.ntnu.idatt2106.backend.dto.household.HouseholdCreate;
 import org.ntnu.idatt2106.backend.dto.household.HouseholdMinimalGetResponse;
 import org.ntnu.idatt2106.backend.dto.household.HouseholdRequest;
+import org.ntnu.idatt2106.backend.dto.user.UserMinimalGetResponse;
 import org.ntnu.idatt2106.backend.dto.user.UserPositionResponse;
 import org.ntnu.idatt2106.backend.exceptions.JoinCodeException;
 import org.ntnu.idatt2106.backend.exceptions.UnauthorizedException;
@@ -362,14 +363,14 @@ public class HouseholdService {
 
     List<HouseholdRequest> households = new ArrayList<>();
     for (HouseholdMembers householdMember : householdMemberships) {
-      System.out.println("Household member: " + householdMember);
+//      System.out.println("Household member: " + householdMember);
       Household household = householdMember.getHousehold();
 
-      List<String> members = new ArrayList<>();
+      List<UserMinimalGetResponse> members = new ArrayList<>();
       List<String> inventory = new ArrayList<>();
       if (household.getMembers() != null) {
         for (HouseholdMembers member : household.getMembers()) {
-          members.add(member.getUser().toString());
+          members.add(new UserMinimalGetResponse(member.getUser().getId(), member.getUser().getFirstname() + " " + member.getUser().getLastname()));
         }
       }
       if (household.getInventory() != null) {
