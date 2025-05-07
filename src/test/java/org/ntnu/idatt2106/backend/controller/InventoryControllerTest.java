@@ -231,9 +231,8 @@ public class InventoryControllerTest {
   @DisplayName("getItemsByCategory method returns success on valid request")
   void getItemsByCategorySuccess() {
     List<ItemGenericDTO> items = List.of(itemGenericDTO);
-    when(itemService.getItemsByCategoryId(anyInt(), anyInt())).thenReturn(items);
-
-    ResponseEntity<?> response = inventoryController.getItemsByCategory(1, validAuthHeader);
+    when(itemService.getItemsByCategoryIdAndHouseholdId(anyInt(), anyInt(), anyInt())).thenReturn(items);
+    ResponseEntity<?> response = inventoryController.getItemsByCategory(1, 1, validAuthHeader);
 
     assertEquals(HttpStatus.OK, response.getStatusCode());
     assertEquals(items, response.getBody());
@@ -242,9 +241,9 @@ public class InventoryControllerTest {
   @Test
   @DisplayName("getItemsByCategory method returns UNAUTHORIZED on unauthorized category ID")
   void getItemsByCategoryNotFound() {
-    when(itemService.getItemsByCategoryId(anyInt(), anyInt())).thenThrow(new EntityNotFoundException("Category not found"));
+    when(itemService.getItemsByCategoryIdAndHouseholdId(anyInt(), anyInt(), anyInt())).thenThrow(new EntityNotFoundException("Category not found"));
 
-    ResponseEntity<?> response = inventoryController.getItemsByCategory(1, validAuthHeader);
+    ResponseEntity<?> response = inventoryController.getItemsByCategory(1, 1, validAuthHeader);
 
     assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
     assertEquals("Error: Unauthorized", response.getBody());
