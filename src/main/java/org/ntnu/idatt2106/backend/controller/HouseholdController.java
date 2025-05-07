@@ -843,14 +843,34 @@ public class HouseholdController {
     /**
      * Endpoint for verifying if a user is an admin of a household.
      *
-     * @param userId The ID of the user.
+     * @param authorizationHeader The authorization header containing the JWT token.
      * @param householdId The ID of the household.
      * @return ResponseEntity indicating whether the user is an admin of the household.
      */
-    @GetMapping("/{householdId}/getAdmins")
-    public ResponseEntity<?> verifyUserIsAdminOfHousehold(@PathVariable int userId, @PathVariable int householdId) {
+    @GetMapping("/{householdId}/isAdmin")
+    public ResponseEntity<?> verifyUserIsAdminOfHousehold(
+        @Parameter(
+            name = "householdId",
+            description = "The id of the household to check",
+            required = true,
+            example = "1"
+        ) @PathVariable int householdId,
+        @Parameter(
+                name = "Authorization",
+                description = "Bearer token in the format Bearer <JWT>",
+                required = true,
+                example = "Bearer eyJhbGciOiJIUzI1N.iIsInR5cCI6IkpXVCJ9..."
+        ) @RequestHeader("Authorization") String authorizationHeader
+    ){
         try {
-            return ResponseEntity.status(HttpStatus.OK).body(householdService.verifyAdmin(userId, householdId));
+            if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+                String token = authorizationHeader.substring(7);
+                User user = jwtTokenService.getUserByToken(token);
+                if (user != null) {
+                    return ResponseEntity.status(HttpStatus.OK).body(householdService.verifyAdmin(user.getId(), householdId));
+                }
+            }
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Error: Unauthorized");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unexpected error: " + e.getMessage());
         }
