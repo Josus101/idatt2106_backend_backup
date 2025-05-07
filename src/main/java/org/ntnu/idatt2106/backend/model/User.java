@@ -57,6 +57,9 @@ public class User {
   @OneToMany(mappedBy = "user", orphanRemoval = true)
   private List<HouseholdMembers> householdMemberships = new ArrayList<>();
 
+  @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+  private UserSettings userSettings;
+
 
 
   /**

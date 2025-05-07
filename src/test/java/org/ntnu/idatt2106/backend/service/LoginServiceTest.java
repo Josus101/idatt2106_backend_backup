@@ -6,6 +6,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
 import org.ntnu.idatt2106.backend.dto.user.UserRegisterRequest;
+import org.ntnu.idatt2106.backend.dto.user.UserStoreSettingsRequest;
 import org.ntnu.idatt2106.backend.dto.user.UserTokenResponse;
 import org.ntnu.idatt2106.backend.exceptions.AlreadyInUseException;
 import org.ntnu.idatt2106.backend.exceptions.MailSendingFailedException;
@@ -39,6 +40,9 @@ public class LoginServiceTest {
   private EmailService emailService;
   @Mock
   private JWT_token jwt;
+
+  @Mock
+  private UserSettingsService userSettingsService;
 
   @Spy
   private BCryptHasher hasher = new BCryptHasher();
@@ -200,6 +204,7 @@ public class LoginServiceTest {
     when(userRepo.findByEmail(dto.getEmail())).thenReturn(Optional.empty());
     when(userRepo.findByPhoneNumber(dto.getPhoneNumber())).thenReturn(Optional.empty());
     doNothing().when(emailService).sendVerificationEmail(any(User.class));
+    doNothing().when(userSettingsService).saveUserSettings(eq(1), any(UserStoreSettingsRequest.class));
 
     loginService.register(dto);
 

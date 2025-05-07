@@ -188,10 +188,10 @@ public class ItemServiceTest {
     List<Item> itemList = new ArrayList<>();
     itemList.add(testItem);
 
-    when(itemRepo.findByCategory_Id(1)).thenReturn(Optional.of(itemList));
+    when(itemRepo.findByCategory_IdAndHousehold_Id(1, TEST_HOUSEHOLD_ID)).thenReturn(Optional.of(itemList));
     when(categoryRepo.existsById(1)).thenReturn(true);
 
-    List<ItemGenericDTO> result = itemService.getItemsByCategoryId(1, TEST_USER_ID);
+    List<ItemGenericDTO> result = itemService.getItemsByCategoryIdAndHouseholdId(1, TEST_HOUSEHOLD_ID, TEST_USER_ID);
 
     assertEquals(1, result.size());
     assertEquals(testItemDTO.getId(), result.get(0).getId());
@@ -201,9 +201,9 @@ public class ItemServiceTest {
   @DisplayName("getItemsByCategoryId should throw IllegalArgumentException if no items for given category exists")
   void getItemsByCategoryIdNotFound() {
     when(categoryRepo.existsById(1)).thenReturn(true);
-    when(itemRepo.findByCategory_Id(1)).thenReturn(Optional.empty());
+    when(itemRepo.findByCategory_IdAndHousehold_Id(1, TEST_HOUSEHOLD_ID)).thenReturn(Optional.empty());
 
-    assertThrows(IllegalArgumentException.class, () -> itemService.getItemsByCategoryId(1, TEST_USER_ID));
+    assertThrows(IllegalArgumentException.class, () -> itemService.getItemsByCategoryIdAndHouseholdId(1, TEST_HOUSEHOLD_ID, TEST_USER_ID));
   }
 
   @Test
@@ -211,7 +211,7 @@ public class ItemServiceTest {
   void getItemsByCategoryIdCategoryBadRequest() {
     when(categoryRepo.existsById(1)).thenReturn(false);
 
-    assertThrows(IllegalArgumentException.class, () -> itemService.getItemsByCategoryId(1, TEST_USER_ID));
+    assertThrows(IllegalArgumentException.class, () -> itemService.getItemsByCategoryIdAndHouseholdId(1, TEST_HOUSEHOLD_ID, TEST_USER_ID));
   }
 
   @Test

@@ -4,6 +4,8 @@ import jakarta.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
+import org.ntnu.idatt2106.backend.dto.user.UserStoreSettingsRequest;
 import org.ntnu.idatt2106.backend.model.*;
 import org.ntnu.idatt2106.backend.repo.*;
 import org.ntnu.idatt2106.backend.security.BCryptHasher;
@@ -33,6 +35,7 @@ public class DataSeeder implements CommandLineRunner {
   private final HouseholdMembersRepo householdMembersRepo;
   private final BCryptHasher hasher;
   private final LoginService loginService;
+  private final UserSettingsService userSettingsService;
 
   /**
    * Constructor for DataSeeder.
@@ -48,12 +51,13 @@ public class DataSeeder implements CommandLineRunner {
    * @param typeRepo Type repository
    * @param unitRepo Unit repository
    * @param householdMembersRepo Household members repository
+   * @param userSettingsService User settings service
    */
   public DataSeeder(AdminRepo adminRepo, UserRepo userRepo,
       BCryptHasher hasher, LoginService loginService, CategoryRepo categoryRepo,
       EmergencyServiceRepo emergencyServiceRepo, HouseholdRepo householdRepo,
       ItemRepo itemRepo, TypeRepo typeRepo, UnitRepo unitRepo,
-      HouseholdMembersRepo householdMembersRepo) {
+      HouseholdMembersRepo householdMembersRepo, UserSettingsService userSettingsService) {
     this.userRepo = userRepo;
     this.adminRepo = adminRepo;
     this.categoryRepo = categoryRepo;
@@ -65,6 +69,7 @@ public class DataSeeder implements CommandLineRunner {
     this.householdMembersRepo = householdMembersRepo;
     this.hasher = hasher;
     this.loginService = loginService;
+    this.userSettingsService = userSettingsService;
   }
 
   /**
@@ -124,7 +129,7 @@ public class DataSeeder implements CommandLineRunner {
       List<Unit> units = List.of(
           new Unit("KG"),
           new Unit("L"),
-          new Unit("Stk")
+          new Unit("PCS")
       );
       unitRepo.saveAll(units);
     }
@@ -157,13 +162,24 @@ public class DataSeeder implements CommandLineRunner {
     User testUser = createVerifiedUser("test@example.com", "test123", "Test", "Bruker", "12345678");
     User albert = createVerifiedUser("albert@example.com", "password123", "Albert", "Zindel", "98765432");
     Household household = createHousehold("Test Household", 59.9139, 10.7522);
+    Household household2 = createHousehold("Albert household", 40.0815, 124.4993);
 
     addHouseholdMember(household, testUser, true, true);
     addHouseholdMember(household, albert, false, false);
 
+    addHouseholdMember(household2, albert, true, true);
+
     List<Item> items = createItemsForHouseholdOne();
     household.setInventory(items);
     householdRepo.save(household);
+
+
+    UserStoreSettingsRequest defaultSettings = new UserStoreSettingsRequest(true, true);
+    userSettingsService.saveUserSettings(albert.getId(), defaultSettings);
+    
+    List<Item> items2 = createItemsForHouseholdTwo();
+    household2.setInventory(items2);
+    householdRepo.save(household2);
   }
 
   /**
@@ -293,7 +309,7 @@ public class DataSeeder implements CommandLineRunner {
 
     Unit kg = unitRepo.findByName("KG").orElseThrow();
     Unit liter = unitRepo.findByName("L").orElseThrow();
-    Unit count = unitRepo.findByName("Stk").orElseThrow();
+    Unit count = unitRepo.findByName("PCS").orElseThrow();
 
     Category water = categoryRepo.findByName("Water").orElseThrow();
     Category cannedFood = categoryRepo.findByName("Canned Food").orElseThrow();
@@ -387,7 +403,7 @@ public class DataSeeder implements CommandLineRunner {
     cal.setTime(now);
 
     Unit kg = unitRepo.findByName("KG").orElseThrow();
-    Unit count = unitRepo.findByName("Stk").orElseThrow();
+    Unit count = unitRepo.findByName("PCS").orElseThrow();
 
     Category grains = categoryRepo.findByName("Grains (Rice, Pasta)").orElseThrow();
     Category babySupplies = categoryRepo.findByName("Baby Supplies").orElseThrow();

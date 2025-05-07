@@ -29,8 +29,10 @@ public class HouseholdMembers {
   @JoinColumn(name = "household_id")
   private Household household;
 
+  @Column(name = "is_admin", nullable = false)
   private boolean isAdmin;
 
+  @Column(name = "is_primary", nullable = false)
   private boolean isPrimary;
 
   /**

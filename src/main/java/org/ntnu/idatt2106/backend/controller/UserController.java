@@ -13,13 +13,16 @@ import org.ntnu.idatt2106.backend.dto.user.UserPositionResponse;
 import org.ntnu.idatt2106.backend.dto.user.UserPositionUpdate;
 import org.ntnu.idatt2106.backend.dto.user.UserRegisterRequest;
 import org.ntnu.idatt2106.backend.dto.user.UserTokenResponse;
+import org.ntnu.idatt2106.backend.dto.user.*;
 import org.ntnu.idatt2106.backend.exceptions.AlreadyInUseException;
 import org.ntnu.idatt2106.backend.exceptions.MailSendingFailedException;
 import org.ntnu.idatt2106.backend.exceptions.TokenExpiredException;
 import org.ntnu.idatt2106.backend.exceptions.UserNotFoundException;
+import org.ntnu.idatt2106.backend.exceptions.UserNotVerifiedException;
 import org.ntnu.idatt2106.backend.model.User;
 import org.ntnu.idatt2106.backend.repo.UserRepo;
 import org.ntnu.idatt2106.backend.security.JWT_token;
+import org.ntnu.idatt2106.backend.service.*;
 import org.ntnu.idatt2106.backend.service.HouseholdService;
 import org.ntnu.idatt2106.backend.service.LoginService;
 import org.ntnu.idatt2106.backend.service.ReCaptchaService;
@@ -27,7 +30,6 @@ import org.ntnu.idatt2106.backend.service.VerificationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -61,6 +63,9 @@ public class UserController {
   
   @Autowired
   private JWT_token jwtToken;
+
+  @Autowired
+  UserSettingsService userSettingsService;
 
   /**
    * Endpoint for registering a new user.
@@ -159,6 +164,13 @@ public class UserController {
               schema = @Schema(example = "Error: Invalid user data"))
       ),
       @ApiResponse(
+          responseCode = "406",
+          description = "Email not verified",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(example = "Error: Email not verified"))
+      ),
+      @ApiResponse(
           responseCode = "400",
           description = "Invalid user data",
           content = @Content(
@@ -183,6 +195,8 @@ public class UserController {
       return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: Invalid user data");
     } catch (UserNotFoundException e) {
       return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: No user found with given email and password");
+    } catch (UserNotVerifiedException e) {
+        return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body("Error: Email not verified");
     }
     return ResponseEntity.ok(token);
   }
@@ -570,6 +584,115 @@ public class UserController {
       return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: Invalid household ID");
     } catch (Exception e) {
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: An unexpected error occurred during location retrieval");
+    }
+  }
+
+  /**
+   * Endpoint for saving user settings.
+   * @param settings the user settings to be saved
+   * @param authorizationHeader the JWT token for authorization
+   * @return a response entity indicating the result of the operation
+   */
+  @PostMapping("/settings/save")
+  @Operation(
+      summary = "Save user settings",
+      description = "Saves the user settings for the authenticated user"
+  )
+  @ApiResponses(value = {
+      @ApiResponse(
+          responseCode = "200",
+          description = "User settings saved successfully",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(example = "User settings saved successfully"))
+      ),
+      @ApiResponse(
+          responseCode = "400",
+          description = "Invalid user settings data",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(example = "Error: Invalid user settings data"))
+      ),
+      @ApiResponse(
+          responseCode = "401",
+          description = "Unauthorized - Invalid token",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(example = "Error: Unauthorized - Invalid token"))
+      )
+  })
+  public ResponseEntity<?> saveUserSettings(
+          @RequestBody UserStoreSettingsRequest settings,
+          @RequestHeader("Authorization") String authorizationHeader
+  ){
+    try {
+      if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+        String token = authorizationHeader.substring(7);
+        User user = jwtToken.getUserByToken(token);
+        if (user != null) {
+          userSettingsService.saveUserSettings(user.getId(), settings);
+          return ResponseEntity.ok("User settings saved successfully");
+        }
+      }
+      return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Error: Unauthorized");
+    } catch(Exception e) {
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: Invalid user settings data");
+    }
+
+  }
+
+  /**
+   * Endpoint for getting user settings.
+   * @param authorizationHeader the JWT token for authorization
+   * @return a response entity containing the user's settings
+   */
+  @GetMapping("/settings/get")
+  @Operation(
+      summary = "Get user settings",
+      description = "Gets the user settings for the authenticated user"
+  )
+  @ApiResponses(value = {
+      @ApiResponse(
+          responseCode = "200",
+          description = "User settings retrieved successfully",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(implementation = UserStoreSettingsRequest.class))
+      ),
+      @ApiResponse(
+          responseCode = "404",
+          description = "User settings not found",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(example = "Error: User settings not found"))
+      ),
+      @ApiResponse(
+          responseCode = "401",
+          description = "Unauthorized - Invalid token",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(example = "Error: Unauthorized - Invalid token"))
+      )
+  })
+  public ResponseEntity<?> getUserSettings(
+          @RequestHeader("Authorization") String authorizationHeader
+  ){
+    try {
+      if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+        String token = authorizationHeader.substring(7);
+        User user = jwtToken.getUserByToken(token);
+        if (user != null) {
+          UserStoreSettingsRequest settings = userSettingsService.getUserSettings(user.getId());
+          if (settings != null) {
+            return ResponseEntity.status(HttpStatus.OK).body(settings);
+          } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: User settings not found");
+          }
+        }
+      }
+      return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Error: Unauthorized");
+    } catch (Exception e) {
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: An error occurred while retrieving user settings");
     }
   }
 

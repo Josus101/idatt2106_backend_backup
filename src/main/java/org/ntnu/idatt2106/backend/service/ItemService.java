@@ -102,20 +102,21 @@ public class ItemService {
   }
 
   /**
-   * Retrieves all items associated with a category
+   * Retrieves all items associated with a category and household
    *
    * @param id     the ID of the category
    * @param userId the ID of the user requesting the items
+   * @param houseHoldId the ID of the household
    * @return a list of items associated with a category
    * @throws IllegalArgumentException if the category does not exist
    * @throws IllegalArgumentException if no items are found
    */
-  public List<ItemGenericDTO> getItemsByCategoryId(int id, int userId) {
+  public List<ItemGenericDTO> getItemsByCategoryIdAndHouseholdId(int id, int houseHoldId, int userId) {
     if (!categoryRepo.existsById(id)) {
       throw new IllegalArgumentException("Category does not exist");
     }
 
-    List<Item> items = itemRepo.findByCategory_Id(id)
+    List<Item> items = itemRepo.findByCategory_IdAndHousehold_Id(id, houseHoldId)
         .orElseThrow(() -> new IllegalArgumentException("No items found for this category"));
 
     return items.stream()
@@ -157,7 +158,6 @@ public class ItemService {
    * @param userId the ID of the user adding the item
    * @return the created item
    * @throws IllegalArgumentException if any referenced entity is not found
-   * @throws IllegalArgumentException if the user is not authorized
    */
   public ItemGenericDTO addItem(ItemCreateRequest itemCreateRequest, int userId)
       throws IllegalArgumentException {
@@ -205,7 +205,6 @@ public class ItemService {
    * @param userId   the ID of the user updating the item
    * @return the updated item
    * @throws IllegalArgumentException if any referenced entity is not found
-   * @throws IllegalArgumentException if the user is not authorized
    */
   public ItemGenericDTO updateItem(ItemGenericDTO itemData, int userId)
       throws IllegalArgumentException {
@@ -254,8 +253,7 @@ public class ItemService {
    *
    * @param id     the ID of the item to be deleted
    * @param userId the ID of the user deleting the item
-   * @throws IllegalArgumentException if the item is not found
-   * @throws IllegalArgumentException if the user is not authorized
+   * @throws IllegalArgumentException if the item is not found, or if the user is not authorized
    */
   public void deleteItem(int id, int userId) throws IllegalArgumentException {
     Item item = itemRepo.findById(id)
@@ -344,22 +342,6 @@ public class ItemService {
             return false;
           }
         });
-  }
-
-  /**
-   * Checks if the item is in the household
-   *
-   * @param item        the item to check
-   * @param householdId the ID of the household
-   * @throws IllegalArgumentException if the item is not in the household
-   */
-  private void validateItemInHousehold(Item item, int householdId) {
-    boolean isInHousehold = item.getHousehold().stream()
-        .anyMatch(household -> household.getId() == householdId);
-
-    if (!isInHousehold) {
-      throw new IllegalArgumentException("Item is not in the specified household");
-    }
   }
 
   /**

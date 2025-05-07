@@ -1,0 +1,19 @@
+{
+  "usersettings": {
+    "1": {
+      "setting1": "dark",
+      "setting2": "en",
+      "setting3": "true"
+    },
+    "2": {
+        "setting1": "light",
+        "setting2": "fr",
+        "setting3": "false"
+    },
+    "3": {
+        "setting1": "dark",
+        "setting2": "es",
+        "setting3": "true"
+    }
+  }
+}
