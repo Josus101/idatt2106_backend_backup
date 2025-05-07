@@ -9,8 +9,10 @@ import org.ntnu.idatt2106.backend.exceptions.UserNotFoundException;
 import org.ntnu.idatt2106.backend.exceptions.UserNotVerifiedException;
 import org.ntnu.idatt2106.backend.model.Admin;
 import org.ntnu.idatt2106.backend.repo.AdminRepo;
+import org.ntnu.idatt2106.backend.repo.VerificationTokenRepo;
 import org.ntnu.idatt2106.backend.security.BCryptHasher;
 import org.ntnu.idatt2106.backend.security.JWT_token;
+import org.ntnu.idatt2106.backend.service.TwoFactorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.ntnu.idatt2106.backend.exceptions.MailSendingFailedException;
@@ -28,10 +30,16 @@ public class AdminService {
   private AdminRepo adminRepo;
 
   @Autowired
+  private VerificationTokenRepo verificationTokenRepo;
+
+  @Autowired
   private JWT_token jwt;
 
   @Autowired
   private EmailService emailService;
+
+  @Autowired
+  private TwoFactorService twoFactorService;
 
   private final BCryptHasher hasher = new BCryptHasher();
 
@@ -108,7 +116,7 @@ public class AdminService {
    * @param password The admin's password.
    * @return A token response object on successful authentication.
    */
-  public String authenticate(String username, String password) {
+  public String authenticate(String username, String password, String token) {
     Optional<Admin> admin = adminRepo.findByUsername(username);
     if (admin.isEmpty()) {
       throw new UserNotFoundException("No admin found with given username and password");
@@ -120,6 +128,15 @@ public class AdminService {
       throw new IllegalArgumentException("Incorrect password for given username");
     }
 
+    if (twoFactorService.isTokenForAdmin(token, admin.get().getEmail())) {
+      if (!twoFactorService.validate2FA_Token(token)) {
+        throw new IllegalArgumentException("Invalid 2FA token");
+      }
+      twoFactorService.delete2FA_Token(token);
+    } else {
+      throw new IllegalArgumentException("Invalid 2FA token");
+    }
+    
     return jwt.generateJwtToken(admin.get()).getToken();
   }
 
@@ -287,5 +304,19 @@ public class AdminService {
     }
     admin.setActive(true);
     changePassword(admin, newPassword);
+  }
+
+  /**
+   * Sends a 2FA token to the admin user.
+   *
+   * @param admin The admin user.
+   */
+  public void send2FAToken(Admin admin) {
+    try {
+      String token = twoFactorService.create2FA_Token(admin.getEmail());
+      emailService.send2FA(admin.getEmail(), token);
+    } catch (Exception e) {
+      throw new MailSendingFailedException("Failed to send 2FA token", e.getCause());
+    }
   }
 }

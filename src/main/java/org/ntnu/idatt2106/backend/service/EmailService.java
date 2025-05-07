@@ -285,4 +285,22 @@ public class EmailService {
 
     sendHtmlEmail(admin.getEmail(), "Activate Your Admin Account", htmlContent);
   }
+
+  /**
+   * Sends a 2FA token to the user.
+   *
+   * @param to The recipient's email address.
+   * @param token The 2FA token to be sent.
+   * @throws MessagingException If there is an error while sending the email.
+   */
+  public void send2FA(String to, String token) throws MessagingException {
+    String htmlContent = buildEmailTemplate(
+        "2FA Token",
+        "Your 2FA token is: " + token,
+        " ",
+        token,
+        "Please return to login page."
+    );
+    sendHtmlEmail(to, "2FA Token", htmlContent);
+  }
 }
