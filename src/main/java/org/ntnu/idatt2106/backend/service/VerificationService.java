@@ -89,6 +89,8 @@ public class VerificationService {
    * Verifies the email address using the provided token.
    *
    * @param token The token to verify the email address.
+   * @throws UserNotFoundException if the user is not found.
+   * @throws TokenExpiredException if the token is expired.
    */
   public void verifyEmail(String token) {
     try {
@@ -107,6 +109,8 @@ public class VerificationService {
    * Resets the password for the user with the given token
    * @param token The token to find the user with
    * @param newPassword The new password to set
+   * @throws UserNotFoundException if the user is not found
+   * @throws TokenExpiredException if the token is expired
    */
   public void resetPassword(String token, String newPassword) {
     User user = findUserByToken(token, VerificationTokenType.PASSWORD_RESET);
@@ -127,11 +131,10 @@ public class VerificationService {
    */
   public void activateAdmin(String token, String newPassword) {
     Admin admin = findAdminByToken(token, VerificationTokenType.ADMIN_VERIFICATION);
-    if (admin != null) {
-      System.out.println("User found: " + admin);
-      adminService.activateAdmin(admin, newPassword);
-    } else {
-      throw new UserNotFoundException("User not found");
+    if (admin.isActive()) {
+      throw new IllegalStateException("Admin account is already active");
     }
+    System.out.println("admin found: " + admin);
+    adminService.activateAdmin(admin, newPassword);
   }
 }

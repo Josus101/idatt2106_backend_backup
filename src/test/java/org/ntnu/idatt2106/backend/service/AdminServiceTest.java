@@ -1,5 +1,6 @@
 package org.ntnu.idatt2106.backend.service;
 
+import jakarta.mail.MessagingException;
 import jakarta.validation.constraints.Email;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -14,6 +15,7 @@ import org.ntnu.idatt2106.backend.exceptions.UserNotVerifiedException;
 import org.ntnu.idatt2106.backend.model.Admin;
 import org.ntnu.idatt2106.backend.model.User;
 import org.ntnu.idatt2106.backend.repo.AdminRepo;
+import org.ntnu.idatt2106.backend.repo.VerificationTokenRepo;
 import org.ntnu.idatt2106.backend.security.BCryptHasher;
 import org.ntnu.idatt2106.backend.security.JWT_token;
 import org.ntnu.idatt2106.backend.dto.user.UserTokenResponse;
@@ -39,12 +41,19 @@ public class AdminServiceTest {
   @Mock
   private EmailService emailService;
 
+  @Mock
+  private VerificationTokenRepo verificationTokenRepo;
+
+  @Mock
+  private TwoFactorService twoFactorService;
+
   @BeforeEach
   void setUp() {
     MockitoAnnotations.openMocks(this);
     BCryptHasher hasher = new BCryptHasher();
     testAdmin = new Admin("admin", hasher.hashPassword("password"), "test@mail.com",
         true);
+    testAdmin.setTwoFactorEnabled(false);
   }
 
   @Test
@@ -150,7 +159,7 @@ public class AdminServiceTest {
     when(jwt.getAdminUserByToken("token")).thenReturn(testAdmin);
     when(adminRepo.existsByUsername("newadmin")).thenReturn(false);
 
-    adminService.register(newAdmin, "token");
+    adminService.register(newAdmin, "Bearer token");
 
     verify(adminRepo).save(any(Admin.class));
   }
@@ -164,7 +173,7 @@ public class AdminServiceTest {
     when(adminRepo.existsByUsername("newadmin")).thenReturn(false);
 
     assertThrows(IllegalArgumentException.class, () -> {
-      adminService.register(newAdmin, "token");
+      adminService.register(newAdmin, "Bearer token");
     });
   }
   @Test
@@ -176,7 +185,7 @@ public class AdminServiceTest {
     when(adminRepo.existsByUsername("admin")).thenReturn(true);
 
     assertThrows(IllegalArgumentException.class, () -> {
-      adminService.register(newAdmin, "token");
+      adminService.register(newAdmin, "Bearer token");
     });
   }
 
@@ -191,7 +200,7 @@ public class AdminServiceTest {
     Admin newAdmin = new Admin("new", "pass","test@mail.com", false);
 
     assertThrows(UnauthorizedException.class, () -> {
-      spyService.register(newAdmin, "token");
+      spyService.register(newAdmin, "Bearer token");
     });
   }
 
@@ -201,7 +210,7 @@ public class AdminServiceTest {
     when(jwt.getAdminUserByToken("token")).thenReturn(testAdmin);
     when(adminRepo.existsByUsername("newadmin")).thenReturn(false);
 
-    adminService.register("newadmin", "password@pass.com", "token");
+    adminService.register("newadmin", "password@pass.com", "Bearer token");
 
     verify(adminRepo).save(any(Admin.class));
   }
@@ -213,7 +222,7 @@ public class AdminServiceTest {
     when(adminRepo.findById(1)).thenReturn(Optional.empty());
 
     assertThrows(IllegalArgumentException.class, () -> {
-      adminService.elevateAdmin("1", "token");
+      adminService.elevateAdmin("1", "Bearer token");
     });
   }
 
@@ -226,7 +235,7 @@ public class AdminServiceTest {
     when(adminRepo.findById(1)).thenReturn(Optional.of(superAdmin));
 
     assertThrows(IllegalArgumentException.class, () -> {
-      adminService.elevateAdmin("1", "token");
+      adminService.elevateAdmin("1", "Bearer token");
     });
   }
 
@@ -238,7 +247,7 @@ public class AdminServiceTest {
     when(jwt.getAdminUserByToken("token")).thenReturn(testAdmin);
     when(adminRepo.findById(1)).thenReturn(Optional.of(nonSuper));
 
-    adminService.elevateAdmin("1", "token");
+    adminService.elevateAdmin("1", "Bearer token");
 
     assertTrue(nonSuper.isSuperUser());
     verify(adminRepo).save(nonSuper);
@@ -252,7 +261,7 @@ public class AdminServiceTest {
     when(adminRepo.findById(1)).thenReturn(Optional.of(nonSuper));
 
     assertThrows(UnauthorizedException.class, () -> {
-      adminService.elevateAdmin("1", "token");
+      adminService.elevateAdmin("1", "Bearer token");
     });
     assertFalse(nonSuper.isSuperUser());
   }
@@ -264,7 +273,7 @@ public class AdminServiceTest {
     when(adminRepo.findById(1)).thenReturn(Optional.empty());
 
     assertThrows(IllegalArgumentException.class, () -> {
-      adminService.exterminateAdmin("1", "token");
+      adminService.exterminateAdmin("1", "Bearer token");
     });
   }
 
@@ -277,7 +286,7 @@ public class AdminServiceTest {
     when(adminRepo.findById(1)).thenReturn(Optional.of(superAdmin));
 
     assertThrows(IllegalArgumentException.class, () -> {
-      adminService.exterminateAdmin("1", "token");
+      adminService.exterminateAdmin("1", "Bearer token");
     });
   }
 
@@ -289,7 +298,7 @@ public class AdminServiceTest {
     when(jwt.getAdminUserByToken("token")).thenReturn(testAdmin);
     when(adminRepo.findById(1)).thenReturn(Optional.of(nonSuper));
 
-    adminService.exterminateAdmin("1", "token");
+    adminService.exterminateAdmin("1", "Bearer token");
 
     verify(adminRepo).delete(nonSuper);
   }
@@ -303,7 +312,7 @@ public class AdminServiceTest {
     when(adminRepo.findById(1)).thenReturn(Optional.of(nonSuper));
 
     assertThrows(UnauthorizedException.class, () -> {
-      adminService.exterminateAdmin("1", "token");
+      adminService.exterminateAdmin("1", "Bearer token");
     });
   }
 
@@ -359,7 +368,7 @@ public class AdminServiceTest {
     testAdmin.setActive(true);
 
     assertThrows(IllegalArgumentException.class, () -> {
-      adminService.activateAdmin(testAdmin, "token");
+      adminService.activateAdmin(testAdmin, "Bearer token");
     });
   }
 
@@ -369,7 +378,7 @@ public class AdminServiceTest {
     when(adminRepo.findAll()).thenReturn(List.of(testAdmin));
     when(jwt.getAdminUserByToken("token")).thenReturn(testAdmin);
 
-    List<AdminGetResponse> admins = adminService.getAllAdmins("token");
+    List<AdminGetResponse> admins = adminService.getAllAdmins("Bearer token");
     assertEquals(1, admins.size());
     assertEquals(testAdmin.getUsername(), admins.get(0).getUsername());
     assertEquals(testAdmin.isSuperUser(), admins.get(0).isSuperUser());
@@ -383,7 +392,7 @@ public class AdminServiceTest {
     when(jwt.getAdminUserByToken("token")).thenReturn(testAdmin);
 
     assertThrows(UserNotFoundException.class, () -> {
-      adminService.getAllAdmins("token");
+      adminService.getAllAdmins("Bearer token");
     });
   }
 
@@ -395,7 +404,7 @@ public class AdminServiceTest {
     when(adminRepo.findAll()).thenReturn(List.of(testAdmin));
 
     assertThrows(UnauthorizedException.class, () -> {
-      adminService.getAllAdmins("token");
+      adminService.getAllAdmins("Bearer token");
     });
   }
 
@@ -438,6 +447,164 @@ public class AdminServiceTest {
     assertThrows(RuntimeException.class, () -> {
       adminService.sendActivateEmail(testAdmin);
     });
+  }
+
+  @Test
+  @DisplayName("admin with two factor authentication should be able to login")
+  void testAdminWithTwoFactorAuthentication() {
+    when(adminRepo.findByUsername("admin")).thenReturn(Optional.of(testAdmin));
+    when(twoFactorService.isTokenForAdmin(anyString(), anyString())).thenReturn(true);
+    when(twoFactorService.validate2FA_Token(anyString())).thenReturn(true);
+    when(jwt.generateJwtToken(any(Admin.class)))
+        .thenReturn(new UserTokenResponse("jwtToken", System.currentTimeMillis()));
+    when(jwt.getAdminUserByToken("token")).thenReturn(testAdmin);
+    testAdmin.setTwoFactorEnabled(true);
+    testAdmin.setActive(true);
+    String token = adminService.authenticate("admin", "password", "code");
+    testAdmin.setTwoFactorEnabled(false);
+    assertNotNull(token);
+    assertEquals("jwtToken", token);
+  }
+
+  @Test
+  @DisplayName("admin with two factor authentication should not be able to login without token")
+  void testAdminWithTwoFactorAuthenticationWithoutToken() {
+    when(adminRepo.findByUsername("admin")).thenReturn(Optional.of(testAdmin));
+    testAdmin.setTwoFactorEnabled(true);
+    testAdmin.setActive(true);
+    assertThrows(IllegalArgumentException.class, () -> {
+      adminService.authenticate("admin", "password");
+    });
+  }
+
+  @Test
+  @DisplayName("admin with two factor authentication should not be able to login with wrong token")
+  void testAdminWithTwoFactorAuthenticationWithWrongToken() {
+    when(adminRepo.findByUsername("admin")).thenReturn(Optional.of(testAdmin));
+
+    testAdmin.setTwoFactorEnabled(true);
+    testAdmin.setActive(true);
+    assertThrows(IllegalArgumentException.class, () -> {
+      adminService.authenticate("admin", "password", "wrongToken");
+    });
+  }
+
+  @Test
+  @DisplayName("send2FAToken sends email to activate two factor authentication")
+  void testSendTwoFactorEmail() {
+    testAdmin.setActive(true);
+    testAdmin.setTwoFactorEnabled(true);
+    when(adminRepo.findById(1)).thenReturn(Optional.of(testAdmin));
+    when(verificationTokenRepo.findByEmail(testAdmin.getEmail()))
+        .thenReturn(Optional.empty());
+    try {
+      doNothing().when(emailService).send2FA(any(), anyString());
+    } catch (Exception e) {
+      fail();
+    }
+
+    adminService.send2FAToken(testAdmin);
+  }
+
+  @Test
+  @DisplayName("send2FAToken throws if mail sending failed")
+  void testSendTwoFactorEmailMailSendingFailed() {
+    when(adminRepo.findById(1)).thenReturn(Optional.of(testAdmin));
+    try {
+      doThrow(new RuntimeException("Mail sending failed")).when(emailService)
+          .send2FA(any(), anyString());
+    } catch (Exception e) {
+      fail();
+    }
+
+    assertThrows(RuntimeException.class, () -> {
+      adminService.send2FAToken(testAdmin);
+    });
+  }
+
+  @Test
+  @DisplayName("send2FAToken throws if admin is not found")
+  void testSendTwoFactorEmailAdminNotFound() {
+    when(adminRepo.findByEmail(testAdmin.getEmail())).thenReturn(Optional.empty());
+    try {
+      doNothing().when(emailService).send2FA(any(), anyString());
+    } catch (Exception e) {
+      fail();
+    }
+
+    assertThrows(UserNotFoundException.class, () -> {
+      adminService.send2FAToken(testAdmin.getEmail());
+    });
+  }
+
+  @Test
+  @DisplayName("send2FAToken throws if admin is not active")
+  void testSendTwoFactorEmailAdminNotVerified() {
+    when(adminRepo.findById(1)).thenReturn(Optional.of(testAdmin));
+    testAdmin.setTwoFactorEnabled(true);
+    testAdmin.setActive(false);
+
+    assertThrows(UserNotVerifiedException.class, () -> {
+      adminService.send2FAToken(testAdmin);
+    });
+  }
+
+  @Test
+  @DisplayName("send2FAToken throws if admin is not two factor enabled")
+  void testSendTwoFactorEmailAdminNotTwoFactorEnabled() {
+    when(adminRepo.findById(1)).thenReturn(Optional.of(testAdmin));
+    testAdmin.setActive(true);
+    testAdmin.setTwoFactorEnabled(false);
+
+    assertThrows(IllegalArgumentException.class, () -> {
+      adminService.send2FAToken(testAdmin);
+    });
+  }
+
+  @Test
+  @DisplayName("send2FAToken throws UserNotVerifiedException when admin is not active")
+  void send2FAToken_AdminNotActive() {
+    String email = "inactive@example.com";
+    Admin admin = new Admin();
+    admin.setTwoFactorEnabled(true);
+    admin.setActive(false);
+    when(adminRepo.findByEmail(email)).thenReturn(Optional.of(admin));
+    UserNotVerifiedException ex = assertThrows(UserNotVerifiedException.class, () -> {
+      adminService.send2FAToken(email);
+    });
+    assertEquals("Admin is not active", ex.getMessage());
+  }
+
+
+  @Test
+  @DisplayName("send2FAToken throws IllegalArgumentException if 2FA is not enabled for admin")
+  void send2FAToken_ThrowsIllegalArgumentException() throws MessagingException {
+    Admin admin = new Admin();
+    when(adminRepo.findByEmail("email")).thenReturn(Optional.of(admin));
+    doThrow(new IllegalArgumentException("2FA is not enabled for this admin"))
+        .when(emailService).send2FA(any(), anyString());
+
+    IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> {
+      adminService.send2FAToken("email");
+    });
+    assertEquals("2FA is not enabled for this admin", ex.getMessage());
+  }
+
+  @Test
+  @DisplayName("send2FAToken throws MailSendingFailedException when email sending fails")
+  void send2FAToken_MailSendingFailed() throws MessagingException {
+    String email = "error@example.com";
+    Admin admin = new Admin();
+    admin.setTwoFactorEnabled(true);
+    admin.setActive(true);
+    when(adminRepo.findByEmail(email)).thenReturn(Optional.of(admin));
+
+    doThrow(new RuntimeException("Email service failure")).when(emailService).send2FA(any(), any());
+
+    MailSendingFailedException ex = assertThrows(MailSendingFailedException.class, () -> {
+      adminService.send2FAToken(email);
+    });
+    assertTrue(ex.getMessage().contains("Failed to send 2FA token"));
   }
 
 

@@ -1,5 +1,6 @@
 package org.ntnu.idatt2106.backend.service;
 
+import java.util.Date;
 import java.util.Optional;
 import org.ntnu.idatt2106.backend.model.VerificationToken;
 import org.ntnu.idatt2106.backend.model.VerificationTokenType;
@@ -30,12 +31,18 @@ public class TwoFactorService {
     if (verificationToken.isEmpty()) {
       return true;
     }
-    if (!verificationToken.get().getType()
-        .equals(VerificationTokenType.TWO_FACTOR_AUTHENTICATION)) {
-      return false;
+    VerificationToken foundToken = verificationToken.get();
+    if (foundToken.getType() == VerificationTokenType.TWO_FACTOR_AUTHENTICATION) {
+      if (foundToken.getExpirationDate().before(new Date())) {
+        verificationTokenRepo.delete(foundToken);
+        return true;
+      } else {
+        return false;
+      }
     }
-    return !verificationToken.get().getExpirationDate().before(new java.util.Date());
+    return false;
   }
+
 
   /**
    * Generates a 2FA token for the admin user.
@@ -52,6 +59,7 @@ public class TwoFactorService {
       if (verifyTokenNotInUse(code.toString())) {
         return code.toString();
       }
+      code.setLength(0);
     }
     return null;
   }

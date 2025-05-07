@@ -23,6 +23,7 @@ import org.ntnu.idatt2106.backend.model.Admin;
 import org.ntnu.idatt2106.backend.model.User;
 import org.ntnu.idatt2106.backend.model.VerificationToken;
 import org.ntnu.idatt2106.backend.model.VerificationTokenType;
+import org.ntnu.idatt2106.backend.repo.AdminRepo;
 import org.ntnu.idatt2106.backend.repo.UserRepo;
 import org.ntnu.idatt2106.backend.repo.VerificationTokenRepo;
 
@@ -46,6 +47,11 @@ public class VerificationServiceTest {
   private VerificationToken validPasswordToken;
   private VerificationToken validAdminToken;
   private Admin admin;
+  @Mock
+  private AdminRepo adminRepo;
+
+  @Mock
+  private AdminService adminService;
 
   @BeforeEach
   void setUp() {
@@ -209,4 +215,58 @@ public class VerificationServiceTest {
 
     assertThrows(UserNotFoundException.class, () -> verificationService.resetPassword(token, newPassword));
   }
+
+  @Test
+  @DisplayName("findAdminByToken returns admin when token is valid")
+  void testFindAdminByToken() {
+    when(verificationTokenRepo.findByToken("valid-admin-token")).thenReturn(Optional.of(validAdminToken));
+    when(adminRepo.findByEmail(admin.getEmail())).thenReturn(Optional.of(admin));
+
+    Admin foundAdmin = verificationService.findAdminByToken("valid-admin-token", VerificationTokenType.ADMIN_VERIFICATION);
+
+    assertNotNull(foundAdmin);
+    assertEquals(admin, foundAdmin);
+  }
+
+  @Test
+  @DisplayName("findAdminByToken throws UserNotFoundException when token is missing")
+  void testFindAdminByTokenMissing() {
+    when(verificationTokenRepo.findByToken("missing-token")).thenReturn(Optional.empty());
+
+    assertThrows(UserNotFoundException.class, () -> {
+      verificationService.findAdminByToken("missing-token", VerificationTokenType.ADMIN_VERIFICATION);
+    });
+  }
+
+  @Test
+  @DisplayName("activateAdmin activates admin when token is valid")
+  void testActivateAdmin() {
+    when(verificationTokenRepo.findByToken("valid-admin-token")).thenReturn(Optional.of(validAdminToken));
+    when(adminRepo.findByEmail(admin.getEmail())).thenReturn(Optional.of(admin));
+    verificationService.activateAdmin("valid-admin-token","pass");
+  }
+
+  @Test
+  @DisplayName("activateAdmin throws UserNotFoundException when token is missing")
+  void testActivateAdminMissing() {
+    when(verificationTokenRepo.findByToken("missing-token")).thenReturn(Optional.empty());
+
+    assertThrows(UserNotFoundException.class, () -> {
+      verificationService.activateAdmin("missing-token", "pass");
+    });
+  }
+
+  @Test
+  @DisplayName("activateAdmin throws when admin already activated")
+  void testActivateAdminAlreadyActivated() {
+    when(verificationTokenRepo.findByToken("valid-admin-token")).thenReturn(Optional.of(validAdminToken));
+    when(adminRepo.findByEmail(admin.getEmail())).thenReturn(Optional.of(admin));
+    admin.setActive(true);
+    assertThrows(IllegalStateException.class, () -> {
+      verificationService.activateAdmin("valid-admin-token", "pass");
+    });
+  }
+
+
+
 }

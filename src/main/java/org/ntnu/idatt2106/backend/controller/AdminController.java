@@ -100,11 +100,9 @@ public class AdminController {
     try {
       adminService.register(admin.getUsername(), admin.getEmail(), authorizationHeader);
     } catch (UnauthorizedException e) {
-      System.out.println(e.getMessage());
 
       return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(false);
     } catch (Exception e) {
-      System.out.println(e.getMessage());
 
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(false);
     }
@@ -251,19 +249,14 @@ public class AdminController {
       }
       return ResponseEntity.ok(token);
     } catch (IllegalArgumentException e) {
-      System.out.println(e.getMessage());
-      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: Invalid admin data. "+e.getMessage());
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: Invalid admin data");
     } catch (UserNotFoundException e) {
-      System.out.println(e.getMessage());
 
       return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: " + e.getMessage());
     } catch (UserNotVerifiedException e) {
-      System.out.println(e.getMessage());
 
       return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Error: " + e.getMessage() + ". Please activate your account via the email.");
     } catch (Exception e) {
-      System.out.println(e.getMessage());
-
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: An unexpected error occurred");
     }
   }
@@ -558,7 +551,7 @@ public class AdminController {
     } catch (UserNotVerifiedException e) {
       return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Error: " + e.getMessage() + ". Please activate your account via the email.");
     } catch (Exception e) {
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: An unexpected error occurred. " + e.getMessage());
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: An unexpected error occurred");
     }
   }
 

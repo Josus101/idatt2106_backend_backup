@@ -348,8 +348,20 @@ public class AdminService {
    */
   public void send2FAToken(Admin admin) {
     try {
+      if (!admin.isTwoFactorEnabled()) {
+        throw new IllegalArgumentException("2FA is not enabled for this admin");
+      }
+      if (!admin.isActive()) {
+        throw new UserNotVerifiedException("Admin is not active");
+      }
       String token = twoFactorService.create2FA_Token(admin.getEmail());
       emailService.send2FA(admin.getEmail(), token);
+    } catch (UserNotFoundException e) {
+      throw new UserNotFoundException("Admin not found");
+    } catch (UserNotVerifiedException e) {
+      throw new UserNotVerifiedException("Admin is not active");
+    } catch (IllegalArgumentException e) {
+      throw new IllegalArgumentException("2FA is not enabled for this admin");
     } catch (Exception e) {
       throw new MailSendingFailedException("Failed to send 2FA token", e.getCause());
     }
@@ -367,25 +379,14 @@ public class AdminService {
       }
       Admin admin = adminRepo.findByEmail(email)
           .orElseThrow(() -> new UserNotFoundException("Admin not found"));
-      if (!admin.isTwoFactorEnabled()) {
-        throw new IllegalArgumentException("2FA is not enabled for this admin");
-      }
-      if (!admin.isActive()) {
-        throw new UserNotVerifiedException("Admin is not active");
-      }
-      System.out.println("Sending 2FA token to " + email);
-      String token = twoFactorService.create2FA_Token(email);
-      emailService.send2FA(email, token);
+      send2FAToken(admin);
     } catch (UserNotFoundException e) {
       throw new UserNotFoundException("Admin not found");
     } catch (UserNotVerifiedException e) {
       throw new UserNotVerifiedException("Admin is not active");
     } catch (IllegalArgumentException e) {
       throw new IllegalArgumentException("2FA is not enabled for this admin");
-    } catch (MailSendingFailedException e) {
-      throw new MailSendingFailedException("Failed to send 2FA token", e.getCause());
     } catch (Exception e) {
-      System.out.println("Failed to send 2FA token. " + e.getMessage() + " " + e.getCause() + " " + e.getStackTrace() + " " + e.getClass().getName() + " " + e.getLocalizedMessage() + " " + e.getSuppressed()); // TODO: Remove this line before production
       throw new MailSendingFailedException("Failed to send 2FA token", e.getCause());
     }
   }
