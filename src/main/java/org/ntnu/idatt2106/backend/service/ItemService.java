@@ -102,20 +102,21 @@ public class ItemService {
   }
 
   /**
-   * Retrieves all items associated with a category
+   * Retrieves all items associated with a category and household
    *
    * @param id     the ID of the category
    * @param userId the ID of the user requesting the items
+   * @param houseHoldId the ID of the household
    * @return a list of items associated with a category
    * @throws IllegalArgumentException if the category does not exist
    * @throws IllegalArgumentException if no items are found
    */
-  public List<ItemGenericDTO> getItemsByCategoryId(int id, int userId) {
+  public List<ItemGenericDTO> getItemsByCategoryIdAndHouseholdId(int id, int houseHoldId, int userId) {
     if (!categoryRepo.existsById(id)) {
       throw new IllegalArgumentException("Category does not exist");
     }
 
-    List<Item> items = itemRepo.findByCategory_Id(id)
+    List<Item> items = itemRepo.findByCategory_IdAndHousehold_Id(id, houseHoldId)
         .orElseThrow(() -> new IllegalArgumentException("No items found for this category"));
 
     return items.stream()
@@ -341,22 +342,6 @@ public class ItemService {
             return false;
           }
         });
-  }
-
-  /**
-   * Checks if the item is in the household
-   *
-   * @param item        the item to check
-   * @param householdId the ID of the household
-   * @throws IllegalArgumentException if the item is not in the household
-   */
-  private void validateItemInHousehold(Item item, int householdId) {
-    boolean isInHousehold = item.getHousehold().stream()
-        .anyMatch(household -> household.getId() == householdId);
-
-    if (!isInHousehold) {
-      throw new IllegalArgumentException("Item is not in the specified household");
-    }
   }
 
   /**

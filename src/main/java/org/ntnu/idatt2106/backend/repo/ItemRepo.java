@@ -32,11 +32,12 @@ public interface ItemRepo extends JpaRepository<Item, Integer> {
   Optional<List<Item>> findByHousehold_Id(int householdId);
 
   /**
-   * Finds all items associated with a given category ID.
+   * Finds all items associated with a given category ID and household ID.
    * @param categoryId the ID of the category
-   * @return a list of items belonging to the given category
+   * @param householdId the ID of the household
+   * @return a list of items belonging to the given category and household
    */
-  Optional<List<Item>> findByCategory_Id(int categoryId);
+  Optional<List<Item>> findByCategory_IdAndHousehold_Id(int categoryId, int householdId);
 
   /**
    * Finds all items in the repository.

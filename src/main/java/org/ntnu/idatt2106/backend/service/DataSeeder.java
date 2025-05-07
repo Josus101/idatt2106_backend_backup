@@ -129,7 +129,7 @@ public class DataSeeder implements CommandLineRunner {
       List<Unit> units = List.of(
           new Unit("KG"),
           new Unit("L"),
-          new Unit("Stk")
+          new Unit("PCS")
       );
       unitRepo.saveAll(units);
     }
@@ -156,16 +156,24 @@ public class DataSeeder implements CommandLineRunner {
     User testUser = createVerifiedUser("test@example.com", "test123", "Test", "Bruker", "12345678");
     User albert = createVerifiedUser("albert@example.com", "password123", "Albert", "Zindel", "98765432");
     Household household = createHousehold("Test Household", 59.9139, 10.7522);
+    Household household2 = createHousehold("Albert household", 40.0815, 124.4993);
 
     addHouseholdMember(household, testUser, true, true);
     addHouseholdMember(household, albert, false, false);
+
+    addHouseholdMember(household2, albert, true, true);
 
     List<Item> items = createItemsForHouseholdOne();
     household.setInventory(items);
     householdRepo.save(household);
 
+
     UserStoreSettingsRequest defaultSettings = new UserStoreSettingsRequest(true, true);
     userSettingsService.saveUserSettings(albert.getId(), defaultSettings);
+    
+    List<Item> items2 = createItemsForHouseholdTwo();
+    household2.setInventory(items2);
+    householdRepo.save(household2);
   }
 
   /**
@@ -295,7 +303,7 @@ public class DataSeeder implements CommandLineRunner {
 
     Unit kg = unitRepo.findByName("KG").orElseThrow();
     Unit liter = unitRepo.findByName("L").orElseThrow();
-    Unit count = unitRepo.findByName("Stk").orElseThrow();
+    Unit count = unitRepo.findByName("PCS").orElseThrow();
 
     Category water = categoryRepo.findByName("Water").orElseThrow();
     Category cannedFood = categoryRepo.findByName("Canned Food").orElseThrow();
@@ -389,7 +397,7 @@ public class DataSeeder implements CommandLineRunner {
     cal.setTime(now);
 
     Unit kg = unitRepo.findByName("KG").orElseThrow();
-    Unit count = unitRepo.findByName("Stk").orElseThrow();
+    Unit count = unitRepo.findByName("PCS").orElseThrow();
 
     Category grains = categoryRepo.findByName("Grains (Rice, Pasta)").orElseThrow();
     Category babySupplies = categoryRepo.findByName("Baby Supplies").orElseThrow();
