@@ -20,6 +20,7 @@ import org.ntnu.idatt2106.backend.exceptions.AlreadyInUseException;
 import org.ntnu.idatt2106.backend.exceptions.MailSendingFailedException;
 import org.ntnu.idatt2106.backend.exceptions.TokenExpiredException;
 import org.ntnu.idatt2106.backend.exceptions.UserNotFoundException;
+import org.ntnu.idatt2106.backend.exceptions.UserNotVerifiedException;
 import org.ntnu.idatt2106.backend.model.User;
 import org.ntnu.idatt2106.backend.repo.UserRepo;
 import org.ntnu.idatt2106.backend.security.JWT_token;
@@ -163,6 +164,13 @@ public class UserController {
               schema = @Schema(example = "Error: Invalid user data"))
       ),
       @ApiResponse(
+          responseCode = "406",
+          description = "Email not verified",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(example = "Error: Email not verified"))
+      ),
+      @ApiResponse(
           responseCode = "400",
           description = "Invalid user data",
           content = @Content(
@@ -187,6 +195,8 @@ public class UserController {
       return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: Invalid user data");
     } catch (UserNotFoundException e) {
       return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: No user found with given email and password");
+    } catch (UserNotVerifiedException e) {
+        return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body("Error: Email not verified");
     }
     return ResponseEntity.ok(token);
   }
