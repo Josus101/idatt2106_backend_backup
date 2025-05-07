@@ -2,14 +2,17 @@ package org.ntnu.idatt2106.backend.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import org.ntnu.idatt2106.backend.dto.household.HouseholdCreate;
-import org.ntnu.idatt2106.backend.dto.household.EssentialItemStatusDTO;
-import org.ntnu.idatt2106.backend.dto.household.PreparednessStatus;
+import lombok.Getter;
+import org.ntnu.idatt2106.backend.dto.household.*;
+import org.ntnu.idatt2106.backend.dto.news.NewsGetResponse;
 import org.ntnu.idatt2106.backend.exceptions.UnauthorizedException;
+import org.ntnu.idatt2106.backend.exceptions.UserNotFoundException;
 import org.ntnu.idatt2106.backend.model.Household;
 import org.ntnu.idatt2106.backend.model.User;
 import org.ntnu.idatt2106.backend.repo.HouseholdRepo;
@@ -59,47 +62,52 @@ public class HouseholdController {
      * Endpoint for retrieving the number of days the user's household has food and water for.
      *
      * @param authorizationHeader The Authorization header containing the Bearer token.
-     * @return A PreparednessStatus object with days of food and water supply.
+     * @return A List of {@link MyHouseholdStatusGetResponse} object with id, name, and preparedness status (days of food and water supply) of the households.
      */
     @GetMapping("/preparedness")
     @Operation(
-            summary = "Get preparedness status for user",
-            description = "Returns how many days of food and water the household(s) has in storage"
+        summary = "Get preparedness status for user",
+        description = "Returns how many days of food and water the household(s) has in storage"
     )
     @ApiResponses(value = {
-            @ApiResponse(
-                responseCode = "200",
-                description = "Preparedness status successfully retrieved",
-                content = @Content(
-                    mediaType = "application/json",
-                    schema = @Schema(implementation = PreparednessStatus.class))
-            ),
-            @ApiResponse(
-                responseCode = "404",
-                description = "User or household not found",
-                content = @Content(
+        @ApiResponse(
+            responseCode = "200",
+            description = "Preparedness status successfully retrieved",
+            content = @Content(
                 mediaType = "application/json",
-                schema = @Schema(example = "Error: No households found for user"))
-            ),
-            @ApiResponse(
-                responseCode = "500",
-                description = "Internal server error",
-                content = @Content(
-                mediaType = "application/json",
-                schema =  @Schema(example = "Unexpected error: <error message>"))
+                array = @ArraySchema(
+                    schema = @Schema(implementation = MyHouseholdStatusGetResponse.class)
+                )
             )
+        ),
+        @ApiResponse(
+            responseCode = "404",
+            description = "User or household not found",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(example = "Error: No households found for user")
+            )
+        ),
+        @ApiResponse(
+            responseCode = "500",
+            description = "Internal server error",
+            content = @Content(
+                mediaType = "application/json",
+                schema =  @Schema(example = "Unexpected error: <error message>")
+            )
+        )
     })
     public ResponseEntity<?> getPreparednessStatus(
-            @Parameter(
-                    description = "Authorization token (Bearer JWT)",
-                    required = true,
-                    example = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6..."
-            ) @RequestHeader ("Authorization") String authorizationHeader
+        @Parameter(
+            description = "Authorization token (Bearer JWT)",
+            required = true,
+            example = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6..."
+        ) @RequestHeader ("Authorization") String authorizationHeader
     ){
         try {
             String token = authorizationHeader.substring(7);
             int userId = Integer.parseInt(jwtTokenService.extractIdFromJwt(token));
-            List<PreparednessStatus> status = preparednessService.getPreparednessStatusByUserId(userId);
+            List<MyHouseholdStatusGetResponse> status = preparednessService.getPreparednessStatusByUserId(userId);
             return ResponseEntity.ok(status);
         } catch (NoSuchElementException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: " + e.getMessage());
@@ -116,36 +124,62 @@ public class HouseholdController {
      * @return A list of lists, where each inner list contains {@link EssentialItemStatusDTO}
      *         objects representing the presence of essential items in a household.
      */
-    @GetMapping("/essential-items")
+    @GetMapping("/essential-items/{householdId}")
     @Operation(
-            summary = "Get essential items status for user",
-            description = "Returns a list of essential items and whether each one is present in the household(s)"
+        summary = "Get essential items status for user",
+        description = "Returns a list of essential items and whether each one is present in the household(s)"
     )
     @ApiResponses(value = {
-            @ApiResponse(
-                    responseCode = "200",
-                    description = "Essential items status retrieved",
-                    content = @Content(schema = @Schema(implementation = EssentialItemStatusDTO.class))
-            ),
-            @ApiResponse(
-                    responseCode = "404",
-                    description = "Household not found",
-                    content = @Content(schema = @Schema(example = "Error: Household not found"))
-            ),
-            @ApiResponse(
-                    responseCode = "500",
-                    description = "Internal server error",
-                    content = @Content(schema = @Schema(example = "Unexpected error: <error message>"))
+        @ApiResponse(
+            responseCode = "200",
+            description = "Essential items status retrieved",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = EssentialItemStatusDTO.class)
             )
+        ),
+        @ApiResponse(
+            responseCode = "404",
+            description = "Household not found",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(example = "Error: Household not found")
+            )
+        ),
+        @ApiResponse(
+            responseCode = "500",
+            description = "Internal server error",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(example = "Unexpected error: <error message>")
+            )
+        )
     })
     public ResponseEntity<?> getEssentialItemsStatus(
-            @RequestHeader("Authorization") String authorizationHeader) {
+        @Parameter(
+            name = "Authorization",
+            description = "Bearer token in the format Bearer <JWT>",
+            required = true,
+            example = "Bearer eyJhbGciOiJIUzI1N.iIsInR5cCI6IkpXVCJ9..."
+        ) @RequestHeader("Authorization") String authorizationHeader,
+        @Parameter(
+            name = "id",
+            description = "The id of the household",
+            required = true,
+            example = "1"
+        ) @PathVariable int householdId
+    ){
         try {
-            String token = authorizationHeader.substring(7);
-            int userId = Integer.parseInt(jwtTokenService.extractIdFromJwt(token));
+            if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+                String token = authorizationHeader.substring(7);
+                User user = jwtTokenService.getUserByToken(token);
+                if (user != null) {
+                    var statusList = essentialItemService.getEssentialItemStatus(householdId);
+                    return ResponseEntity.ok(statusList);
+                }
+            }
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Error: Unauthorized");
 
-            var statusList = essentialItemService.getEssentialItemStatusByUserId(userId);
-            return ResponseEntity.ok(statusList);
         } catch (NoSuchElementException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: " + e.getMessage());
         } catch (Exception e) {
@@ -160,29 +194,42 @@ public class HouseholdController {
      */
     @PostMapping("/create")
     @Operation(
-            summary = "Create a new household",
-            description = "Creates a new household with the given details"
+        summary = "Create a new household",
+        description = "Creates a new household with the given details"
     )
     @ApiResponses(value = {
-            @ApiResponse(
-                    responseCode = "201",
-                    description = "Household successfully created"
-            ),
-            @ApiResponse(
-                    responseCode = "400",
-                    description = "Invalid household details",
-                    content = @Content(schema = @Schema(example = "Error: Invalid household details"))
-            ),
-            @ApiResponse(
-                    responseCode = "401",
-                    description = "Unauthorized",
-                    content = @Content(schema = @Schema(example = "Error: Unauthorized"))
-            ),
-            @ApiResponse(
-                    responseCode = "500",
-                    description = "Internal server error",
-                    content = @Content(schema = @Schema(example = "Error: Unexpected error: <error message>"))
-            ),
+        @ApiResponse(
+            responseCode = "201",
+            description = "Household successfully created",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(example = "Household successfully created")
+            )
+        ),
+        @ApiResponse(
+            responseCode = "400",
+            description = "Invalid household details",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(example = "Error: Invalid household details")
+            )
+        ),
+        @ApiResponse(
+            responseCode = "401",
+            description = "Unauthorized",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(example = "Error: Unauthorized")
+            )
+        ),
+        @ApiResponse(
+            responseCode = "500",
+            description = "Internal server error",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(example = "Error: Unexpected error: <error message>")
+            )
+        ),
     })
     public ResponseEntity<?> createHousehold(
         @Parameter(
@@ -197,14 +244,15 @@ public class HouseholdController {
             required = true,
             schema = @Schema(implementation = HouseholdCreate.class)
 
-        ) @RequestBody HouseholdCreate household) {
+        ) @RequestBody HouseholdCreate household
+    ){
         try {
             if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
                 String token = authorizationHeader.substring(7);
                 User user = jwtTokenService.getUserByToken(token);
                 if (user != null) {
                     Household createdHousehold = householdService.createHousehold(household);
-                    householdService.addUserToHousehold(createdHousehold, user, true);
+                    householdService.addUserToHousehold(createdHousehold, user, true, false);
                     return ResponseEntity.status(HttpStatus.CREATED).body("Household successfully created");
                 }
             }
@@ -226,29 +274,42 @@ public class HouseholdController {
      */
     @GetMapping("/{id}/invite")
     @Operation(
-            summary = "Create an invite to a household",
-            description = "Creates an invite to the household and returns the join code"
+        summary = "Create an invite to a household",
+        description = "Creates an invite to the household and returns the join code"
     )
     @ApiResponses(value = {
-            @ApiResponse(
-                    responseCode = "200",
-                    description = "Join code successfully created"
-            ),
-            @ApiResponse(
-                    responseCode = "401",
-                    description = "Unauthorized",
-                    content = @Content(schema = @Schema(example = "Error: Unauthorized"))
-            ),
-            @ApiResponse(
-                    responseCode = "404",
-                    description = "Household not found",
-                    content = @Content(schema = @Schema(example = "Error: Household not found"))
-            ),
-            @ApiResponse(
-                    responseCode = "500",
-                    description = "Internal server error",
-                    content = @Content(schema = @Schema(example = "Error: Unexpected error: <error message>"))
+        @ApiResponse(
+            responseCode = "200",
+            description = "Join code successfully created",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(example = "ABC123")
             )
+        ),
+        @ApiResponse(
+            responseCode = "401",
+            description = "Unauthorized",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(example = "Error: Unauthorized")
+            )
+        ),
+        @ApiResponse(
+            responseCode = "404",
+            description = "Household not found",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(example = "Error: Household not found")
+            )
+        ),
+        @ApiResponse(
+            responseCode = "500",
+            description = "Internal server error",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(example = "Error: Unexpected error: <error message>")
+            )
+        )
     })
     public ResponseEntity<?> createInvite(
         @Parameter(
@@ -260,7 +321,8 @@ public class HouseholdController {
         @Parameter(
             name = "id",
             description = "ID of the household to create an invite for",
-            required = true
+            required = true,
+            example = "1"
         ) @PathVariable int id) {
         try {
             if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
@@ -288,29 +350,42 @@ public class HouseholdController {
      */
     @PostMapping("/{joinCode}/join")
     @Operation(
-            summary = "Join a household using a join code",
-            description = "Joins the household using the provided join code"
+        summary = "Join a household using a join code",
+        description = "Joins the household using the provided join code"
     )
     @ApiResponses(value = {
-            @ApiResponse(
-                    responseCode = "200",
-                    description = "Successfully joined the household"
-            ),
-            @ApiResponse(
-                    responseCode = "400",
-                    description = "Invalid join code",
-                    content = @Content(schema = @Schema(example = "Error: Invalid join code"))
-            ),
-            @ApiResponse(
-                    responseCode = "404",
-                    description = "Household not found",
-                    content = @Content(schema = @Schema(example = "Error: Household not found"))
-            ),
-            @ApiResponse(
-                    responseCode = "500",
-                    description = "Internal server error",
-                    content = @Content(schema = @Schema(example = "Error: Unexpected error: <error message>"))
+        @ApiResponse(
+            responseCode = "200",
+            description = "Successfully joined the household",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(example = "Successfully joined the household")
             )
+        ),
+        @ApiResponse(
+            responseCode = "400",
+            description = "Invalid join code",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(example = "Error: Invalid join code")
+            )
+        ),
+        @ApiResponse(
+            responseCode = "404",
+            description = "Household not found",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(example = "Error: Household not found")
+            )
+        ),
+        @ApiResponse(
+            responseCode = "500",
+            description = "Internal server error",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(example = "Error: Unexpected error: <error message>")
+            )
+        )
     })
     public ResponseEntity<?> joinHouseHold(
         @Parameter(
@@ -322,8 +397,10 @@ public class HouseholdController {
         @Parameter(
             name = "joinCode",
             description = "The join code for the household to join",
-            required = true
-        ) @PathVariable String joinCode) {
+            required = true,
+            example = "ABC123"
+        ) @PathVariable String joinCode
+    ){
         try {
             if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
                 String token = authorizationHeader.substring(7);
@@ -352,34 +429,50 @@ public class HouseholdController {
      */
     @DeleteMapping("/{id}/leave")
     @Operation(
-            summary = "Leave a household",
-            description = "Leaves the household with the given ID"
+        summary = "Leave a household",
+        description = "Leaves the household with the given ID"
     )
     @ApiResponses(value = {
-            @ApiResponse(
-                    responseCode = "200",
-                    description = "Successfully left the household"
-            ),
-            @ApiResponse(
-                    responseCode = "400",
-                    description = "Invalid household ID",
-                    content = @Content(schema = @Schema(example = "Error: Invalid household ID"))
-            ),
-            @ApiResponse(
-                    responseCode = "401",
-                    description = "User not a member of this household",
-                    content = @Content(schema = @Schema(example = "Error: User not a member of this household"))
-            ),
-            @ApiResponse(
-                responseCode = "404",
-                description = "Household not found",
-                content = @Content(schema = @Schema(example = "Error: Household not found"))
-            ),
-            @ApiResponse(
-                    responseCode = "500",
-                    description = "Internal server error",
-                    content = @Content(schema = @Schema(example = "Unexpected error: <error message>"))
+        @ApiResponse(
+            responseCode = "200",
+            description = "Successfully left the household",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(example = "Successfully left the household")
             )
+        ),
+        @ApiResponse(
+            responseCode = "400",
+            description = "Invalid household ID",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(example = "Error: Invalid household ID")
+            )
+        ),
+        @ApiResponse(
+            responseCode = "401",
+            description = "User not a member of this household",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(example = "Error: User not a member of this household")
+            )
+        ),
+        @ApiResponse(
+            responseCode = "404",
+            description = "Household not found",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(example = "Error: Household not found")
+            )
+        ),
+        @ApiResponse(
+            responseCode = "500",
+            description = "Internal server error",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(example = "Unexpected error: <error message>")
+            )
+        )
     })
     public ResponseEntity<?> getMeOutOfThisHousehold(
         @Parameter(
@@ -391,8 +484,10 @@ public class HouseholdController {
         @Parameter(
             name = "id",
             description = "The id of the household to leave",
-            required = true
-        ) @PathVariable int id) {
+            required = true,
+            example = "1"
+        ) @PathVariable int id
+    ){
         try {
             if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
                 String token = authorizationHeader.substring(7);
@@ -433,22 +528,34 @@ public class HouseholdController {
         @ApiResponse(
             responseCode = "400",
             description = "Invalid household ID or user ID",
-            content = @Content(schema = @Schema(example = "Error: Invalid household ID or user ID"))
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(example = "Error: Invalid household ID or user ID")
+            )
         ),
         @ApiResponse(
             responseCode = "401",
             description = "User not authorized to kick this user from the household",
-            content = @Content(schema = @Schema(example = "Error: User not authorized to kick this user from the household"))
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(example = "Error: User not authorized to kick this user from the household")
+            )
         ),
         @ApiResponse(
             responseCode = "404",
             description = "Household or user not found",
-            content = @Content(schema = @Schema(example = "Error: Household or user not found"))
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(example = "Error: Household or user not found")
+            )
         ),
         @ApiResponse(
             responseCode = "500",
             description = "Internal server error",
-            content = @Content(schema = @Schema(example = "Unexpected error: <error message>"))
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(example = "Unexpected error: <error message>")
+            )
         )
     })
     public ResponseEntity<?> getOutOfMyHouse(
@@ -461,13 +568,16 @@ public class HouseholdController {
         @Parameter(
             name = "householdId",
             description = "The id of the household to kick someone from",
-            required = true
+            required = true,
+            example =  "1"
         ) @PathVariable int householdId,
         @Parameter(
             name = "userId",
             description = "The id of the user to kick from the household",
-            required = true
-        ) @PathVariable int userId) {
+            required = true,
+            example = "2"
+        ) @PathVariable int userId
+    ){
         try {
             if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
                 String token = authorizationHeader.substring(7);
@@ -503,22 +613,37 @@ public class HouseholdController {
     @ApiResponses(value = {
         @ApiResponse(
             responseCode = "200",
-            description = "Households successfully retrieved"
+            description = "Households successfully retrieved",
+            content = @Content(
+                mediaType = "application/json",
+                array = @ArraySchema(
+                    schema = @Schema(implementation = HouseholdRequest.class)
+                )
+            )
         ),
         @ApiResponse(
             responseCode = "404",
             description = "No households found for this user",
-            content = @Content(schema = @Schema(example = "Error: No households found for this user"))
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(example = "Error: No households found for this user")
+            )
         ),
         @ApiResponse(
             responseCode = "401",
             description = "Unauthorized",
-            content = @Content(schema = @Schema(example = "Error: Unauthorized"))
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(example = "Error: Unauthorized")
+            )
         ),
         @ApiResponse(
             responseCode = "500",
             description = "Internal server error",
-            content = @Content(schema = @Schema(example = "Unexpected error: <error message>"))
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(example = "Unexpected error: <error message>")
+            )
         )
     })
     public ResponseEntity<?> getMyHouses(
@@ -528,7 +653,7 @@ public class HouseholdController {
             required = true,
             example = "Bearer eyJhbGciOiJIUzI1N.iIsInR5cCI6IkpXVCJ9..."
         ) @RequestHeader("Authorization") String authorizationHeader
-    ) {
+    ){
         try {
             if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
                 String token = authorizationHeader.substring(7);
@@ -549,5 +674,168 @@ public class HouseholdController {
         }
     }
 
+    /**
+     * Endpoint for checking the primary household of a user.
+     *
+     * @param authorizationHeader The authorization header containing the JWT token.
+     * @return The primary household of the user.
+     */
+    @GetMapping("/getPrimary")
+    @Operation(
+        summary = "Get the primary household for a user",
+        description = "Returns the primary household for the user based on the token"
+    )
+    @ApiResponses(value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "Primary household successfully retrieved",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = HouseholdMinimalGetResponse.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "401",
+            description = "Unauthorized",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(example = "Error: Unauthorized"))
+        ),
+        @ApiResponse(
+            responseCode = "404",
+            description = "No primary household found for this user",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(example = "Error: No primary household found for this user")
+            )
+        ),
+        @ApiResponse(
+            responseCode = "500",
+            description = "Internal server error",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(example = "Unexpected error: <error message>")
+            )
+        )
+    })
+    public ResponseEntity<?> getPrimaryHousehold(
+        @Parameter(
+            name = "Authorization",
+            description = "Bearer token in the format Bearer <JWT>",
+            required = true,
+            example = "Bearer eyJhbGciOiJIUzI1N.iIsInR5cCI6IkpXVCJ9..."
+        ) @RequestHeader("Authorization") String authorizationHeader
+    ){
+        try {
+            if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+                String token = authorizationHeader.substring(7);
+                User user = jwtTokenService.getUserByToken(token);
+                if (user != null) {
+                    return ResponseEntity.status(HttpStatus.OK).body(householdService.getPrimary(user));
+                }
+            }
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Error: Unauthorized");
+        } catch (UserNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unexpected error: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Endpoint for setting a household as primary.
+     *
+     * @param authorizationHeader The authorization header containing the JWT token.
+     * @param householdId The ID of the household to be set as primary.
+     * @return ResponseEntity indicating the result of the operation.
+     */
+    @PutMapping("/setPrimary/{householdId}")
+    @Operation(
+        summary = "Set a household as primary",
+        description = "Sets the household with the given ID as the primary household for the user"
+    )
+    @ApiResponses(value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "Household successfully set as primary",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(example = "true")
+            )
+        ),
+        @ApiResponse(
+            responseCode = "400",
+            description = "Invalid household ID",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(example = "Error: Invalid household ID")
+            )
+        ),
+        @ApiResponse(
+            responseCode = "401",
+            description = "Unauthorized",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(example = "Error: Unauthorized")
+            )
+        ),
+        @ApiResponse(
+            responseCode = "404",
+            description = "Not found",
+            content = @Content(
+                mediaType = "application/json",
+                examples = {
+                    @ExampleObject(
+                        name = "Household not found",
+                        value = "Error: Household not found"
+                    ),
+                    @ExampleObject(
+                        name = "User not part of household",
+                        value = "Error: User is not a member of the household"
+                    )
+                }
+            )
+        ),
+        @ApiResponse(
+            responseCode = "500",
+            description = "Internal server error",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(example = "Unexpected error: <error message>")
+            )
+        )
+    })
+    public ResponseEntity<?> setPrimaryHousehold(
+        @Parameter(
+            name = "Authorization",
+            description = "Bearer token in the format Bearer <JWT>",
+            required = true,
+            example = "Bearer eyJhbGciOiJIUzI1N.iIsInR5cCI6IkpXVCJ9..."
+        ) @RequestHeader("Authorization") String authorizationHeader,
+        @Parameter(
+            name = "householdId",
+            description = "The id of the household to set as primary",
+            required = true,
+            example = "1"
+        ) @PathVariable int householdId
+    ){
+        try {
+            if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+                String token = authorizationHeader.substring(7);
+                User user = jwtTokenService.getUserByToken(token);
+                if (user != null) {
+                    householdService.setPrimary(householdId, user);
+                    return ResponseEntity.status(HttpStatus.OK).body(true);
+                }
+            }
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Error: Unauthorized");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: " + e.getMessage());
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unexpected error: " + e.getMessage());
+        }
+    }
 
 }

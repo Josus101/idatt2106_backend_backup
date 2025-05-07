@@ -185,7 +185,7 @@ public class NewsService {
    * Scheduled method to retrieve news from the Politiloggen API
    * This method is called every 5 minutes
    */
-  @Scheduled(fixedRate = 300_000) // sec_millis -> 5 minutes
+  @Scheduled(fixedRate = 300_000) // 5 minutes
   public void retrieveNewsFromAPIFeed() {
     try {
       SyndFeed feed = loadFeed();
@@ -204,15 +204,14 @@ public class NewsService {
         double lat = 0.0;
         double lon = 0.0;
 
-        // Extract case ID using regex and remove from title
         String caseId = "";
         String title = rawTitle;
         if (rawTitle != null && rawTitle.contains("(ID:")) {
           int start = rawTitle.indexOf("(ID:");
           int end = rawTitle.indexOf(")", start);
           if (start != -1 && end != -1) {
-            caseId = rawTitle.substring(start + 5, end).trim(); // Get content inside (ID: ...)
-            title = rawTitle.substring(0, start).trim(); // Remove (ID: ...) from title
+            caseId = rawTitle.substring(start + 5, end).trim();
+            title = rawTitle.substring(0, start).trim();
           }
         }
 
@@ -239,7 +238,7 @@ public class NewsService {
    * Scheduled method to clear expired news
    * This method is called every 24 hours
    */
-  @Scheduled(fixedRate = 86_400_000) // sec_millis -> 24 hours
+  @Scheduled(fixedRate = 86_400_000) // 24 hours
   public void clearExpiredNews() {
     long timeAlive = 86_400_000 * 2; // 2 days in millis
     Date now = new Date();

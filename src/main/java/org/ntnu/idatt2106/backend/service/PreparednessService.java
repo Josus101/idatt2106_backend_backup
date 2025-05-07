@@ -1,7 +1,10 @@
 package org.ntnu.idatt2106.backend.service;
 
+import org.ntnu.idatt2106.backend.dto.household.MyHouseholdStatusGetResponse;
 import org.ntnu.idatt2106.backend.dto.household.PreparednessStatus;
+import org.ntnu.idatt2106.backend.exceptions.UserNotFoundException;
 import org.ntnu.idatt2106.backend.model.*;
+import org.ntnu.idatt2106.backend.repo.HouseholdMembersRepo;
 import org.ntnu.idatt2106.backend.repo.HouseholdRepo;
 import org.ntnu.idatt2106.backend.repo.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +31,9 @@ public class PreparednessService {
     @Autowired
     private UserRepo userRepo;
 
+    @Autowired
+    private HouseholdMembersRepo householdMembersRepo;
+
     /**
      * Calculates the preparedness status of a given household.
      *
@@ -35,10 +41,10 @@ public class PreparednessService {
      * @return A {@link PreparednessStatus} object containing the preparedness percentage,
      * warning flag, and message.
      */
-    public PreparednessStatus calculatePreparednessStatus(Household household) {
+    public MyHouseholdStatusGetResponse calculatePreparednessStatus(Household household) {
         int numPeople = household.getMembers().size();
         if (numPeople == 0) {
-            return new PreparednessStatus(0, 0);
+            return new MyHouseholdStatusGetResponse(household.getId(), household.getName(), new PreparednessStatus(0, 0));
         }
         // Beregn total mengde vann og kalorier
         double totalWater = 0;
@@ -73,7 +79,7 @@ public class PreparednessService {
         double daysOfFood = totalKcal / (numPeople * kcalPerPersonPerDay);
         double daysOfWater = totalWater / (numPeople * waterPerPersonPerDay);
 
-        return new PreparednessStatus(daysOfFood, daysOfWater);
+        return new MyHouseholdStatusGetResponse(household.getId(), household.getName(), new PreparednessStatus(daysOfFood, daysOfWater));
     }
 
     /**
@@ -88,20 +94,30 @@ public class PreparednessService {
      * @throws NoSuchElementException if user with given userId is not found.
      * @throws NoSuchElementException if no households are found for the user.
      */
-    public List<PreparednessStatus> getPreparednessStatusByUserId(int userId) {
+    public List<MyHouseholdStatusGetResponse> getPreparednessStatusByUserId(int userId) {
         User user = userRepo.findById(userId)
-                .orElseThrow(() -> new NoSuchElementException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
 
-        List<Household> households = user.getHouseholdMemberships()
-                .stream()
-                .map(HouseholdMembers::getHousehold)
-                .toList();
-        if (households.isEmpty()) {
+        List<HouseholdMembers> memberships = user.getHouseholdMemberships();
+
+        if (memberships.isEmpty()) {
             throw new NoSuchElementException("No households found for user");
         }
 
-        return households.stream()
+        List<MyHouseholdStatusGetResponse> householdStatuses = memberships.stream()
+                .map(HouseholdMembers::getHousehold)
                 .map(this::calculatePreparednessStatus)
+                .toList();
+
+        Household primaryHousehold = user.getPrimaryHousehold();
+
+        if (primaryHousehold == null) return householdStatuses;
+        return householdStatuses.stream()
+                .sorted((a, b) -> {
+                  boolean aIsPrimary = a.getId() == primaryHousehold.getId();
+                    boolean bIsPrimary = b.getId() == primaryHousehold.getId();
+                    return Boolean.compare(!aIsPrimary, !bIsPrimary);
+                })
                 .toList();
     }
 }

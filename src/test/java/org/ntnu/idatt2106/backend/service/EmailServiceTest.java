@@ -106,7 +106,7 @@ public class EmailServiceTest {
 
   @Test
   @DisplayName("Test sendTestEmail method throws exception if email is invalid")
-  void testBuildEmailTemplateIsNotNullAndIncludesContent() {
+  void testBuildEmailTemplateIsNotNullAndIncludesContent() throws Exception {
     String html = TestUtils.callPrivateMethod(emailService, "buildEmailTemplate",
         new Class[]{String.class, String.class, String.class, String.class, String.class},
         new Object[]{"Header", "Body", "http://link", "Click Here", "Footer"});

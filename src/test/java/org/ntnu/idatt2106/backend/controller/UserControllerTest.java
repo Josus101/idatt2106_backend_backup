@@ -15,6 +15,7 @@ import org.ntnu.idatt2106.backend.exceptions.AlreadyInUseException;
 import org.ntnu.idatt2106.backend.exceptions.TokenExpiredException;
 import org.ntnu.idatt2106.backend.exceptions.UserNotFoundException;
 import org.ntnu.idatt2106.backend.model.User;
+import org.ntnu.idatt2106.backend.repo.UserRepo;
 import org.ntnu.idatt2106.backend.security.JWT_token;
 import org.ntnu.idatt2106.backend.service.HouseholdService;
 import org.ntnu.idatt2106.backend.service.LoginService;
@@ -50,6 +51,9 @@ class UserControllerTest {
 
   @Mock
   private JWT_token jwtToken;
+
+  @Mock
+  private UserRepo userRepo;
 
   private MockMvc mockMvc;
 
@@ -364,17 +368,28 @@ class UserControllerTest {
   @Test
   @DisplayName("Should return 200 OK when location update is successful")
   void shouldReturnOkOnSuccessfulLocationUpdate() {
+    // Arrange
     UserPositionUpdate positionUpdate = new UserPositionUpdate(59.91, 10.75); // example lat/lng
     String token = "Bearer valid.jwt.token";
     User user = new User();
 
+    // Mock behavior
     when(jwtToken.getUserByToken("valid.jwt.token")).thenReturn(user);
+    when(userRepo.save(user)).thenReturn(user);
 
+    // Act
     ResponseEntity<String> response = userController.updateLocation(positionUpdate, token);
 
+    // Assert
     assertEquals(HttpStatus.OK, response.getStatusCode());
     assertEquals("Location updated successfully", response.getBody());
+
+    // Verify interaction
+    verify(userRepo).save(user);
+    assertEquals(positionUpdate.getLatitude(), user.getLatitude());
+    assertEquals(positionUpdate.getLongitude(), user.getLongitude());
   }
+
 
   @Test
   @DisplayName("Should return 401 when token is invalid")

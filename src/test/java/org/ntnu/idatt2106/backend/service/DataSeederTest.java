@@ -214,7 +214,7 @@ class DataSeederTest {
 
     when(householdMembersRepo.save(any(HouseholdMembers.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-    dataSeeder.addHouseholdMember(household, user, true);
+    dataSeeder.addHouseholdMember(household, user, true, false);
 
     assertEquals(1, household.getMembers().size());
     verify(householdMembersRepo, times(1)).save(any(HouseholdMembers.class));
@@ -338,7 +338,7 @@ class DataSeederTest {
     Household household = new Household();
 
 
-    assertThrows(IllegalArgumentException.class, () -> dataSeeder.addHouseholdMember(household, user, true));
+    assertThrows(IllegalArgumentException.class, () -> dataSeeder.addHouseholdMember(household, user, true, false));
     verify(householdMembersRepo, never()).save(any(HouseholdMembers.class));
   }
 
@@ -349,7 +349,7 @@ class DataSeederTest {
     User user = new User();
     Household household = null;
 
-    assertThrows(IllegalArgumentException.class, () -> dataSeeder.addHouseholdMember(household, user, true));
+    assertThrows(IllegalArgumentException.class, () -> dataSeeder.addHouseholdMember(household, user, true, false));
     verify(householdMembersRepo, never()).save(any(HouseholdMembers.class));
   }
 
