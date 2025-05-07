@@ -53,6 +53,7 @@ public class EssentialItemService {
      *
      * @param householdId ID of the household.
      * @return List of essential items and whether each is present.
+     * @throws NoSuchElementException if the household is not found.
      */
     public List<EssentialItemStatusDTO> getEssentialItemStatus(int householdId) {
         Household household = householdRepo.findById(householdId)
@@ -87,6 +88,13 @@ public class EssentialItemService {
         return statusList;
     }
 
+    /**
+     * Retrieves the essential item status for all households of a user.
+     *
+     * @param userId The ID of the user whose households' essential item status is to be retrieved.
+     * @return A list of lists of {@link EssentialItemStatusDTO} objects representing the essential item status for each household.
+     * @throws NoSuchElementException if user with given userId is not found, or if no households are found for the user.
+     */
     public List<List<EssentialItemStatusDTO>> getEssentialItemStatusByUserId(int userId) {
         User user = userRepo.findById(userId)
                 .orElseThrow(() -> new NoSuchElementException("User not found"));
