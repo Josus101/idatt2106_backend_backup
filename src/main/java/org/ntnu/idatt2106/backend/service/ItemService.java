@@ -348,22 +348,6 @@ public class ItemService {
   }
 
   /**
-   * Checks if the item is in the household
-   *
-   * @param item        the item to check
-   * @param householdId the ID of the household
-   * @throws IllegalArgumentException if the item is not in the household
-   */
-  private void validateItemInHousehold(Item item, int householdId) {
-    boolean isInHousehold = item.getHousehold().stream()
-        .anyMatch(household -> household.getId() == householdId);
-
-    if (!isInHousehold) {
-      throw new IllegalArgumentException("Item is not in the specified household");
-    }
-  }
-
-  /**
    * Checks if the user is in the household
    *
    * @param userId      the ID of the user
