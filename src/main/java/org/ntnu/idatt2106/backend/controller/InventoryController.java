@@ -361,8 +361,8 @@ public class InventoryController {
    */
   @GetMapping("/categories/{id}/household/{householdId}")
   @Operation(
-      summary = "Get all items associated with a category",
-      description = "Endpoint for retrieving all items associated with a category"
+      summary = "Get all items associated with a category and household",
+      description = "Endpoint for retrieving all items associated with a category and household"
   )
   @ApiResponses(value = {
       @ApiResponse(
