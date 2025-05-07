@@ -151,6 +151,7 @@ public class MapZonesService {
    * Deletes an emergency zone from the database.
    *
    * @param id the ID of the emergency zone to delete
+   * @throws IllegalArgumentException if the zone id is not found
    */
   public void deleteZone(Long id) {
     MapZone mapZone = mapZoneRepo.findById(id)
