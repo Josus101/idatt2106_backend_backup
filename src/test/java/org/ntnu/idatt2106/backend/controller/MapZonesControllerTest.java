@@ -93,6 +93,94 @@ class MapZonesControllerTest {
   }
 
   @Test
+  @DisplayName("getZonesInMapArea returns success with existing zones")
+  void testGetZonesInMapArea() {
+    List<CoordinatesDTO> mapArea = List.of(
+        new CoordinatesDTO(63.424494, 10.439154),
+        new CoordinatesDTO(63.424694, 10.448154),
+        new CoordinatesDTO(63.404494, 10.449154),
+        new CoordinatesDTO(63.394494, 10.439154)
+    );
+
+    when(mapZonesService.getEmergencyZonesInMapArea(mapArea, new Long[]{3L})).thenReturn(mockedMapZones);
+
+    ResponseEntity<?> response = mapZonesController.getZonesInMapArea(mapArea, new Long[]{3L});
+
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertEquals(mockedMapZones, response.getBody());
+  }
+
+  @Test
+  @DisplayName("getZonesInMapArea returns not found when no zones exist")
+  void testGetZonesInMapAreaNotFound() {
+    List<CoordinatesDTO> mapArea = List.of(
+        new CoordinatesDTO(63.424494, 10.439154),
+        new CoordinatesDTO(63.424694, 10.448154),
+        new CoordinatesDTO(63.404494, 10.449154),
+        new CoordinatesDTO(63.394494, 10.439154)
+    );
+
+    when(mapZonesService.getEmergencyZonesInMapArea(mapArea, new Long[]{3L})).thenReturn(List.of());
+
+    ResponseEntity<?> response = mapZonesController.getZonesInMapArea(mapArea, new Long[]{3L});
+
+    assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    assertEquals("Error: No emergency zones found in the specified area.", response.getBody());
+  }
+
+  @Test
+  @DisplayName("getZonesInMapArea returns error when no map area is provided")
+  void testGetZonesInMapAreaNoMapArea() {
+    List<CoordinatesDTO> mapArea = null;
+
+    when(mapZonesService.getEmergencyZonesInMapArea(mapArea, new Long[]{3L}))
+        .thenThrow(new IllegalArgumentException("Map area cannot be null or empty."));
+
+    ResponseEntity<?> response = mapZonesController.getZonesInMapArea(mapArea, new Long[]{3L});
+
+    assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    assertEquals("Error: Map area cannot be null or empty.", response.getBody());
+  }
+
+  @Test
+  @DisplayName("getZonesInMapArea returns bad request for invalid input")
+  void testGetZonesInMapAreaBadRequest() {
+    List<CoordinatesDTO> mapArea = List.of(
+        new CoordinatesDTO(63.424494, 10.439154),
+        new CoordinatesDTO(63.424694, 10.448154),
+        new CoordinatesDTO(63.404494, 10.449154),
+        new CoordinatesDTO(63.394494, 10.439154)
+    );
+
+    when(mapZonesService.getEmergencyZonesInMapArea(mapArea, new Long[]{3L}))
+        .thenThrow(new IllegalArgumentException("Invalid input"));
+
+    ResponseEntity<?> response = mapZonesController.getZonesInMapArea(mapArea, new Long[]{3L});
+
+    assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    assertEquals("Error: Invalid input", response.getBody());
+  }
+
+  @Test
+  @DisplayName("getZonesInMapArea returns internal server error")
+  void testGetZonesInMapAreaInternalServerError() {
+    List<CoordinatesDTO> mapArea = List.of(
+        new CoordinatesDTO(63.424494, 10.439154),
+        new CoordinatesDTO(63.424694, 10.448154),
+        new CoordinatesDTO(63.404494, 10.449154),
+        new CoordinatesDTO(63.394494, 10.439154)
+    );
+
+    when(mapZonesService.getEmergencyZonesInMapArea(mapArea, new Long[]{3L}))
+        .thenThrow(new RuntimeException("Unexpected error"));
+
+    ResponseEntity<?> response = mapZonesController.getZonesInMapArea(mapArea, new Long[]{3L});
+
+    assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+    assertEquals("Error: An unexpected error occurred. Unexpected error", response.getBody());
+  }
+
+  @Test
   @DisplayName("getZoneById returns success for existing zone")
   void testGetZoneByIdSuccess() {
     when(mapZonesService.getEmergencyZoneById(1L)).thenReturn(zone1);

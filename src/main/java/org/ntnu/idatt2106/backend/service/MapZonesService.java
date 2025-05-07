@@ -89,24 +89,25 @@ public class MapZonesService {
         zone.getType(),
         zone.getSeverityLevel(),
         zone.getPolygons().stream()
-          .map(polygon -> {
-            List<CoordinatesDTO> outerRing = polygon.getOuterRing().getCoordinates().stream()
-              .map(coordinate -> new CoordinatesDTO(
-                coordinate.getLatitude(),
-                coordinate.getLongitude()))
-              .toList();
-
-            List<List<CoordinatesDTO>> polygonRings = polygon.getInnerRings().stream()
-              .map(innerRing -> innerRing.getCoordinates().stream()
+            .map(polygon -> {
+              List<CoordinatesDTO> outerRing = polygon.getOuterRing().getCoordinates().stream()
                 .map(coordinate -> new CoordinatesDTO(
                   coordinate.getLatitude(),
                   coordinate.getLongitude()))
-                .toList())
-              .toList();
+                .toList();
 
-            polygonRings.addFirst(outerRing);
-            return polygonRings;
-          })
+              List<List<CoordinatesDTO>> rings = polygon.getInnerRings().stream()
+                .map(innerRing -> innerRing.getCoordinates().stream()
+                  .map(coordinate -> new CoordinatesDTO(
+                    coordinate.getLatitude(),
+                    coordinate.getLongitude()))
+                  .toList())
+                .toList();
+
+              List<List<CoordinatesDTO>> polygonRings = new ArrayList<>(rings);
+              polygonRings.addFirst(outerRing);
+              return polygonRings;
+            })
           .toList()))
       .toList();
   }

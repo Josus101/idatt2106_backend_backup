@@ -97,6 +97,22 @@ public class MapZonesController {
               mediaType = "application/json",
               schema = @Schema(example = "Error: No emergency zones found in the specified area.")
           )
+      ),
+      @ApiResponse(
+          responseCode = "400",
+          description = "Invalid request parameters.",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(example = "Error: Map area cannot be null or empty.")
+          )
+      ),
+      @ApiResponse(
+          responseCode = "500",
+          description = "Internal server error.",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(example = "Error: An unexpected error occurred.")
+          )
       )
   })
   public ResponseEntity<?> getZonesInMapArea(
@@ -110,13 +126,25 @@ public class MapZonesController {
           example = "[1, 2, 3]",
           required = true
       ) @PathVariable Long[] excludedZoneIds) {
-    List<MapZoneFullDTO> emergencyZones = mapZonesService
-        .getEmergencyZonesInMapArea(mapArea, excludedZoneIds);
-    if (emergencyZones.isEmpty()) {
-      return ResponseEntity.status(HttpStatus.NOT_FOUND)
-          .body("Error: No emergency zones found in the specified area.");
-    } else {
+    try {
+      if (mapArea == null || mapArea.isEmpty()) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+            .body("Error: Map area cannot be null or empty.");
+      }
+
+      List<MapZoneFullDTO> emergencyZones = mapZonesService.getEmergencyZonesInMapArea(mapArea, excludedZoneIds);
+
+      if (emergencyZones.isEmpty()) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+            .body("Error: No emergency zones found in the specified area.");
+      }
       return ResponseEntity.ok(emergencyZones);
+    } catch (IllegalArgumentException e) {
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+          .body("Error: " + e.getMessage());
+    } catch (Exception e) {
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+          .body("Error: An unexpected error occurred. " + e.getMessage());
     }
   }
 
