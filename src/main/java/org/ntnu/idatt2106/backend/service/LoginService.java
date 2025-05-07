@@ -10,12 +10,12 @@ import org.ntnu.idatt2106.backend.exceptions.TokenExpiredException;
 import org.ntnu.idatt2106.backend.exceptions.UserNotFoundException;
 import org.ntnu.idatt2106.backend.exceptions.UserNotVerifiedException;
 import org.ntnu.idatt2106.backend.model.User;
-import org.ntnu.idatt2106.backend.repo.EmailVerificationTokenRepo;
-import org.ntnu.idatt2106.backend.repo.ResetPasswordTokenRepo;
+import org.ntnu.idatt2106.backend.model.VerificationToken;
+import org.ntnu.idatt2106.backend.model.VerificationTokenType;
+import org.ntnu.idatt2106.backend.repo.VerificationTokenRepo;
 import org.ntnu.idatt2106.backend.security.BCryptHasher;
 import org.ntnu.idatt2106.backend.security.JWT_token;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mail.MailSendException;
 import org.springframework.stereotype.Service;
 
 import org.ntnu.idatt2106.backend.repo.UserRepo;
@@ -33,10 +33,7 @@ public class LoginService {
     private UserRepo userRepo;
 
     @Autowired
-    private ResetPasswordTokenRepo resetPasswordRepo;
-
-    @Autowired
-    private EmailVerificationTokenRepo verifyEmailRepo;
+    private VerificationTokenRepo verificationTokenRepo;
 
     @Autowired
     private JWT_token jwt;
@@ -215,7 +212,7 @@ public class LoginService {
     System.out.println("Deleted all by " + user);
     user.setPassword(hasher.hashPassword(newPassword));
     userRepo.save(user);
-    resetPasswordRepo.deleteAllByUserId(user.getId());
+    verificationTokenRepo.deleteAllByEmailAndType(user.getEmail(), VerificationTokenType.PASSWORD_RESET);
 
   }
 
@@ -227,7 +224,7 @@ public class LoginService {
   public void verifyEmail(User user) {
     user.setVerified(true);
     userRepo.save(user);
-    verifyEmailRepo.deleteAllByUserId(user.getId());
+    verificationTokenRepo.deleteAllByEmailAndType(user.getEmail(), VerificationTokenType.EMAIL_VERIFICATION);
   }
 }
 

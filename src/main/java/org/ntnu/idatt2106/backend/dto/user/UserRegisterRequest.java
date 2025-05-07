@@ -9,7 +9,7 @@ import lombok.Setter;
  * Data Transfer Object used for user registration.
  * Contains essential user information like email, password, first name, last name, and phone number.
  * @Author Konrad Seime
- * @since 0.1
+ * @since 0.2
  */
 @AllArgsConstructor
 @Getter

@@ -18,9 +18,10 @@ class AdminTest {
   @DisplayName("Test Admin constructor sets fields correctly")
   void testConstructorSetsFields() {
     Admin admin = new Admin(
-            "adminUsername",
-            "securePassword",
-            false
+        "adminUsername",
+        "securePassword",
+        "test@mail.com",
+        false
     );
 
     assertEquals(0, admin.getId());

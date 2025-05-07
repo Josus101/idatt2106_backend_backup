@@ -14,9 +14,9 @@ import org.ntnu.idatt2106.backend.exceptions.TokenExpiredException;
 import org.ntnu.idatt2106.backend.exceptions.UserNotFoundException;
 import org.ntnu.idatt2106.backend.exceptions.UserNotVerifiedException;
 import org.ntnu.idatt2106.backend.model.User;
-import org.ntnu.idatt2106.backend.repo.EmailVerificationTokenRepo;
-import org.ntnu.idatt2106.backend.repo.ResetPasswordTokenRepo;
+import org.ntnu.idatt2106.backend.model.VerificationTokenType;
 import org.ntnu.idatt2106.backend.repo.UserRepo;
+import org.ntnu.idatt2106.backend.repo.VerificationTokenRepo;
 import org.ntnu.idatt2106.backend.security.BCryptHasher;
 import org.ntnu.idatt2106.backend.security.JWT_token;
 
@@ -34,14 +34,10 @@ public class LoginServiceTest {
   private UserRepo userRepo;
 
   @Mock
+  private VerificationTokenRepo verificationTokenRepo;
+
+  @Mock
   private EmailService emailService;
-
-  @Mock
-  private EmailVerificationTokenRepo emailVerificationTokenRepo;
-
-  @Mock
-  private ResetPasswordTokenRepo resetPasswordTokenRepo;
-
   @Mock
   private JWT_token jwt;
 
