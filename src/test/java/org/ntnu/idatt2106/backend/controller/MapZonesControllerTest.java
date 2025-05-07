@@ -19,6 +19,9 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
+/**
+ * Unit tests for the MapZonesController class.
+ */
 class MapZonesControllerTest {
 
   @InjectMocks

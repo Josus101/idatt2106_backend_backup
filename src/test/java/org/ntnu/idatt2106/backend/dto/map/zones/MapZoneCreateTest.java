@@ -9,6 +9,9 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+/**
+ * Unit tests for the MapZoneCreateDTO class.
+ */
 public class MapZoneCreateTest {
 
   private MapZoneCreateDTO mapZoneCreateDTO;

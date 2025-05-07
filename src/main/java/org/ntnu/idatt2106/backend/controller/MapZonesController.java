@@ -1,6 +1,5 @@
 package org.ntnu.idatt2106.backend.controller;
 
-
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -16,7 +15,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 
 /**
@@ -234,9 +232,44 @@ public class MapZonesController {
     }
   }
 
-
+  /**
+   * Endpoint for creating a new emergency zone.
+   *
+   * @param zone The emergency zone to create.
+   * @return The ID of the newly created emergency zone.
+   */
   @PostMapping("/zone/create/")
-  public ResponseEntity<?> createZone(@RequestBody MapZoneCreateDTO zone) {
+  @Operation(
+      summary = "Create a new emergency zone",
+      description = "Creates a new emergency zone."
+  )
+  @ApiResponses(value = {
+      @ApiResponse(
+          responseCode = "201",
+          description = "Emergency zone created successfully.",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(implementation = Long.class)
+          )
+      ),
+      @ApiResponse(
+          responseCode = "400",
+          description = "Invalid request parameters.",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(example = "Error: Invalid request parameters.")
+          )
+      )
+  })
+  public ResponseEntity<?> createZone(
+      @Parameter(
+          description = "The emergency zone to create.",
+          required = true,
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(implementation = MapZoneCreateDTO.class)
+          )
+      ) @RequestBody MapZoneCreateDTO zone) {
     try {
       Long zoneId = mapZonesService.createZone(zone);
       return ResponseEntity.status(HttpStatus.CREATED).body(zoneId);
@@ -245,8 +278,50 @@ public class MapZonesController {
     }
   }
 
+  /**
+   * Endpoint for updating an existing emergency zone.
+   *
+   * @param zoneId The ID of the emergency zone to update.
+   * @param zone The updated emergency zone data.
+   * @return A success message.
+   */
   @PutMapping("/zone/update/{zoneId}")
-  public ResponseEntity<?> updateZone(@PathVariable Long zoneId, @RequestBody MapZoneCreateDTO zone) {
+  @Operation(
+      summary = "Update an existing emergency zone",
+      description = "Updates an existing emergency zone."
+  )
+  @ApiResponses(value = {
+      @ApiResponse(
+          responseCode = "200",
+          description = "Emergency zone updated successfully.",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(implementation = String.class)
+          )
+      ),
+      @ApiResponse(
+          responseCode = "400",
+          description = "Invalid request parameters.",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(example = "Error: Invalid request parameters.")
+          )
+      )
+  })
+  public ResponseEntity<?> updateZone(
+      @Parameter(
+          description = "The ID of the emergency zone to update.",
+          example = "12345",
+          required = true
+      ) @PathVariable Long zoneId,
+      @Parameter(
+          description = "The updated emergency zone data.",
+          required = true,
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(implementation = MapZoneCreateDTO.class)
+          )
+      ) @RequestBody MapZoneCreateDTO zone) {
     try {
       mapZonesService.updateZone(zoneId, zone);
       return ResponseEntity.ok("Zone updated successfully.");
@@ -255,8 +330,41 @@ public class MapZonesController {
     }
   }
 
+  /**
+   * Endpoint for deleting an emergency zone.
+   *
+   * @param zoneId The ID of the emergency zone to delete.
+   * @return A success message.
+   */
   @DeleteMapping("/zone/delete/{zoneId}")
-  public ResponseEntity<?> deleteZone(@PathVariable Long zoneId) {
+  @Operation(
+      summary = "Delete an emergency zone",
+      description = "Deletes an emergency zone."
+  )
+  @ApiResponses(value = {
+      @ApiResponse(
+          responseCode = "200",
+          description = "Emergency zone deleted successfully.",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(implementation = String.class)
+          )
+      ),
+      @ApiResponse(
+          responseCode = "400",
+          description = "Invalid request parameters.",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(example = "Error: Invalid request parameters.")
+          )
+      )
+  })
+  public ResponseEntity<?> deleteZone(
+      @Parameter(
+          description = "The ID of the emergency zone to delete.",
+          example = "12345",
+          required = true
+      ) @PathVariable Long zoneId) {
     try {
       mapZonesService.deleteZone(zoneId);
       return ResponseEntity.ok("Zone deleted successfully.");

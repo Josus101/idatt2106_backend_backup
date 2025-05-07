@@ -33,6 +33,7 @@ public class Coordinate {
   @ManyToOne
   @JoinColumn(name = "coordinate_ring_id")
   private CoordinateRing ring;
+
   /**
    * Blank constructor for the Coordinate model
    */

@@ -52,6 +52,7 @@ public class MapZone {
    * Blank constructor for the MapZone model
    */
   public MapZone() {}
+
   /**
    * Constructor for the MapZone model
    *

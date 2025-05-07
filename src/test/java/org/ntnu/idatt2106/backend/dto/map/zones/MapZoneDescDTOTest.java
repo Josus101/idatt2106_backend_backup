@@ -5,6 +5,9 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+/**
+ * Unit tests for the MapZoneDescDTO class.
+ */
 public class MapZoneDescDTOTest {
 
   private MapZoneDescDTO mapZoneDescDTO;

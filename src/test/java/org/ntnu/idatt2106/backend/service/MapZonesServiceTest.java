@@ -23,6 +23,9 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+/**
+ * Unit tests for the MapZonesService class.
+ */
 class MapZonesServiceTest {
 
   @InjectMocks

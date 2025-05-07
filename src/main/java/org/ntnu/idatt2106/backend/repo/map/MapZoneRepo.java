@@ -5,8 +5,17 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
 
+/**
+ * Repository interface for the MapZone model.
+ * This interface extends JpaRepository to provide CRUD operations for the MapZone entity.
+ * It is used to interact with the database and perform operations on the MapZone table.
+ *
+ * @author André Merkesdal
+ * @since 0.1
+ */
 public interface MapZoneRepo extends JpaRepository<MapZone, Long> {
-    /**
+
+  /**
      * Finds a map zone by its id.
      *
      * @param id the id of the map zone
