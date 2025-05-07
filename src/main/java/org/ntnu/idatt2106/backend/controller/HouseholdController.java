@@ -847,7 +847,7 @@ public class HouseholdController {
      * @param householdId The ID of the household.
      * @return ResponseEntity indicating whether the user is an admin of the household.
      */
-    @GetMapping("/verify/{userId}/isAdmin/{householdId}")
+    @GetMapping("/{householdId}/getAdmins")
     public ResponseEntity<?> verifyUserIsAdminOfHousehold(@PathVariable int userId, @PathVariable int householdId) {
         try {
             return ResponseEntity.status(HttpStatus.OK).body(householdService.verifyAdmin(userId, householdId));
