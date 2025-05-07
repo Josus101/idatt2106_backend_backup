@@ -10,7 +10,13 @@ import org.springframework.stereotype.Service;
 import java.security.SecureRandom;
 
 
-
+/**
+ * Service class for handling two-factor authentication (2FA) tokens.
+ * This service is responsible for generating, validating, and managing 2FA tokens.
+ *
+ * @Author Konrad Seime
+ * @since 0.2
+ */
 @Service
 public class TwoFactorService {
 

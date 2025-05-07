@@ -18,7 +18,7 @@ import org.springframework.stereotype.Service;
  * Service class for verifying email addresses.
  *
  * @Author Konrad Seime
- * @since 0.1
+ * @since 0.2
  */
 @Service
 public class VerificationService {
