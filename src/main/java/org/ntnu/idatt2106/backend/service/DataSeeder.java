@@ -294,7 +294,7 @@ public class DataSeeder implements CommandLineRunner {
 
     Unit kg = unitRepo.findByName("KG").orElseThrow();
     Unit liter = unitRepo.findByName("L").orElseThrow();
-    Unit count = unitRepo.findByName("Stk").orElseThrow();
+    Unit count = unitRepo.findByName("PCS").orElseThrow();
 
     Category water = categoryRepo.findByName("Water").orElseThrow();
     Category cannedFood = categoryRepo.findByName("Canned Food").orElseThrow();
@@ -388,7 +388,7 @@ public class DataSeeder implements CommandLineRunner {
     cal.setTime(now);
 
     Unit kg = unitRepo.findByName("KG").orElseThrow();
-    Unit count = unitRepo.findByName("Stk").orElseThrow();
+    Unit count = unitRepo.findByName("PCS").orElseThrow();
 
     Category grains = categoryRepo.findByName("Grains (Rice, Pasta)").orElseThrow();
     Category babySupplies = categoryRepo.findByName("Baby Supplies").orElseThrow();
