@@ -233,9 +233,9 @@ class DataSeederTest {
     dataSeeder.seedHouseholdOne();
 
     verify(userRepo, times(2)).save(any(User.class));
-    verify(householdRepo, times(2)).save(any(Household.class));
-    verify(householdMembersRepo, times(2)).save(any(HouseholdMembers.class));
-    verify(itemRepo, times(1)).saveAll(anyList());
+    verify(householdRepo, times(4)).save(any(Household.class));
+    verify(householdMembersRepo, times(3)).save(any(HouseholdMembers.class));
+    verify(itemRepo, times(2)).saveAll(anyList());
   }
 
   @Test
