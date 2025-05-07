@@ -1,6 +1,7 @@
 package org.ntnu.idatt2106.backend.service;
 
 import org.junit.jupiter.api.DisplayName;
+import org.ntnu.idatt2106.backend.dto.user.UserStoreSettingsRequest;
 import org.ntnu.idatt2106.backend.model.*;
 import org.ntnu.idatt2106.backend.repo.*;
 import org.ntnu.idatt2106.backend.security.BCryptHasher;
@@ -53,6 +54,9 @@ class DataSeederTest {
 
   @Mock
   private LoginService loginService;
+
+  @Mock
+  private UserSettingsService userSettingsService;
 
   @InjectMocks
   private DataSeeder dataSeeder;
@@ -229,6 +233,8 @@ class DataSeederTest {
 
     when(categoryRepo.findByName(anyString())).thenReturn(Optional.of(new Category()));
     when(unitRepo.findByName(anyString())).thenReturn(Optional.of(new Unit()));
+
+    doNothing().when(userSettingsService).saveUserSettings(anyInt(), any(UserStoreSettingsRequest.class));
 
     dataSeeder.seedHouseholdOne();
 
