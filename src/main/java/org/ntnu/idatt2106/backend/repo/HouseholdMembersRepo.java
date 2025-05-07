@@ -70,5 +70,5 @@ public interface HouseholdMembersRepo extends JpaRepository<HouseholdMembers, In
    * @param householdId The ID of the household.
    * @return true if the HouseholdMember exists, false otherwise.
    */
-  Boolean existsByUserIdAndHouseholdIdAndisAdminIsTrue(int userId, int householdId);
+  Boolean existsByUserIdAndHouseholdIdAndIsAdminIsTrue(int userId, int householdId);
 }

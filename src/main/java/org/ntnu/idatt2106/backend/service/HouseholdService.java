@@ -1,7 +1,6 @@
 package org.ntnu.idatt2106.backend.service;
 
 import java.security.SecureRandom;
-import java.text.BreakIterator;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -520,6 +519,6 @@ public class HouseholdService {
    * @return true if the user is an admin of the household, false otherwise.
    */
   public boolean verifyAdmin(int userId, int householdId) {
-    return householdMembersRepo.existsByUserIdAndHouseholdIdAndisAdminIsTrue(userId, householdId);
+    return householdMembersRepo.existsByUserIdAndHouseholdIdAndIsAdminIsTrue(userId, householdId);
   }
 }
