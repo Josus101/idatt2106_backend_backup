@@ -70,45 +70,6 @@ public class InventoryController {
     }
   }
 
-  //Todo: Remove this endpoint, as it gives all items regardless of household
-  /**
-   * Endpoint for retrieving all items in the inventory.
-   *
-   * @return a response entity containing the list of items
-   */
-  @GetMapping("")
-  @Operation(
-      summary = "Get all items",
-      description = "Endpoint for retrieving all items in the inventory"
-  )
-  @ApiResponses(value = {
-      @ApiResponse(
-          responseCode = "200",
-          description = "Items retrieved successfully",
-          content = @Content(
-              schema = @Schema(implementation = ItemGenericDTO.class)
-          )
-      ),
-      @ApiResponse(
-          responseCode = "404",
-          description = "No items found",
-          content = @Content(
-              mediaType = "application/json",
-              schema = @Schema(example = "Error: No items found")
-          )
-      )
-  })
-  public ResponseEntity<?> getInventory() {
-    try {
-      return ResponseEntity.ok(itemService.getAllItems());
-    } catch (IllegalArgumentException e) {
-      return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: " + e.getMessage());
-    } catch (Exception e) {
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-          .body("Error: " + e.getMessage());
-    }
-  }
-
   /**
    * Endpoint for retrieving an item by its ID.
    * @param id the ID of the item to be retrieved

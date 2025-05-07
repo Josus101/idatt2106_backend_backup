@@ -282,27 +282,4 @@ public class InventoryControllerTest {
     assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
     assertEquals("Error: Unauthorized", response.getBody());
   }
-
-  @Test
-  @DisplayName("getInventory method returns success on valid request")
-  void getInventorySuccess() {
-    List<ItemGenericDTO> items = List.of(itemGenericDTO);
-    when(itemService.getAllItems()).thenReturn(items);
-
-    ResponseEntity<?> response = inventoryController.getInventory();
-
-    assertEquals(HttpStatus.OK, response.getStatusCode());
-    assertEquals(items, response.getBody());
-  }
-
-  @Test
-  @DisplayName("getInventory method returns not found when no items exist")
-  void getInventoryNotFound() {
-    when(itemService.getAllItems()).thenThrow(new IllegalArgumentException("No items found"));
-
-    ResponseEntity<?> response = inventoryController.getInventory();
-
-    assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-    assertEquals("Error: No items found", response.getBody());
-  }
 }
