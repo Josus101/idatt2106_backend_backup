@@ -2,6 +2,7 @@ package org.ntnu.idatt2106.backend.service;
 
 import java.util.Optional;
 import org.ntnu.idatt2106.backend.dto.user.UserRegisterRequest;
+import org.ntnu.idatt2106.backend.dto.user.UserStoreSettingsRequest;
 import org.ntnu.idatt2106.backend.dto.user.UserTokenResponse;
 import org.ntnu.idatt2106.backend.exceptions.AlreadyInUseException;
 import org.ntnu.idatt2106.backend.exceptions.MailSendingFailedException;
@@ -42,6 +43,9 @@ public class LoginService {
 
     @Autowired
     private EmailService emailService;
+
+    @Autowired
+    private UserSettingsService userSettingsService;
 
     private final BCryptHasher hasher = new BCryptHasher();
 
@@ -172,6 +176,8 @@ public class LoginService {
       user.setPassword(hasher.hashPassword(user.getPassword()));
       try {
         userRepo.save(user);
+        UserStoreSettingsRequest defaultSettings = new UserStoreSettingsRequest(true, true);
+        userSettingsService.saveUserSettings(user.getId(), defaultSettings);
         emailService.sendVerificationEmail(user);
 
       }catch (Exception e) {

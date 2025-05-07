@@ -47,6 +47,7 @@ public class NewsService {
   /**
    * Method to get all news from the database
    * @return List of NewsGetResponse
+   * @throws EntityNotFoundException if no news is found
    */
   public List<NewsGetResponse> getAllNews() throws EntityNotFoundException {
     List<NewsGetResponse> allNews = newsRepo.findAll().stream()
@@ -71,6 +72,7 @@ public class NewsService {
    * Method to get news by district
    * @param district the district to get news from
    * @return List of NewsGetResponse
+   * @throws EntityNotFoundException if no news is found
    */
   public List<NewsGetResponse> getByDistrict(String district) {
     List<NewsGetResponse> newsByDistrict =  newsRepo.findByDistrict(district).stream()
@@ -95,6 +97,7 @@ public class NewsService {
    * Method to get news by case ID
    * @param caseId the case ID to get news from
    * @return List of NewsGetResponse
+   * @throws EntityNotFoundException if no news is found
    */
   public List<NewsGetResponse> getByCaseId(String caseId) {
     List<NewsGetResponse> newsByCaseId =  newsRepo.findByCaseId(caseId).stream()
@@ -147,6 +150,8 @@ public class NewsService {
   /**
    * Method to add news to the database
    * @param newsCreateRequest the news to add
+   * @throws AlreadyInUseException if the news already exists
+   * @throws IllegalArgumentException if the news is invalid
    */
   public void addNews(NewsCreateRequest newsCreateRequest) {
     Date now = new Date();
@@ -184,6 +189,7 @@ public class NewsService {
   /**
    * Scheduled method to retrieve news from the Politiloggen API
    * This method is called every 5 minutes
+   * @throws RuntimeException if the feed cannot be loaded
    */
   @Scheduled(fixedRate = 300_000) // sec_millis -> 5 minutes
   public void retrieveNewsFromAPIFeed() {
