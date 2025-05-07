@@ -15,12 +15,10 @@ import lombok.Setter;
 @AllArgsConstructor
 @Getter
 @Setter
-@Schema(description = "Data transfer object for admin login credentials")
-public class AdminLoginRegisterRequest {
+@Schema(description = "Data transfer object for admin register credentials")
+public class AdminRegisterRequest {
   @Schema(description = "Username of the admin", example = "admin")
   private String username;
   @Schema(description = "Email of the admin", example = "admin@example.fish")
   private String email;
-  @Schema(description = "Password of the admin", example = "admin123")
-  private String password;
 }

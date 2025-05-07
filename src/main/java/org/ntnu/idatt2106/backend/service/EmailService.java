@@ -5,6 +5,7 @@ import jakarta.mail.internet.MimeMessage;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
+import java.util.Objects;
 import java.util.Optional;
 import org.ntnu.idatt2106.backend.model.Admin;
 import org.ntnu.idatt2106.backend.model.User;
@@ -103,6 +104,7 @@ public class EmailService {
   private String buildEmailTemplate(String header, String message,
       String actionUrl, String actionText,
       String footer) {
+    String linkText = !Objects.equals(actionUrl, "") ?  "<p>Or copy this link: <br>" + actionUrl + "</p>" : "";
     return String.format("""
             <!DOCTYPE html>
             <html>
@@ -136,7 +138,7 @@ public class EmailService {
                     <div class="content">
                         <p>%s</p>
                         <a href="%s" class="button">%s</a>
-                        <p>Or copy this link: <br>%s</p>
+                        """ + linkText + """
                     </div>
                     <div class="footer">
                         <p>%s</p>
@@ -146,7 +148,7 @@ public class EmailService {
             </body>
             </html>
             """,
-        header, message, actionUrl, actionText, actionUrl,
+        header, message, actionUrl, actionText,
         footer, new SimpleDateFormat("yyyy-MM-dd HH:mm").format(new Date()));
   }
 
@@ -297,9 +299,10 @@ public class EmailService {
     String htmlContent = buildEmailTemplate(
         "2FA Token",
         "Your 2FA token is: " + token,
-        " ",
+        "",
         token,
-        "Please return to login page."
+        "This token is valid for 15 minutes. "
+            + "If you did not request this token, please ignore this email."
     );
     sendHtmlEmail(to, "2FA Token", htmlContent);
   }

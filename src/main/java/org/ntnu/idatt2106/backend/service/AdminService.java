@@ -97,6 +97,20 @@ public class AdminService {
   }
 
   /**
+   * Retrieves the admin user from the authorization header.
+   *
+   * @param authorizationHeader The authorization header containing the bearer token.
+   * @return The admin user associated with the token.
+   * @throws IllegalArgumentException if the token is invalid or the admin is not found
+   */
+  private String getTokenFromAuthorizationHeader(String authorizationHeader) {
+    if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
+      throw new IllegalArgumentException("Invalid authorization header");
+    }
+    return authorizationHeader.substring(7);
+  }
+
+  /**
    * Verifies if the admin is a superuser.
    *
    * @param token The token to validate and check if the admin is a superuser.
@@ -104,6 +118,7 @@ public class AdminService {
    */
   public void verifyAdminIsSuperUser(String token) {
     Admin admin = getAdminUserByToken(token);
+    System.out.println("Admin: " + admin);
     if (!admin.isSuperUser()) {
       throw new UnauthorizedException("Admin is not a super user");
     }
@@ -127,7 +142,12 @@ public class AdminService {
     if (!hasher.checkPassword(password, admin.get().getPassword())) {
       throw new IllegalArgumentException("Incorrect password for given username");
     }
-
+    if (!admin.get().isTwoFactorEnabled()) {
+      return jwt.generateJwtToken(admin.get()).getToken();
+    }
+    if (token == null || token.isEmpty()) {
+      throw new IllegalArgumentException("2FA token is required");
+    }
     if (twoFactorService.isTokenForAdmin(token, admin.get().getEmail())) {
       if (!twoFactorService.validate2FA_Token(token)) {
         throw new IllegalArgumentException("Invalid 2FA token");
@@ -136,8 +156,19 @@ public class AdminService {
     } else {
       throw new IllegalArgumentException("Invalid 2FA token");
     }
-    
+
     return jwt.generateJwtToken(admin.get()).getToken();
+  }
+
+  /**
+   * Authenticates an admin user using the provided username and password.
+   *
+   * @param username The admin's username.
+   * @param password The admin's password.
+   * @return A token response object on successful authentication.
+   */
+  public String authenticate(String username, String password) {
+    return authenticate(username, password, null);
   }
 
   /**
@@ -149,7 +180,8 @@ public class AdminService {
    * @throws IllegalArgumentException if admin data is invalid or username is already in use.
    * @throws UnauthorizedException if the admin is not authorized to register a new admin.
    */
-  public void register(Admin admin, String token) {
+  public void register(Admin admin, String header) {
+    String token = getTokenFromAuthorizationHeader(header);
     try {
       verifyAdminIsSuperUser(token);
     } catch (UnauthorizedException e) {
@@ -187,8 +219,9 @@ public class AdminService {
    * @throws UnauthorizedException if the admin is not authorized to elevate another admin.
    */
   public void elevateAdmin(String id, String authorizationHeader) {
+    String token = getTokenFromAuthorizationHeader(authorizationHeader);
     try {
-      verifyAdminIsSuperUser(authorizationHeader);
+      verifyAdminIsSuperUser(token);
     } catch (UnauthorizedException e) {
       throw new UnauthorizedException("You are not authorized to elevate an admin");
     }
@@ -214,8 +247,9 @@ public class AdminService {
    * @throws UnauthorizedException if the admin is not authorized to delete another admin.
    */
   public void exterminateAdmin(String id, String authorizationHeader) {
+    String token = getTokenFromAuthorizationHeader(authorizationHeader);
     try {
-      verifyAdminIsSuperUser(authorizationHeader);
+      verifyAdminIsSuperUser(token);
     } catch (UnauthorizedException e) {
       throw new UnauthorizedException("You are not authorized to delete an admin");
     }
@@ -237,8 +271,9 @@ public class AdminService {
    * @return A list of all admin users.
    */
   public List<AdminGetResponse> getAllAdmins(String authorizationHeader) {
+    String token = getTokenFromAuthorizationHeader(authorizationHeader);
     try {
-      verifyAdminIsSuperUser(authorizationHeader);
+      verifyAdminIsSuperUser(token);
       List<AdminGetResponse> admins = adminRepo.findAll().stream().map(admin -> new AdminGetResponse(
           admin.getId(),
           admin.getUsername(),
@@ -316,6 +351,41 @@ public class AdminService {
       String token = twoFactorService.create2FA_Token(admin.getEmail());
       emailService.send2FA(admin.getEmail(), token);
     } catch (Exception e) {
+      throw new MailSendingFailedException("Failed to send 2FA token", e.getCause());
+    }
+  }
+
+  /**
+   * Sends a 2FA token to the admin user.
+   *
+   * @param email The email of the admin user.
+   */
+  public void send2FAToken(String email) {
+    try {
+      if (email == null || email.isEmpty()) {
+        throw new IllegalArgumentException("Email is required");
+      }
+      Admin admin = adminRepo.findByEmail(email)
+          .orElseThrow(() -> new UserNotFoundException("Admin not found"));
+      if (!admin.isTwoFactorEnabled()) {
+        throw new IllegalArgumentException("2FA is not enabled for this admin");
+      }
+      if (!admin.isActive()) {
+        throw new UserNotVerifiedException("Admin is not active");
+      }
+      System.out.println("Sending 2FA token to " + email);
+      String token = twoFactorService.create2FA_Token(email);
+      emailService.send2FA(email, token);
+    } catch (UserNotFoundException e) {
+      throw new UserNotFoundException("Admin not found");
+    } catch (UserNotVerifiedException e) {
+      throw new UserNotVerifiedException("Admin is not active");
+    } catch (IllegalArgumentException e) {
+      throw new IllegalArgumentException("2FA is not enabled for this admin");
+    } catch (MailSendingFailedException e) {
+      throw new MailSendingFailedException("Failed to send 2FA token", e.getCause());
+    } catch (Exception e) {
+      System.out.println("Failed to send 2FA token. " + e.getMessage() + " " + e.getCause() + " " + e.getStackTrace() + " " + e.getClass().getName() + " " + e.getLocalizedMessage() + " " + e.getSuppressed()); // TODO: Remove this line before production
       throw new MailSendingFailedException("Failed to send 2FA token", e.getCause());
     }
   }

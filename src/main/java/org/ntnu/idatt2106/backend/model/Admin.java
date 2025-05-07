@@ -36,6 +36,8 @@ public class Admin {
   private boolean isSuperUser;
   @Column(nullable = false)
   private boolean isActive;
+  @Column(nullable = false)
+  private boolean isTwoFactorEnabled;
 
   /**
    * Constructor for the Admin model.
@@ -50,6 +52,7 @@ public class Admin {
     this.email = email;
     this.isSuperUser = isSuperUser;
     this.isActive = false;
+    this.isTwoFactorEnabled = true;
   }
 
   /**

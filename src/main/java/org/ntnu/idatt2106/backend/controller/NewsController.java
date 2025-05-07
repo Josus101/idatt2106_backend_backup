@@ -331,4 +331,73 @@ public class NewsController {
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: Error adding news");
     }
   }
+
+  /**
+   * Delete news from the database by id
+   *
+   * @param id the id of the news to delete
+   * @param authorizationHeader the authorization header
+   * @return ResponseEntity with status code
+   */
+  @DeleteMapping("/{id}")
+  @Operation(
+      summary = "Delete news by ID",
+      description = "Deletes news from the database by ID. Only admin users can delete news."
+  )
+  @ApiResponses(value = {
+      @ApiResponse(
+          responseCode = "200",
+          description = "News deleted successfully",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(example = "News deleted successfully")
+          )
+      ),
+      @ApiResponse(
+          responseCode = "401",
+          description = "Unauthorized access, must be admin user",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(example = "Error: Unauthorized")
+          )
+      ),
+      @ApiResponse(
+          responseCode = "404",
+          description = "Error: News not found",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(example = "Error: News not found")
+          )
+      ),
+      @ApiResponse(
+          responseCode = "500",
+          description = "Error deleting news",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(example = "Error: Error deleting news")
+          )
+      )
+  })
+  public void deleteNewsReport(
+      @Parameter(
+          description = "ID of the news to delete",
+          required = true,
+          example = "1"
+      ) @PathVariable int id,
+      @Parameter(
+          description = "The authorization header",
+          required = true,
+          example = "lalalalalalala"
+      ) @RequestHeader("Authorization") String authorizationHeader) {
+    try {
+      if (jwt.getAdminUserByToken(authorizationHeader) == null) {
+        ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Error: Unauthorized");
+      }
+      newsService.deleteNews(id);
+    } catch (EntityNotFoundException e) {
+      ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: " + e.getMessage());
+    } catch (Exception e) {
+      ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: Error deleting news");
+    }
+  }
 }

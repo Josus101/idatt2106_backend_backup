@@ -250,4 +250,13 @@ public class NewsService {
     }
   }
 
+  /**
+   * Method to delete news by ID
+   * @param id the ID of the news to delete
+   */
+  public void deleteNews(int id) {
+    News news = newsRepo.findById(id)
+            .orElseThrow(() -> new EntityNotFoundException("News with ID " + id + " not found"));
+    newsRepo.delete(news);
+  }
 }
