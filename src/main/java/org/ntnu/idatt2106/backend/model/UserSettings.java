@@ -1,9 +1,6 @@
 package org.ntnu.idatt2106.backend.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -26,6 +23,11 @@ public class UserSettings {
 
   @Id
   private int userId;
+
+  @OneToOne
+  @MapsId
+  @JoinColumn(name = "user_id")
+  private User user;
 
   @Column(nullable = false)
   private String settings;

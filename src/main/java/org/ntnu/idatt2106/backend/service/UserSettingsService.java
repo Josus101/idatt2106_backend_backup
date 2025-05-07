@@ -1,9 +1,14 @@
 package org.ntnu.idatt2106.backend.service;
 
 import org.ntnu.idatt2106.backend.dto.user.UserStoreSettingsRequest;
+import org.ntnu.idatt2106.backend.model.User;
 import org.ntnu.idatt2106.backend.model.UserSettings;
+import org.ntnu.idatt2106.backend.repo.UserRepo;
 import org.ntnu.idatt2106.backend.repo.UserSettingsRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 /**
  * Service class for managing user settings.
@@ -16,6 +21,9 @@ import org.springframework.stereotype.Service;
 public class UserSettingsService {
 
   private final UserSettingsRepository repository;
+
+  @Autowired
+  private UserRepo userRepo;
 
   /**
    * Constructor for UserSettingsService.
@@ -34,9 +42,17 @@ public class UserSettingsService {
    */
   public void saveUserSettings(int userId, UserStoreSettingsRequest settings) {
     String settingsJson = SettingsUtils.convertToJson(settings);
-    UserSettings userSettings = new UserSettings(userId, settingsJson);
+
+    User user = userRepo.findById(userId)
+            .orElseThrow(() -> new IllegalArgumentException("User not found with ID: " + userId));
+
+    UserSettings userSettings = repository.findByUserId(userId).orElse(new UserSettings());
+    userSettings.setUser(user); // viktig: setter JPA-managed User
+    userSettings.setSettings(settingsJson);
+
     repository.save(userSettings);
   }
+
 
   /**
    * Retrieves user settings from the database.
@@ -45,8 +61,21 @@ public class UserSettingsService {
    * @return The UserStoreSettingsRequest object containing the user's settings, or null if not found.
    */
   public UserStoreSettingsRequest getUserSettings(int userId) {
-    return repository.findByUserId(userId)
-            .map(userSettings -> SettingsUtils.convertFromJson(userSettings.getSettings()))
-            .orElse(null);
+    Optional<UserSettings> optionalSettings = repository.findByUserId(userId);
+
+    if (optionalSettings.isEmpty()) {
+      System.out.println("⚠️ No settings found for user ID: " + userId);
+      return null;
+    }
+
+    String json = optionalSettings.get().getSettings();
+
+    try {
+      return SettingsUtils.convertFromJson(json);
+    } catch (Exception e) {
+      System.out.println("❌ Failed to parse JSON for user ID " + userId + ": " + json);
+      e.printStackTrace();
+      return null;
+    }
   }
 }
