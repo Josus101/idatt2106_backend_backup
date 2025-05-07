@@ -369,7 +369,7 @@ public class HouseholdService {
       List<String> inventory = new ArrayList<>();
       if (household.getMembers() != null) {
         for (HouseholdMembers member : household.getMembers()) {
-          members.add(new UserMinimalGetResponse(member.getUser().getId(), member.getUser().getFirstname() + " " + member.getUser().getLastname()));
+          members.add(new UserMinimalGetResponse(member.getUser().getId(), member.getUser().getFirstname() + " " + member.getUser().getLastname(), member.getUser().getLatitude(), member.getUser().getLongitude()));
         }
       }
       if (household.getInventory() != null) {

@@ -19,4 +19,8 @@ public class UserMinimalGetResponse {
   private int id;
   @Schema(description = "The name of the user", example = "John Doe")
   private String name;
+  @Schema(description = "The latitude of the user", example = "60.123456")
+  private double latitude;
+  @Schema(description = "The longitude of the user", example = "10.123456")
+  private double longitude;
 }
