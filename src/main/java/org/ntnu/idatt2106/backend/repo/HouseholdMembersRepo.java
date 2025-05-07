@@ -62,4 +62,13 @@ public interface HouseholdMembersRepo extends JpaRepository<HouseholdMembers, In
      * @return An Optional containing a list of HouseholdMembers if found, or empty if not.
      */
   List<HouseholdMembers> findAllByHousehold(Household household);
+
+  /**
+   * Checks if a HouseholdMember exists by its user ID and household ID and if user is the admin of the household.
+   *
+   * @param userId The ID of the user.
+   * @param householdId The ID of the household.
+   * @return true if the HouseholdMember exists, false otherwise.
+   */
+  Boolean existsByUserIdAndHouseholdIdAndIsAdminIsTrue(int userId, int householdId);
 }

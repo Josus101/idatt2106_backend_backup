@@ -1,11 +1,14 @@
 package org.ntnu.idatt2106.backend.dto.household;
 
 import java.util.List;
+
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import io.swagger.v3.oas.annotations.media.Schema;
+import org.ntnu.idatt2106.backend.dto.user.UserMinimalGetResponse;
 
 /**
  * Data transfer object for household requests.
@@ -31,8 +34,11 @@ public class HouseholdRequest {
     @Schema(description = "Longitude of the household", example = "5.32415")
     private double longitude;
 
-    @Schema(description = "Members of the household", example = "kåre, kakkel, ovn")
-    private List<String> members;
+    @ArraySchema(schema = @Schema(
+            description = "List of members in the household",
+            implementation = UserMinimalGetResponse.class)
+    )
+    private List<UserMinimalGetResponse> members;
 
     @Schema(description = "Inventory of the household", example = "gun, halberd, your mom's sword, your mom's axe")
     private List<String> inventory;
