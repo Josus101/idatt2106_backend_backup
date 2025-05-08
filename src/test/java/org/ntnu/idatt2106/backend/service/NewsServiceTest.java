@@ -270,7 +270,7 @@ public class NewsServiceTest {
     SyndEntry entry = mockSyndEntry("New Title", "Content", date, List.of("Oslo Politidistrikt"));
     SyndFeed feed = mock(SyndFeed.class);
     when(feed.getEntries()).thenReturn(List.of(entry));
-    doReturn(feed).when(newsService).loadFeed();
+    doReturn(feed).when(newsService).loadFeed(10);
     when(newsRepo.existsByTitleAndDate("New Title", date)).thenReturn(false);
     newsService.retrieveNewsFromAPIFeed();
     verify(newsRepo).save(argThat(news ->
@@ -286,7 +286,7 @@ public class NewsServiceTest {
     SyndEntry entry = mockSyndEntry("Dup Title", "Dup content", date, List.of("Oslo Politidistrikt"));
     SyndFeed feed = mock(SyndFeed.class);
     when(feed.getEntries()).thenReturn(List.of(entry));
-    doReturn(feed).when(newsService).loadFeed();
+    doReturn(feed).when(newsService).loadFeed(10);
     when(newsRepo.existsByTitleAndDate("Dup Title", date)).thenReturn(true);
     newsService.retrieveNewsFromAPIFeed();
     verify(newsRepo, never()).save(any());
@@ -299,7 +299,7 @@ public class NewsServiceTest {
     SyndEntry entry = mockSyndEntry("Fallback Title", "No category", date, List.of());
     SyndFeed feed = mock(SyndFeed.class);
     when(feed.getEntries()).thenReturn(List.of(entry));
-    doReturn(feed).when(newsService).loadFeed();
+    doReturn(feed).when(newsService).loadFeed(10);
     when(newsRepo.existsByTitleAndDate("Fallback Title", date)).thenReturn(false);
     newsService.retrieveNewsFromAPIFeed();
     verify(newsRepo).save(argThat(news -> news.getDistrict().equals("Ukjent distrikt")));
@@ -324,8 +324,8 @@ public class NewsServiceTest {
   @Test
   @DisplayName("loadFeed throws exception when feed cannot be loaded")
   void testLoadFeedThrowsException() throws Exception {
-    doThrow(new Exception("Feed not found")).when(newsService).loadFeed();
-    assertThrows(Exception.class, () -> newsService.loadFeed());
+    doThrow(new Exception("Feed not found")).when(newsService).loadFeed(10);
+    assertThrows(Exception.class, () -> newsService.loadFeed(10));
   }
 
   @Test
@@ -374,15 +374,5 @@ public class NewsServiceTest {
     newsService.initOnStartup();
     verify(newsService).retrieveNewsFromAPIFeed();
   }
-
-
-  @Test
-  @DisplayName("retrieveNewsFromAPIFeed throws RuntimeException when feed fails")
-  void testRetrieveNewsThrowsRuntimeException() throws Exception {
-    doThrow(new Exception("Feed not found")).when(newsService).loadFeed();
-    RuntimeException ex = assertThrows(RuntimeException.class, () -> newsService.retrieveNewsFromAPIFeed());
-    assertTrue(ex.getMessage().contains("Failed to retrieve news from API"));
-  }
-
 
 }

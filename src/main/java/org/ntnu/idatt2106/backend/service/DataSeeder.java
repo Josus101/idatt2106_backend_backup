@@ -94,7 +94,7 @@ public class DataSeeder implements CommandLineRunner {
     seedHouseholdThree();
     seedHouseholdFour();
     seedEmergencyServicesWithTypes();
-    System.out.println("\nSeeding complete.\nZ");
+    System.out.println("\nSeeding complete.\n");
   }
 
   /**
