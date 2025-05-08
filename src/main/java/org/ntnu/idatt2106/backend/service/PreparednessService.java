@@ -57,8 +57,8 @@ public class PreparednessService {
 
             Category category = item.getCategory();
             double amount = item.getAmount();
-            String unit = item.getUnit().getName().toLowerCase();
-            String catName = category.getName().toLowerCase();
+            String unit = item.getUnit().getEnglishName().toLowerCase();
+            String catName = category.getEnglishName().toLowerCase();
 
             // Beregn vann
             if ((catName.equals("vann") || catName.equals("water")) && unit.equals("l")) {

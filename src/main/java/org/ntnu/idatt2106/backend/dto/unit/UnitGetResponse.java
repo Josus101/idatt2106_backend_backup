@@ -18,6 +18,8 @@ import lombok.Setter;
 public class UnitGetResponse {
     @Schema(description = "ID of the unit", example = "1")
     private int id;
-    @Schema(description = "Name of the unit", example = "kg")
-    private String name;
+    @Schema(description = "English name of the unit", example = "PCS")
+    private String englishName;
+    @Schema(description = "Norwegian name of the unit", example = "Stk")
+    private String norwegianName;
 }

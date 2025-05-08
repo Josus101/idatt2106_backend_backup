@@ -18,6 +18,8 @@ import lombok.Setter;
 public class CategoryGetResponse {
     @Schema(description = "ID of the category", example = "1")
     private int id;
-    @Schema(description = "Name of the category", example = "Food")
-    private String name;
+    @Schema(description = "English name of the category", example = "Food")
+    private String englishName;
+    @Schema(description = "Norwegian name of the category", example = "Mat")
+    private String norwegianName;
 }

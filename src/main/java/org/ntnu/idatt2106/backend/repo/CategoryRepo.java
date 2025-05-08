@@ -21,5 +21,5 @@ public interface CategoryRepo extends JpaRepository<Category, Integer> {
    * @param name the name of the category
    * @return the category with the given name
    */
-  Optional<Category> findByName(String name);
+  Optional<Category> findByEnglishName(String name);
 }
