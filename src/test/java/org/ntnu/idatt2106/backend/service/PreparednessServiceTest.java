@@ -35,7 +35,6 @@ class PreparednessServiceTest {
     @Test
     @DisplayName("Should return preparedness status for all user's households")
     void testGetPreparednessStatusByUserIdSuccess() {
-        // Arrange
         User user = new User();
         Household household = new Household();
         household.setMembers(Collections.singletonList(new HouseholdMembers()));
@@ -45,12 +44,11 @@ class PreparednessServiceTest {
         membership.setHousehold(household);
         user.setHouseholdMemberships(List.of(membership));
 
-        when(userRepo.findById(1)).thenReturn(java.util.Optional.of(user));
+        when(userRepo.findById(1)).thenReturn(Optional.of(user));
 
-        // Act
+        
         List<MyHouseholdStatusGetResponse> result = preparednessService.getPreparednessStatusByUserId(1);
 
-        // Assert
         assertEquals(1, result.size());
         assertEquals(0, result.get(0).getStatus().getDaysOfFood(), 0.01);
         assertEquals(0, result.get(0).getStatus().getDaysOfWater(), 0.01);
@@ -60,7 +58,7 @@ class PreparednessServiceTest {
     @Test
     @DisplayName("Should throw exception when user not found")
     void testUserNotFound() {
-        when(userRepo.findById(99)).thenReturn(java.util.Optional.empty());
+        when(userRepo.findById(99)).thenReturn(Optional.empty());
 
         assertThrows(UserNotFoundException.class, () ->
                 preparednessService.getPreparednessStatusByUserId(99)
@@ -75,13 +73,125 @@ class PreparednessServiceTest {
         User user = new User();
         user.setHouseholdMemberships(Collections.emptyList());
 
-        when(userRepo.findById(42)).thenReturn(java.util.Optional.of(user));
+        when(userRepo.findById(42)).thenReturn(Optional.of(user));
 
         assertThrows(NoSuchElementException.class, () ->
                 preparednessService.getPreparednessStatusByUserId(42)
         );
 
         verify(userRepo).findById(42);
+    }
+
+    @Test
+    @DisplayName("")
+    void testGetPreparednessStatusByUserIdWithPrimaryHousehold() {
+        User user = new User();
+        Household primaryHousehold = new Household();
+        primaryHousehold.setId(1);
+        primaryHousehold.setMembers(Collections.singletonList(new HouseholdMembers()));
+        primaryHousehold.setInventory(Collections.emptyList());
+
+        Household secondaryHousehold = new Household();
+        secondaryHousehold.setId(2);
+        secondaryHousehold.setMembers(Collections.singletonList(new HouseholdMembers()));
+        secondaryHousehold.setInventory(Collections.emptyList());
+
+        user.setHouseholdMemberships(List.of(
+                new HouseholdMembers(user, primaryHousehold, false, true),
+                new HouseholdMembers(user, secondaryHousehold, false, false)
+        ));
+
+        when(userRepo.findById(1)).thenReturn(Optional.of(user));
+
+        List<MyHouseholdStatusGetResponse> result = preparednessService.getPreparednessStatusByUserId(1);
+
+        assertEquals(2, result.size());
+        assertEquals(1, result.get(0).getId());
+        assertEquals(2, result.get(1).getId());
+    }
+    @Test
+    @DisplayName("Should return household statuses without sorting when primary household is null")
+    void testGetPreparednessStatusByUserId_NoPrimaryHousehold() {
+        User user = new User();
+        Household household1 = new Household();
+        household1.setId(1);
+        Household household2 = new Household();
+        household2.setId(2);
+
+        user.setHouseholdMemberships(List.of(
+                new HouseholdMembers(user, household1, false, false),
+                new HouseholdMembers(user, household2, false, false)
+        ));
+
+        when(userRepo.findById(1)).thenReturn(Optional.of(user));
+        
+        List<MyHouseholdStatusGetResponse> result = preparednessService.getPreparednessStatusByUserId(1);
+        
+        assertEquals(2, result.size());
+        assertEquals(1, result.get(0).getId());
+        assertEquals(2, result.get(1).getId());
+    }
+
+    @Test
+    @DisplayName("Should return household statuses with primary household first when already first")
+    void testGetPreparednessStatusByUserId_PrimaryHouseholdAlreadyFirst() {
+        User user = new User();
+        Household primaryHousehold = new Household();
+        primaryHousehold.setId(1);
+        Household secondaryHousehold = new Household();
+        secondaryHousehold.setId(2);
+
+        user.setHouseholdMemberships(List.of(
+                new HouseholdMembers(user, primaryHousehold, false, true),
+                new HouseholdMembers(user, secondaryHousehold, false, false)
+        ));
+
+        when(userRepo.findById(1)).thenReturn(Optional.of(user));
+
+        List<MyHouseholdStatusGetResponse> result = preparednessService.getPreparednessStatusByUserId(1);
+        
+        assertEquals(2, result.size());
+        assertEquals(1, result.get(0).getId());
+        assertEquals(2, result.get(1).getId());
+    }
+
+    @Test
+    @DisplayName("Should move primary household to the first position when not already first")
+    void testGetPreparednessStatusByUserId_PrimaryHouseholdNotFirst() {
+        User user = new User();
+        Household primaryHousehold = new Household();
+        primaryHousehold.setId(2);
+        Household secondaryHousehold = new Household();
+        secondaryHousehold.setId(1);
+
+        user.setHouseholdMemberships(List.of(
+                new HouseholdMembers(user, secondaryHousehold, false, false),
+                new HouseholdMembers(user, primaryHousehold, false, true)
+        ));
+
+        when(userRepo.findById(1)).thenReturn(Optional.of(user));
+        
+        List<MyHouseholdStatusGetResponse> result = preparednessService.getPreparednessStatusByUserId(1);
+        
+        assertEquals(2, result.size());
+        assertEquals(2, result.get(0).getId());
+        assertEquals(1, result.get(1).getId());
+    }
+
+    @Test
+    @DisplayName("Should handle an empty list of household memberships")
+    void testGetPreparednessStatusByUserId_EmptyHouseholds() {
+        
+        User user = new User();
+        user.setHouseholdMemberships(Collections.emptyList());
+
+        when(userRepo.findById(1)).thenReturn(Optional.of(user));
+
+        NoSuchElementException exception = assertThrows(NoSuchElementException.class, () ->
+                preparednessService.getPreparednessStatusByUserId(1)
+        );
+
+        assertEquals("No households found for user", exception.getMessage());
     }
 
     @Test
@@ -146,6 +256,8 @@ class PreparednessServiceTest {
         assertEquals(1, myHouseholdStatusGetResponse.getStatus().getDaysOfFood(), 0.01);
         assertEquals(2, myHouseholdStatusGetResponse.getStatus().getDaysOfWater(), 0.01); // 6L / (1*3)
     }
+
+
 
 
 }

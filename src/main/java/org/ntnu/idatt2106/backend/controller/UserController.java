@@ -535,7 +535,7 @@ public class UserController {
   @GetMapping("/location")
   @Operation(
       summary = "Get user location",
-      description = "Gets the last known location of all users the requesting user has access to"
+      description = "Gets the last known location of a user with a given token"
   )
   @ApiResponses(value = {
       @ApiResponse(
