@@ -40,6 +40,15 @@ public class HouseholdRequest {
     )
     private List<UserMinimalGetResponse> members;
 
+    @Schema(description = "Number of registered adults in the household", example = "2")
+    private int unregisteredAdults;
+
+    @Schema(description = "Number of registered children in the household", example = "2")
+    private int unregisteredChildren;
+
+    @Schema(description = "Number of registered pets in the household", example = "2")
+    private int unregisteredPets;
+
     @Schema(description = "Inventory of the household", example = "gun, halberd, your mom's sword, your mom's axe")
     private List<String> inventory;
 

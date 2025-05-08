@@ -385,7 +385,19 @@ public class HouseholdService {
         }
       }
 
-      households.add(new HouseholdRequest(household.getId(), household.getName(), household.getLatitude(), household.getLongitude(), members, inventory));
+      households.add(
+              new HouseholdRequest(
+                      household.getId(),
+                      household.getName(),
+                      household.getLatitude(),
+                      household.getLongitude(),
+                      members,
+                      household.getUnregisteredAdultCount(),
+                      household.getUnregisteredChildCount(),
+                      household.getUnregisteredPetCount(),
+                      inventory
+              )
+      );
     }
     return households;
   }
