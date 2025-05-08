@@ -1,7 +1,6 @@
 package org.ntnu.idatt2106.backend.service;
 
 import java.security.SecureRandom;
-import java.text.BreakIterator;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -10,6 +9,7 @@ import java.util.Optional;
 import org.ntnu.idatt2106.backend.dto.household.HouseholdCreate;
 import org.ntnu.idatt2106.backend.dto.household.HouseholdMinimalGetResponse;
 import org.ntnu.idatt2106.backend.dto.household.HouseholdRequest;
+import org.ntnu.idatt2106.backend.dto.user.UserMinimalGetResponse;
 import org.ntnu.idatt2106.backend.dto.user.UserPositionResponse;
 import org.ntnu.idatt2106.backend.exceptions.JoinCodeException;
 import org.ntnu.idatt2106.backend.exceptions.UnauthorizedException;
@@ -195,6 +195,7 @@ public class HouseholdService {
    *
    * @param householdId The id household from which the user will leave.
    * @param user The user who is leaving the household.
+   * @throws NoSuchElementException if the household or user is not found.
    */
   public void leaveHousehold(int householdId, User user) {
     Optional<Household> household = householdRepo.findById(householdId);
@@ -211,6 +212,7 @@ public class HouseholdService {
    * @param household The household from which the user will be kicked.
    * @param user The user who is being kicked from the household.
    * @param admin The admin who is kicking the user.
+   * @throws NoSuchElementException if the user is not found in the household.
    */
   private void verifyCanKickUserFromHousehold(Household household, User user, User admin) {
    verifyUserInHousehold(household, user);
@@ -303,6 +305,9 @@ public class HouseholdService {
    * @param household The household for which the join code will be generated.
    * @param user The user who is generating the join code.
    * @return The generated join code.
+   * @throws IllegalArgumentException if the household or user is null.
+   * @throws UnauthorizedException if the user is not a member of the household.
+   * @throws JoinCodeException if a unique join code could not be generated after 1000 tries.
    */
   public String generateJoinCode(Household household, User user) {
     if (household == null || user == null) {
@@ -353,6 +358,7 @@ public class HouseholdService {
    *
    * @param user The user whose households are to be retrieved.
    * @return The households that the user is a member of.
+   * @throws IllegalArgumentException if the user is null.
    */
   public List<HouseholdRequest> getHouseholdsByUser(User user) {
     if (user == null) {
@@ -362,14 +368,14 @@ public class HouseholdService {
 
     List<HouseholdRequest> households = new ArrayList<>();
     for (HouseholdMembers householdMember : householdMemberships) {
-      System.out.println("Household member: " + householdMember);
+//      System.out.println("Household member: " + householdMember);
       Household household = householdMember.getHousehold();
 
-      List<String> members = new ArrayList<>();
+      List<UserMinimalGetResponse> members = new ArrayList<>();
       List<String> inventory = new ArrayList<>();
       if (household.getMembers() != null) {
         for (HouseholdMembers member : household.getMembers()) {
-          members.add(member.getUser().toString());
+          members.add(new UserMinimalGetResponse(member.getUser().getId(), member.getUser().getFirstname() + " " + member.getUser().getLastname(), member.getUser().getLatitude(), member.getUser().getLongitude()));
         }
       }
       if (household.getInventory() != null) {
@@ -389,6 +395,7 @@ public class HouseholdService {
    * @param user The user whose primary household is to be retrieved.
    * @return The primary household of the user.
    * @throws NoSuchElementException if the user has no primary household.
+   * @throws IllegalArgumentException if the user has more than one primary household.
    */
   public HouseholdMinimalGetResponse getPrimary(User user) {
     List<HouseholdMinimalGetResponse> households = householdMembersRepo.findAllByUserAndIsPrimaryIsTrue(user)
@@ -444,6 +451,8 @@ public class HouseholdService {
    * @param household The household whose user positions are to be retrieved.
    * @param user The user whose positions are to be retrieved.
    * @return A list of user positions in the household.
+   * @throws IllegalArgumentException if the household or user is null.
+   * @throws UnauthorizedException if the user is not a member of the household.
    */
   public List<UserPositionResponse> getUserPositions(Household household, User user) {
     if (household == null || user == null) {
@@ -473,6 +482,8 @@ public class HouseholdService {
    * @param householdId The id of the household whose user positions are to be retrieved.
    * @param user The user whose positions are to be retrieved.
    * @return A list of user positions in the household.
+   * @throws NoSuchElementException if the household is not found.
+   * @throws IllegalArgumentException if the user is null.
    */
   public List<UserPositionResponse> getUserPositions(int householdId, User user) {
     Optional<Household> foundHousehold = householdRepo.findById(householdId);
@@ -509,5 +520,16 @@ public class HouseholdService {
       }
     }
     return userPositions;
+  }
+
+  /**
+   * Verifies if a user is an admin of a household.
+   *
+   * @param userId The id of the user to verify.
+   * @param householdId The id of the household to verify.
+   * @return true if the user is an admin of the household, false otherwise.
+   */
+  public boolean verifyAdmin(int userId, int householdId) {
+    return householdMembersRepo.existsByUserIdAndHouseholdIdAndIsAdminIsTrue(userId, householdId);
   }
 }

@@ -158,7 +158,6 @@ public class ItemService {
    * @param userId the ID of the user adding the item
    * @return the created item
    * @throws IllegalArgumentException if any referenced entity is not found
-   * @throws IllegalArgumentException if the user is not authorized
    */
   public ItemGenericDTO addItem(ItemCreateRequest itemCreateRequest, int userId)
       throws IllegalArgumentException {
@@ -206,7 +205,6 @@ public class ItemService {
    * @param userId   the ID of the user updating the item
    * @return the updated item
    * @throws IllegalArgumentException if any referenced entity is not found
-   * @throws IllegalArgumentException if the user is not authorized
    */
   public ItemGenericDTO updateItem(ItemGenericDTO itemData, int userId)
       throws IllegalArgumentException {
@@ -255,8 +253,7 @@ public class ItemService {
    *
    * @param id     the ID of the item to be deleted
    * @param userId the ID of the user deleting the item
-   * @throws IllegalArgumentException if the item is not found
-   * @throws IllegalArgumentException if the user is not authorized
+   * @throws IllegalArgumentException if the item is not found, or if the user is not authorized
    */
   public void deleteItem(int id, int userId) throws IllegalArgumentException {
     Item item = itemRepo.findById(id)

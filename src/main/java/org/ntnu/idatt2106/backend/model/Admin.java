@@ -28,10 +28,16 @@ public class Admin {
   private int id;
   @Column(unique = true, nullable = false)
   private String username;
+  @Column(nullable = false, unique = true)
+  private String email;
   @Column(nullable = false)
   private String password;
   @Column(nullable = false)
   private boolean isSuperUser;
+  @Column(nullable = false)
+  private boolean isActive;
+  @Column(nullable = false)
+  private boolean isTwoFactorEnabled;
 
   /**
    * Constructor for the Admin model.
@@ -40,10 +46,13 @@ public class Admin {
    * @param password of the admin
    * @param isSuperUser flag to set the super admin status of the admin
    */
-  public Admin(String username, String password, boolean isSuperUser) {
+  public Admin(String username, String password, String email, boolean isSuperUser) {
     this.username = username;
     this.password = password;
+    this.email = email;
     this.isSuperUser = isSuperUser;
+    this.isActive = false;
+    this.isTwoFactorEnabled = true;
   }
 
   /**

@@ -2,6 +2,7 @@ package org.ntnu.idatt2106.backend.service;
 
 import java.util.Optional;
 import org.ntnu.idatt2106.backend.dto.user.UserRegisterRequest;
+import org.ntnu.idatt2106.backend.dto.user.UserStoreSettingsRequest;
 import org.ntnu.idatt2106.backend.dto.user.UserTokenResponse;
 import org.ntnu.idatt2106.backend.exceptions.AlreadyInUseException;
 import org.ntnu.idatt2106.backend.exceptions.MailSendingFailedException;
@@ -9,12 +10,12 @@ import org.ntnu.idatt2106.backend.exceptions.TokenExpiredException;
 import org.ntnu.idatt2106.backend.exceptions.UserNotFoundException;
 import org.ntnu.idatt2106.backend.exceptions.UserNotVerifiedException;
 import org.ntnu.idatt2106.backend.model.User;
-import org.ntnu.idatt2106.backend.repo.EmailVerificationTokenRepo;
-import org.ntnu.idatt2106.backend.repo.ResetPasswordTokenRepo;
+import org.ntnu.idatt2106.backend.model.VerificationToken;
+import org.ntnu.idatt2106.backend.model.VerificationTokenType;
+import org.ntnu.idatt2106.backend.repo.VerificationTokenRepo;
 import org.ntnu.idatt2106.backend.security.BCryptHasher;
 import org.ntnu.idatt2106.backend.security.JWT_token;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mail.MailSendException;
 import org.springframework.stereotype.Service;
 
 import org.ntnu.idatt2106.backend.repo.UserRepo;
@@ -32,16 +33,16 @@ public class LoginService {
     private UserRepo userRepo;
 
     @Autowired
-    private ResetPasswordTokenRepo resetPasswordRepo;
-
-    @Autowired
-    private EmailVerificationTokenRepo verifyEmailRepo;
+    private VerificationTokenRepo verificationTokenRepo;
 
     @Autowired
     private JWT_token jwt;
 
     @Autowired
     private EmailService emailService;
+
+    @Autowired
+    private UserSettingsService userSettingsService;
 
     private final BCryptHasher hasher = new BCryptHasher();
 
@@ -172,6 +173,8 @@ public class LoginService {
       user.setPassword(hasher.hashPassword(user.getPassword()));
       try {
         userRepo.save(user);
+        UserStoreSettingsRequest defaultSettings = new UserStoreSettingsRequest(true, true);
+        userSettingsService.saveUserSettings(user.getId(), defaultSettings);
         emailService.sendVerificationEmail(user);
 
       }catch (Exception e) {
@@ -209,7 +212,7 @@ public class LoginService {
     System.out.println("Deleted all by " + user);
     user.setPassword(hasher.hashPassword(newPassword));
     userRepo.save(user);
-    resetPasswordRepo.deleteAllByUserId(user.getId());
+    verificationTokenRepo.deleteAllByEmailAndType(user.getEmail(), VerificationTokenType.PASSWORD_RESET);
 
   }
 
@@ -221,7 +224,7 @@ public class LoginService {
   public void verifyEmail(User user) {
     user.setVerified(true);
     userRepo.save(user);
-    verifyEmailRepo.deleteAllByUserId(user.getId());
+    verificationTokenRepo.deleteAllByEmailAndType(user.getEmail(), VerificationTokenType.EMAIL_VERIFICATION);
   }
 }
 

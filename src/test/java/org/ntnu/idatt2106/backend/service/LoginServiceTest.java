@@ -6,6 +6,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
 import org.ntnu.idatt2106.backend.dto.user.UserRegisterRequest;
+import org.ntnu.idatt2106.backend.dto.user.UserStoreSettingsRequest;
 import org.ntnu.idatt2106.backend.dto.user.UserTokenResponse;
 import org.ntnu.idatt2106.backend.exceptions.AlreadyInUseException;
 import org.ntnu.idatt2106.backend.exceptions.MailSendingFailedException;
@@ -13,9 +14,9 @@ import org.ntnu.idatt2106.backend.exceptions.TokenExpiredException;
 import org.ntnu.idatt2106.backend.exceptions.UserNotFoundException;
 import org.ntnu.idatt2106.backend.exceptions.UserNotVerifiedException;
 import org.ntnu.idatt2106.backend.model.User;
-import org.ntnu.idatt2106.backend.repo.EmailVerificationTokenRepo;
-import org.ntnu.idatt2106.backend.repo.ResetPasswordTokenRepo;
+import org.ntnu.idatt2106.backend.model.VerificationTokenType;
 import org.ntnu.idatt2106.backend.repo.UserRepo;
+import org.ntnu.idatt2106.backend.repo.VerificationTokenRepo;
 import org.ntnu.idatt2106.backend.security.BCryptHasher;
 import org.ntnu.idatt2106.backend.security.JWT_token;
 
@@ -33,16 +34,15 @@ public class LoginServiceTest {
   private UserRepo userRepo;
 
   @Mock
+  private VerificationTokenRepo verificationTokenRepo;
+
+  @Mock
   private EmailService emailService;
-
-  @Mock
-  private EmailVerificationTokenRepo emailVerificationTokenRepo;
-
-  @Mock
-  private ResetPasswordTokenRepo resetPasswordTokenRepo;
-
   @Mock
   private JWT_token jwt;
+
+  @Mock
+  private UserSettingsService userSettingsService;
 
   @Spy
   private BCryptHasher hasher = new BCryptHasher();
@@ -204,6 +204,7 @@ public class LoginServiceTest {
     when(userRepo.findByEmail(dto.getEmail())).thenReturn(Optional.empty());
     when(userRepo.findByPhoneNumber(dto.getPhoneNumber())).thenReturn(Optional.empty());
     doNothing().when(emailService).sendVerificationEmail(any(User.class));
+    doNothing().when(userSettingsService).saveUserSettings(eq(1), any(UserStoreSettingsRequest.class));
 
     loginService.register(dto);
 

@@ -44,7 +44,7 @@ public class Category {
    * @param kcalPerUnit of the category (nullable)
    * @param isEssential whether the category is essential
    */
-  public Category(int id, String englishName, String norwegianName, Integer kcalPerUnit, Boolean isEssential) { // Changed int to Integer
+  public Category(int id, String englishName, String norwegianName, Integer kcalPerUnit, Boolean isEssential) {
     this.id = id;
     this.englishName = englishName;
     this.norwegianName = norwegianName;

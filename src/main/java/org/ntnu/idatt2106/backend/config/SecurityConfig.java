@@ -43,7 +43,11 @@ public class SecurityConfig {
                 "/api/users/reset-password/**",
                 "/api/users/verify/**",
                 "/api/users/is-auth/**",
-                "/api/households/**") // TODO: ONLY FOR TESTING REMOVE LATER
+                "/api/households/**",
+                "/api/admin/login",
+                "/api/admin/activate",
+                "/api/admin/2fa"
+            ) // TODO: ONLY FOR TESTING REMOVE LATER
             .permitAll()
             .anyRequest().permitAll() //TODO: switch to authenticated users only
         );

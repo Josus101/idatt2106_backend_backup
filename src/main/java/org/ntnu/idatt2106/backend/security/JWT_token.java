@@ -196,7 +196,9 @@ public class JWT_token {
    * @return the Admin user object, or null if the token is invalid or user not found
    */
   public Admin getAdminUserByToken(String token) {
+    System.out.println("Token: " + token);
     String id = extractIdFromJwt(token, true);
+    System.out.println("ID: " + id);
     if (id == null) {
       return null;
     }
