@@ -177,13 +177,36 @@ public class NewsService {
 
   /**
    * Method to load the feed from the Politiloggen API
+   * @param maxAttempts the maximum number of attempts to load the feed
+   * @return SyndFeed
+   * @throws Exception if the feed cannot be loaded
+   */
+  protected SyndFeed loadFeed(int maxAttempts) throws Exception {
+    int attemptCount = 0;
+
+    while (attemptCount < maxAttempts) {
+      try {
+        URL feedUrl = new URL("https://api.politiet.no/politiloggen/v1/rss");
+        SyndFeedInput input = new SyndFeedInput();
+        return input.build(new XmlReader(feedUrl));
+      } catch (Exception e) {
+        attemptCount++;
+        if (attemptCount >= maxAttempts) {
+          throw e;
+        }
+        Thread.sleep(1000);
+      }
+    }
+    throw new RuntimeException("Failed to load feed after " + maxAttempts + " attempts");
+  }
+
+  /**
+   * Method to load the feed from the Politiloggen API
    * @return SyndFeed
    * @throws Exception if the feed cannot be loaded
    */
   protected SyndFeed loadFeed() throws Exception {
-    URL feedUrl = new URL("https://api.politiet.no/politiloggen/v1/rss");
-    SyndFeedInput input = new SyndFeedInput();
-    return input.build(new XmlReader(feedUrl));
+    return loadFeed(10);
   }
 
   /**
@@ -194,7 +217,7 @@ public class NewsService {
   @Scheduled(fixedRate = 300_000) // 5 minutes
   public void retrieveNewsFromAPIFeed() {
     try {
-      SyndFeed feed = loadFeed();
+      SyndFeed feed = loadFeed(10);
 
       System.out.println("Retrieving news from API...");
       System.out.println("Feed items length: " + feed.getEntries().size());
@@ -236,7 +259,7 @@ public class NewsService {
       }
 
     } catch (Exception e) {
-      throw new RuntimeException("Failed to retrieve news from API", e);
+      System.err.println("Error retrieving news from API: " + e.getMessage());
     }
   }
 

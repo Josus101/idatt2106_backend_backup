@@ -57,7 +57,7 @@ public class NewsServiceTest {
             12.34,
             56.78,
             "Test District",
-            new Date());
+            new Date(1746442184323L));
 
     testNewsGetResponse = new NewsGetResponse(
             testNews.getId(),
@@ -169,9 +169,9 @@ public class NewsServiceTest {
   @DisplayName("groupNewsByCaseIdAndSort returns list of lists of NewsGetResponse on success")
   void groupNewsByCaseIdAndSort_Success() {
     List<NewsGetResponse> newsList = List.of(
-            new NewsGetResponse(1, "CaseId1", "Title1", "Content1", 10.0, 20.0, "Oslo Politidistrikt", new Date().toString()),
-            new NewsGetResponse(2, "CaseId1", "Title2", "Content2", 10.0, 20.0, "Oslo Politidistrikt", new Date().toString()),
-            new NewsGetResponse(3, "CaseId2", "Title3", "Content3", 10.0, 20.0, "Oslo Politidistrikt", new Date().toString())
+            new NewsGetResponse(1, "CaseId1", "Title1", "Content1", 10.0, 20.0, "Oslo Politidistrikt", new Date(1746442184323L).toString()),
+            new NewsGetResponse(2, "CaseId1", "Title2", "Content2", 10.0, 20.0, "Oslo Politidistrikt", new Date(1746442184323L).toString()),
+            new NewsGetResponse(3, "CaseId2", "Title3", "Content3", 10.0, 20.0, "Oslo Politidistrikt", new Date(1746442184323L).toString())
     );
 
     List<List<NewsGetResponse>> groupedNews = newsService.groupNewsByCaseIdAndSort(newsList);
@@ -266,11 +266,11 @@ public class NewsServiceTest {
   @Test
   @DisplayName("retrieveNewsFromAPIFeed saves new entries when not already in DB")
   void testRetrieveNewsAddsNewEntry() throws Exception {
-    Date date = new Date();
+    Date date = new Date(1746442184323L);
     SyndEntry entry = mockSyndEntry("New Title", "Content", date, List.of("Oslo Politidistrikt"));
     SyndFeed feed = mock(SyndFeed.class);
     when(feed.getEntries()).thenReturn(List.of(entry));
-    doReturn(feed).when(newsService).loadFeed();
+    doReturn(feed).when(newsService).loadFeed(10);
     when(newsRepo.existsByTitleAndDate("New Title", date)).thenReturn(false);
     newsService.retrieveNewsFromAPIFeed();
     verify(newsRepo).save(argThat(news ->
@@ -282,11 +282,11 @@ public class NewsServiceTest {
   @Test
   @DisplayName("retrieveNewsFromAPIFeed does not save duplicate news")
   void testRetrieveNewsSkipsDuplicate() throws Exception {
-    Date date = new Date();
+    Date date = new Date(1746442184323L);
     SyndEntry entry = mockSyndEntry("Dup Title", "Dup content", date, List.of("Oslo Politidistrikt"));
     SyndFeed feed = mock(SyndFeed.class);
     when(feed.getEntries()).thenReturn(List.of(entry));
-    doReturn(feed).when(newsService).loadFeed();
+    doReturn(feed).when(newsService).loadFeed(10);
     when(newsRepo.existsByTitleAndDate("Dup Title", date)).thenReturn(true);
     newsService.retrieveNewsFromAPIFeed();
     verify(newsRepo, never()).save(any());
@@ -295,11 +295,11 @@ public class NewsServiceTest {
   @Test
   @DisplayName("retrieveNewsFromAPIFeed uses fallback when category is missing")
   void testRetrieveNewsFallbackDistrict() throws Exception {
-    Date date = new Date();
+    Date date = new Date(1746442184323L);
     SyndEntry entry = mockSyndEntry("Fallback Title", "No category", date, List.of());
     SyndFeed feed = mock(SyndFeed.class);
     when(feed.getEntries()).thenReturn(List.of(entry));
-    doReturn(feed).when(newsService).loadFeed();
+    doReturn(feed).when(newsService).loadFeed(10);
     when(newsRepo.existsByTitleAndDate("Fallback Title", date)).thenReturn(false);
     newsService.retrieveNewsFromAPIFeed();
     verify(newsRepo).save(argThat(news -> news.getDistrict().equals("Ukjent distrikt")));
@@ -324,8 +324,8 @@ public class NewsServiceTest {
   @Test
   @DisplayName("loadFeed throws exception when feed cannot be loaded")
   void testLoadFeedThrowsException() throws Exception {
-    doThrow(new Exception("Feed not found")).when(newsService).loadFeed();
-    assertThrows(Exception.class, () -> newsService.loadFeed());
+    doThrow(new Exception("Feed not found")).when(newsService).loadFeed(10);
+    assertThrows(Exception.class, () -> newsService.loadFeed(10));
   }
 
   @Test
@@ -374,15 +374,5 @@ public class NewsServiceTest {
     newsService.initOnStartup();
     verify(newsService).retrieveNewsFromAPIFeed();
   }
-
-
-  @Test
-  @DisplayName("retrieveNewsFromAPIFeed throws RuntimeException when feed fails")
-  void testRetrieveNewsThrowsRuntimeException() throws Exception {
-    doThrow(new Exception("Feed not found")).when(newsService).loadFeed();
-    RuntimeException ex = assertThrows(RuntimeException.class, () -> newsService.retrieveNewsFromAPIFeed());
-    assertTrue(ex.getMessage().contains("Failed to retrieve news from API"));
-  }
-
 
 }
