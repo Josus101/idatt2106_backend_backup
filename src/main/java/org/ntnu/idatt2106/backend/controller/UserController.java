@@ -17,6 +17,7 @@ import org.ntnu.idatt2106.backend.dto.user.*;
 import org.ntnu.idatt2106.backend.exceptions.AlreadyInUseException;
 import org.ntnu.idatt2106.backend.exceptions.MailSendingFailedException;
 import org.ntnu.idatt2106.backend.exceptions.TokenExpiredException;
+import org.ntnu.idatt2106.backend.exceptions.UnauthorizedException;
 import org.ntnu.idatt2106.backend.exceptions.UserNotFoundException;
 import org.ntnu.idatt2106.backend.exceptions.UserNotVerifiedException;
 import org.ntnu.idatt2106.backend.model.Admin;
@@ -744,7 +745,7 @@ public class UserController {
       return ResponseEntity.ok(adminService.getAllUsers(authorizationHeader));
     } catch (IllegalArgumentException e) {
       return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: Invalid token");
-    } catch (IllegalStateException e) {
+    } catch (UnauthorizedException e) {
       return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Error: Unauthorized - Invalid token");
     } catch (UserNotFoundException e) {
       return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: User not found");
@@ -808,7 +809,7 @@ public class UserController {
       return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: User not found");
     } catch (IllegalArgumentException e) {
       return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: Invalid user ID");
-    } catch (IllegalStateException e) {
+    } catch (UnauthorizedException e) {
       return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Error: Unauthorized - Invalid token");
     } catch (Exception e) {
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: An error occurred while deleting the user");

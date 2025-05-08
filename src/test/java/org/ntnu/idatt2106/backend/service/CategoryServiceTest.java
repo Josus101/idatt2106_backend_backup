@@ -1,6 +1,8 @@
 package org.ntnu.idatt2106.backend.service;
 
+import java.util.Collections;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -12,6 +14,7 @@ import org.ntnu.idatt2106.backend.dto.category.CategoryGetResponse;
 import org.ntnu.idatt2106.backend.model.Admin;
 import org.ntnu.idatt2106.backend.model.Category;
 import org.ntnu.idatt2106.backend.repo.CategoryRepo;
+import org.ntnu.idatt2106.backend.repo.ItemRepo;
 import org.ntnu.idatt2106.backend.security.JWT_token;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -33,6 +36,9 @@ public class CategoryServiceTest {
 
   @Mock
   private JWT_token jwt;
+
+  @Mock
+  private ItemRepo itemRepo;
 
   private Category testCategory;
 
@@ -210,8 +216,9 @@ public class CategoryServiceTest {
   @Test
   @DisplayName("deleteCategory succeeds with valid input")
   void deleteCategorySuccess() {
-    when(categoryRepo.findById(1)).thenReturn(java.util.Optional.of(testCategory));
-
+    when(itemRepo.findByCategoryId(Mockito.anyInt())).thenReturn(Collections.emptyList());
+    when(categoryRepo.findById(1)).thenReturn(Optional.of(testCategory));
+    when(categoryRepo.findByName("Other")).thenReturn(Optional.of(new Category("Other", 100, true)));
     assertDoesNotThrow(() -> categoryService.deleteCategory(1, "Bearer valid-token"));
     verify(categoryRepo).delete(testCategory);
   }

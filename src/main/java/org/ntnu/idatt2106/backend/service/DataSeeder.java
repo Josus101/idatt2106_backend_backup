@@ -104,6 +104,7 @@ public class DataSeeder implements CommandLineRunner {
   public void seedCategoriesAndUnits() {
     if (categoryRepo.count() == 0) {
       List<Category> categories = List.of(
+          new Category("Other", 0, false),
           new Category("Water", 0, true),
           new Category("Canned Food", 200, true),
           new Category("Dried Food", 350, true),

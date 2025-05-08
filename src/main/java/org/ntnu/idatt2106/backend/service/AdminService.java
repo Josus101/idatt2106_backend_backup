@@ -125,7 +125,7 @@ public class AdminService {
    * Verifies if the admin is a superuser.
    *
    * @param token The token to validate and check if the admin is a superuser.
-   * @throws IllegalArgumentException if the token is invalid or the admin is not a superuser
+   * @throws UnauthorizedException if the token is invalid or the admin is not a superuser
    */
   public void verifyAdminIsSuperUser(String token) {
     Admin admin = getAdminUserByToken(token);
@@ -403,6 +403,22 @@ public class AdminService {
   }
 
   /**
+   * Verifies the admin user from the provided token.
+   *
+   * @param token The token to verify.
+   * @throws IllegalArgumentException if the token is invalid or the admin is not found.
+   */
+  public void verifyAdminFromToken(String token) {
+    if (token == null || token.isEmpty()) {
+      throw new IllegalArgumentException("Token is required");
+    }
+    Admin admin = jwt.getAdminUserByToken(token);
+    if (admin == null) {
+      throw new UnauthorizedException("Invalid token");
+    }
+  }
+
+  /**
    * Retrieves all users.
    *
    * @param authorizationHeader The authorization header containing the bearer token.
@@ -411,10 +427,10 @@ public class AdminService {
   public List<UserAdminResponse> getAllUsers(String authorizationHeader) {
     String token = getTokenFromAuthorizationHeader(authorizationHeader);
     try {
-      verifyAdminIsSuperUser(token);
+      verifyAdminFromToken(token);
       List<UserAdminResponse> users = userRepo.findAll().stream().map(user -> new UserAdminResponse(
           user.getId(),
-          user.getFirstname() + user.getLastname(),
+          user.getFirstname() +" "+ user.getLastname(),
           user.getEmail(),
           user.getPhoneNumber(),
           user.getHouseholdMembershipsString()
@@ -439,7 +455,7 @@ public class AdminService {
   public void deleteUser(String id, String authorizationHeader) {
     String token = getTokenFromAuthorizationHeader(authorizationHeader);
     try {
-      verifyAdminIsSuperUser(token);
+      verifyAdminFromToken(token);
       Optional<User> user = userRepo.findById(Integer.parseInt(id));
       if (user.isEmpty()) {
         throw new IllegalArgumentException("No user found with given id");

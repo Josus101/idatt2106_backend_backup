@@ -4,7 +4,9 @@ import org.ntnu.idatt2106.backend.dto.category.CategoryCreateRequest;
 import org.ntnu.idatt2106.backend.dto.category.CategoryGetResponse;
 import org.ntnu.idatt2106.backend.model.Admin;
 import org.ntnu.idatt2106.backend.model.Category;
+import org.ntnu.idatt2106.backend.model.Item;
 import org.ntnu.idatt2106.backend.repo.CategoryRepo;
+import org.ntnu.idatt2106.backend.repo.ItemRepo;
 import org.ntnu.idatt2106.backend.repo.UnitRepo;
 import org.ntnu.idatt2106.backend.security.JWT_token;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +32,9 @@ public class CategoryService {
 
   @Autowired
   private JWT_token jwt;
+
+  @Autowired
+  private ItemRepo itemRepo;
 
 
   /**
@@ -135,8 +140,19 @@ public class CategoryService {
     if (!isAdmin(authorization)) {
       throw new IllegalArgumentException("Unauthorized: Only admins can create categories");
     }
+
     Category category = categoryRepo.findById(id)
         .orElseThrow(() -> new NoSuchElementException("Category not found"));
+    if (category.getName().equals("Other")) {
+      throw new IllegalArgumentException("Cannot delete Other category");
+    }
+    Category otherCategory = categoryRepo.findByName("Other")
+        .orElseThrow(() -> new NoSuchElementException("Other category not found"));
+    List<Item> items = itemRepo.findByCategoryId(id);
+    for (Item item : items) {
+      item.setCategory(otherCategory);
+      itemRepo.save(item);
+    }
     categoryRepo.delete(category);
   }
 }
