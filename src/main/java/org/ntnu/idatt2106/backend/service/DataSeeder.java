@@ -104,32 +104,32 @@ public class DataSeeder implements CommandLineRunner {
   public void seedCategoriesAndUnits() {
     if (categoryRepo.count() == 0) {
       List<Category> categories = List.of(
-          new Category("Water", 0, true),
-          new Category("Canned Food", 200, true),
-          new Category("Dried Food", 350, true),
-          new Category("Medical Supplies", 0, true),
-          new Category("Snacks", 500, false),
-          new Category("Beverages", 45, false),
-          new Category("Sugar Free Monster", 11, false),
-          new Category("Pet Food", 300, true),
-          new Category("Baby Supplies", 100, true),
-          new Category("Batteries", 0, true),
-          new Category("Hygiene Products", 0, true),
-          new Category("Cooking Fuel", 0, true),
-          new Category("Fresh Vegetables", 35, false),
-          new Category("Fresh Fruits", 52, false),
-          new Category("Frozen Food", 250, true),
-          new Category("Grains (Rice, Pasta)", 360, true),
-          new Category("Kjøkkenutstyr", 0, true)
-
+          new Category("Other", "Annet", 0, false),
+          new Category("Water", "Vann", 0, true),
+          new Category("Canned Food", "Hermetikk", 200, true),
+          new Category("Dried Food", "Tørket mat", 350, true),
+          new Category("Medical Supplies", "Førstehjelp", 0, true),
+          new Category("Snacks", "Snacks", 500, false),
+          new Category("Beverages", "Drikkevarer", 45, false),
+          new Category("Sugar Free Monster", "Sugar Free Monster", 11, false),
+          new Category("Pet Food", "Dyremat", 300, true),
+          new Category("Baby Supplies", "Forsyninger baby", 100, true),
+          new Category("Batteries", "Batterier", 0, true),
+          new Category("Hygiene Products", "Hygiene produkter", 0, true),
+          new Category("Cooking Fuel", "Gass brenner drivstoff", 0, true),
+          new Category("Fresh Vegetables", "Grønnsaker", 35, false),
+          new Category("Fresh Fruits", "Frukt", 52, false),
+          new Category("Frozen Food", "Frossen mat", 250, true),
+          new Category("Grains (Rice, Pasta)", "Kornprodukter (Ris, Pasta)", 360, true),
+          new Category("Kitchen Appliances", "Kjøkkenutstyr", 0, true)
       );
       categoryRepo.saveAll(categories);
     }
     if (unitRepo.count() == 0) {
       List<Unit> units = List.of(
-          new Unit("KG"),
-          new Unit("L"),
-          new Unit("PCS")
+          new Unit("KG", "KG"),
+          new Unit("L", "L"),
+          new Unit("PCS", "Stk")
       );
       unitRepo.saveAll(units);
     }
@@ -307,17 +307,17 @@ public class DataSeeder implements CommandLineRunner {
     Calendar cal = Calendar.getInstance();
     cal.setTime(now);
 
-    Unit kg = unitRepo.findByName("KG").orElseThrow();
-    Unit liter = unitRepo.findByName("L").orElseThrow();
-    Unit count = unitRepo.findByName("PCS").orElseThrow();
+    Unit kg = unitRepo.findByEnglishName("KG").orElseThrow();
+    Unit liter = unitRepo.findByEnglishName("L").orElseThrow();
+    Unit count = unitRepo.findByEnglishName("PCS").orElseThrow();
 
-    Category water = categoryRepo.findByName("Water").orElseThrow();
-    Category cannedFood = categoryRepo.findByName("Canned Food").orElseThrow();
-    Category driedFood = categoryRepo.findByName("Dried Food").orElseThrow();
-    Category medicalSupplies = categoryRepo.findByName("Medical Supplies").orElseThrow();
-    Category snacks = categoryRepo.findByName("Snacks").orElseThrow();
-    Category whiteMonster = categoryRepo.findByName("Sugar Free Monster").orElseThrow();
-    Category kjøkkenutstyr = categoryRepo.findByName("Kjøkkenutstyr").orElseThrow();
+    Category water = categoryRepo.findByEnglishName("Water").orElseThrow();
+    Category cannedFood = categoryRepo.findByEnglishName("Canned Food").orElseThrow();
+    Category driedFood = categoryRepo.findByEnglishName("Dried Food").orElseThrow();
+    Category medicalSupplies = categoryRepo.findByEnglishName("Medical Supplies").orElseThrow();
+    Category snacks = categoryRepo.findByEnglishName("Snacks").orElseThrow();
+    Category whiteMonster = categoryRepo.findByEnglishName("Sugar Free Monster").orElseThrow();
+    Category kitchenAppliances = categoryRepo.findByEnglishName("Kitchen Appliances").orElseThrow();
 
 
     List<Item> items = new ArrayList<>();
@@ -335,7 +335,7 @@ public class DataSeeder implements CommandLineRunner {
     items.add(new Item("White Monster", 0.1, liter, getFutureDate(cal, Calendar.WEEK_OF_YEAR, 2), whiteMonster));
     items.add(new Item("Førstehjelp", 1, count, getFutureDate(cal, Calendar.YEAR, 1), medicalSupplies));
     items.add(new Item("Jodtabletter", 10, count, getFutureDate(cal, Calendar.YEAR, 1), medicalSupplies));
-    items.add(new Item("Kokeapparat", 1, count, getFutureDate(cal, Calendar.YEAR, 1), kjøkkenutstyr));
+    items.add(new Item("Kokeapparat", 1, count, getFutureDate(cal, Calendar.YEAR, 1), kitchenAppliances));
 
 
 
@@ -352,11 +352,11 @@ public class DataSeeder implements CommandLineRunner {
     Calendar cal = Calendar.getInstance();
     cal.setTime(now);
 
-    Unit liter = unitRepo.findByName("L").orElseThrow();
-    Unit kg = unitRepo.findByName("KG").orElseThrow();
+    Unit liter = unitRepo.findByEnglishName("L").orElseThrow();
+    Unit kg = unitRepo.findByEnglishName("KG").orElseThrow();
 
-    Category beverages = categoryRepo.findByName("Beverages").orElseThrow();
-    Category snacks = categoryRepo.findByName("Snacks").orElseThrow();
+    Category beverages = categoryRepo.findByEnglishName("Beverages").orElseThrow();
+    Category snacks = categoryRepo.findByEnglishName("Snacks").orElseThrow();
 
     List<Item> items = new ArrayList<>();
 
@@ -377,11 +377,11 @@ public class DataSeeder implements CommandLineRunner {
     Calendar cal = Calendar.getInstance();
     cal.setTime(now);
 
-    Unit kg = unitRepo.findByName("KG").orElseThrow();
+    Unit kg = unitRepo.findByEnglishName("KG").orElseThrow();
 
-    Category petFood = categoryRepo.findByName("Pet Food").orElseThrow();
-    Category frozenFood = categoryRepo.findByName("Frozen Food").orElseThrow();
-    Category freshFruits = categoryRepo.findByName("Fresh Fruits").orElseThrow();
+    Category petFood = categoryRepo.findByEnglishName("Pet Food").orElseThrow();
+    Category frozenFood = categoryRepo.findByEnglishName("Frozen Food").orElseThrow();
+    Category freshFruits = categoryRepo.findByEnglishName("Fresh Fruits").orElseThrow();
 
     List<Item> items = new ArrayList<>();
 
@@ -402,15 +402,15 @@ public class DataSeeder implements CommandLineRunner {
     Calendar cal = Calendar.getInstance();
     cal.setTime(now);
 
-    Unit kg = unitRepo.findByName("KG").orElseThrow();
-    Unit count = unitRepo.findByName("PCS").orElseThrow();
+    Unit kg = unitRepo.findByEnglishName("KG").orElseThrow();
+    Unit count = unitRepo.findByEnglishName("PCS").orElseThrow();
 
-    Category grains = categoryRepo.findByName("Grains (Rice, Pasta)").orElseThrow();
-    Category babySupplies = categoryRepo.findByName("Baby Supplies").orElseThrow();
-    Category cookingFuel = categoryRepo.findByName("Cooking Fuel").orElseThrow();
-    Category freshVegetables = categoryRepo.findByName("Fresh Vegetables").orElseThrow();
-    Category hygieneProducts = categoryRepo.findByName("Hygiene Products").orElseThrow();
-    Category batteries = categoryRepo.findByName("Batteries").orElseThrow();
+    Category grains = categoryRepo.findByEnglishName("Grains (Rice, Pasta)").orElseThrow();
+    Category babySupplies = categoryRepo.findByEnglishName("Baby Supplies").orElseThrow();
+    Category cookingFuel = categoryRepo.findByEnglishName("Cooking Fuel").orElseThrow();
+    Category freshVegetables = categoryRepo.findByEnglishName("Fresh Vegetables").orElseThrow();
+    Category hygieneProducts = categoryRepo.findByEnglishName("Hygiene Products").orElseThrow();
+    Category batteries = categoryRepo.findByEnglishName("Batteries").orElseThrow();
 
     List<Item> items = new ArrayList<>();
 

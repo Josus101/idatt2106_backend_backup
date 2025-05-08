@@ -45,4 +45,11 @@ public interface ItemRepo extends JpaRepository<Item, Integer> {
    */
   @Override
   List<Item> findAll();
+
+  /**
+   * Find items by category.
+   * @param id the id of the category
+   * @return true if the item is found in the category, false otherwise
+   */
+  List<Item> findByCategoryId(int id);
 }

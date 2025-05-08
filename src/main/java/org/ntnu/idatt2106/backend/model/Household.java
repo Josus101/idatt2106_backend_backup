@@ -99,4 +99,22 @@ public class Household {
     unregisteredChildCount = 0;
     unregisteredPetCount = 0;
   }
+
+  /**
+   * Removes a member from the household
+   * @param user the user to remove
+   */
+  public void removeMember(User user) {
+    HouseholdMembers householdMember = null;
+    for (HouseholdMembers member : members) {
+      if (member.getUser().getId() == user.getId()) {
+        householdMember = member;
+        break;
+      }
+    }
+    if (householdMember != null) {
+      members.remove(householdMember);
+      householdMember.setHousehold(null);
+    }
+  }
 }

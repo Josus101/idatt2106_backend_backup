@@ -1,13 +1,11 @@
 package org.ntnu.idatt2106.backend.service;
 
 import jakarta.persistence.EntityNotFoundException;
+import java.util.List;
 import org.ntnu.idatt2106.backend.dto.unit.UnitGetResponse;
 import org.ntnu.idatt2106.backend.repo.UnitRepo;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 /**
  * Service class for handling unit-related operations.
@@ -31,7 +29,8 @@ public class UnitService {
    */
   public UnitGetResponse getUnitById(int id) {
     return unitRepo.findById(id)
-      .map(unit -> new UnitGetResponse(unit.getId(), unit.getName()))
+        .map(unit -> new UnitGetResponse(unit.getId(), unit.getEnglishName(),
+            unit.getNorwegianName()))
       .orElseThrow(() -> new EntityNotFoundException("Unit not found"));
   }
 
@@ -43,7 +42,8 @@ public class UnitService {
   public List<UnitGetResponse> getAllUnits() {
     return unitRepo.findAll()
             .stream()
-            .map(unit -> new UnitGetResponse(unit.getId(), unit.getName()))
+        .map(unit -> new UnitGetResponse(unit.getId(), unit.getEnglishName(),
+            unit.getNorwegianName()))
             .toList();
   }
 
