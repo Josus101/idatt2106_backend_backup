@@ -532,7 +532,7 @@ public class UserController {
    * @param authorizationHeader the JWT token for authorization
    * @return a response entity containing the user's last known location
    */
-  @GetMapping("/locations")
+  @GetMapping("/location")
   @Operation(
       summary = "Get user location",
       description = "Gets the last known location of all users the requesting user has access to"
@@ -543,9 +543,8 @@ public class UserController {
           description = "Location retrieved successfully",
           content = @Content(
               mediaType = "application/json",
-              array = @ArraySchema(
-                  schema = @Schema(implementation = UserPositionResponse.class))
-              )
+              schema = @Schema(implementation = UserPositionResponse.class)
+          )
       ),
       @ApiResponse(
           responseCode = "400",
@@ -569,14 +568,14 @@ public class UserController {
               schema = @Schema(example = "An unexpected error occurred during location retrieval"))
       )
   })
-  public ResponseEntity<?> getPositionsFromHousehold(
+  public ResponseEntity<?> getUserPosition(
       @Parameter(description = "Authorization header with JWT token", example = "Bearer <token>")
       @RequestHeader("Authorization") String authorizationHeader) {
     try {
       String token = authorizationHeader.substring(7);
       User user = jwtToken.getUserByToken(token);
       if (user != null) {
-        return ResponseEntity.ok(householdService.getUserPositions(user));
+        return ResponseEntity.ok(householdService.getUserPosition(user));
       } else {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Error: Unauthorized - Invalid token");
       }

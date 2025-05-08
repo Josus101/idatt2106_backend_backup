@@ -524,6 +524,26 @@ public class HouseholdService {
   }
 
   /**
+   * Gets the position of a user.
+   *
+   * @param user The user whose position is to be retrieved.
+   * @return The user's position.
+   * @throws IllegalArgumentException if the user is null.
+   */
+  public UserPositionResponse getUserPosition(User user) {
+      if (user == null) {
+      throw new IllegalArgumentException("User cannot be null");
+    }
+    return new UserPositionResponse(
+        user.getLatitude(),
+        user.getLongitude(),
+        user.getFormattedPositionUpdateTime(),
+        user.getId(),
+        user.toString()
+    );
+  }
+
+  /**
    * Verifies if a user is an admin of a household.
    *
    * @param userId The id of the user to verify.
