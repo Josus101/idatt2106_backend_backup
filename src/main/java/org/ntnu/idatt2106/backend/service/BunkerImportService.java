@@ -4,8 +4,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.ntnu.idatt2106.backend.model.map.Coordinate;
 import org.ntnu.idatt2106.backend.model.map.MapEntity;
+import org.ntnu.idatt2106.backend.model.map.MapEntityType;
 import org.ntnu.idatt2106.backend.model.map.MapMarkerType;
 import org.ntnu.idatt2106.backend.repo.map.MapEntityRepo;
+import org.ntnu.idatt2106.backend.repo.map.MapEntityTypeRepo;
 import org.ntnu.idatt2106.backend.repo.map.MapMarkerTypeRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
@@ -25,6 +27,7 @@ public class BunkerImportService {
     private final MapEntityRepo mapEntityRepo;
     private final MapMarkerTypeRepo mapMarkerTypeRepo;
     private final ObjectMapper objectMapper;
+    private final MapEntityTypeRepo mapEntityTypeRepo;
 
     /**
      * Constructor for BunkerImportService.
@@ -36,10 +39,11 @@ public class BunkerImportService {
     @Autowired
     public BunkerImportService(MapEntityRepo mapEntityRepo,
                                MapMarkerTypeRepo mapMarkerTypeRepo,
-                               ObjectMapper objectMapper) {
+                               ObjectMapper objectMapper, MapEntityTypeRepo mapEntityTypeRepo) {
         this.mapEntityRepo = mapEntityRepo;
         this.mapMarkerTypeRepo = mapMarkerTypeRepo;
         this.objectMapper = objectMapper;
+        this.mapEntityTypeRepo = mapEntityTypeRepo;
     }
 
     /**
@@ -54,6 +58,11 @@ public class BunkerImportService {
         MapMarkerType bunkerMapMarkerType = mapMarkerTypeRepo.findByName("Bunker").orElseGet(() -> {
             MapMarkerType newMapMarkerType = new MapMarkerType("Bunker");
             return mapMarkerTypeRepo.save(newMapMarkerType);
+        });
+
+        MapEntityType entityType = mapEntityTypeRepo.findByName("marker").orElseGet(() -> {
+            MapEntityType newMapEntityType = new MapEntityType("marker");
+            return mapEntityTypeRepo.save(newMapEntityType);
         });
 
         for (JsonNode feature : rootNode.get("features")) {
@@ -77,6 +86,7 @@ public class BunkerImportService {
                 service.setName("Bunker " + localID);
                 service.setDescription("Bunker with capacity: " + capacity);
                 service.setAddress(address);
+                service.setMapEntityType(entityType);
                 service.setMapMarkerType(bunkerMapMarkerType);
                 service.setCoordinatePoint(new Coordinate(latitude, longitude));
                 service.setLocalID(localID);
