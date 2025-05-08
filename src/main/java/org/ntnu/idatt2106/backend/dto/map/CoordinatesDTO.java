@@ -15,7 +15,8 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Schema(description = "Data transfer object for coordinates")
+@Schema(description = "Coordinates of the center of the emergency zone",
+    example = "{ \"latitude\": 60.39299, \"longitude\": 5.32415 }")
 public class CoordinatesDTO {
   @Schema(description = "Latitude of the coordinates", example = "60.39299")
   private double latitude;

@@ -1,9 +1,9 @@
 package org.ntnu.idatt2106.backend.service;
 
 import org.ntnu.idatt2106.backend.dto.map.CoordinatesDTO;
-import org.ntnu.idatt2106.backend.dto.map.zones.MapZoneCreateDTO;
-import org.ntnu.idatt2106.backend.dto.map.zones.MapZoneDescDTO;
-import org.ntnu.idatt2106.backend.dto.map.zones.MapZoneFullDTO;
+import org.ntnu.idatt2106.backend.dto.map.zones.ZoneCreateDTO;
+import org.ntnu.idatt2106.backend.dto.map.MapEntityDescDTO;
+import org.ntnu.idatt2106.backend.dto.map.zones.ZoneFullDTO;
 import org.ntnu.idatt2106.backend.model.map.*;
 import org.ntnu.idatt2106.backend.repo.map.MapEntityRepo;
 import org.ntnu.idatt2106.backend.repo.map.MapEntityTypeRepo;
@@ -30,9 +30,9 @@ public class MapEntityService {
   /**
    * Retrieves all emergency zones from the database.
    *
-   * @return a list of MapZoneFullDTO objects representing all emergency zones
+   * @return a list of ZoneFullDTO objects representing all emergency zones
    */
-  public List<MapZoneFullDTO> getAllMapZones() {
+  public List<ZoneFullDTO> getAllMapZones() {
     return mapEntityRepo.findAllByMapEntityTypeName("zone")
         .stream()
         .map(this::mapToMapZoneFullDTO)
@@ -44,9 +44,9 @@ public class MapEntityService {
    *
    * @param coordinates a list of CoordinatesDTO objects representing the area
    * @param zoneIds     an array of zone IDs to exclude from the result
-   * @return a list of MapZoneFullDTO objects representing the emergency zones within the specified area
+   * @return a list of ZoneFullDTO objects representing the emergency zones within the specified area
    */
-  public List<MapZoneFullDTO> getMapZonesInMapArea(List<CoordinatesDTO> coordinates, Long[] zoneIds) {
+  public List<ZoneFullDTO> getMapZonesInMapArea(List<CoordinatesDTO> coordinates, Long[] zoneIds) {
     double minLat = coordinates.stream().mapToDouble(CoordinatesDTO::getLatitude).min().orElseThrow(NumberFormatException::new);
     double maxLat = coordinates.stream().mapToDouble(CoordinatesDTO::getLatitude).max().orElseThrow(NumberFormatException::new);
     double minLng = coordinates.stream().mapToDouble(CoordinatesDTO::getLongitude).min().orElseThrow(NumberFormatException::new);
@@ -70,9 +70,9 @@ public class MapEntityService {
    * Retrieves a specific emergency zone by its ID.
    *
    * @param id the ID of the emergency zone
-   * @return a MapZoneFullDTO object representing the emergency zone with the specified ID
+   * @return a ZoneFullDTO object representing the emergency zone with the specified ID
    */
-  public MapZoneFullDTO getMapZoneById(Long id) {
+  public ZoneFullDTO getMapZoneById(Long id) {
     return mapEntityRepo.findById(id)
         .map(this::mapToMapZoneFullDTO)
         .orElse(null);
@@ -81,11 +81,11 @@ public class MapEntityService {
    * Retrieves a specific emergency zones description by its ID.
    *
    * @param id the ID of the emergency zone
-   * @return a MapZoneDescDTO object representing the emergency zone with the specified ID
+   * @return a MapEntityDescDTO object representing the emergency zone with the specified ID
    */
-  public MapZoneDescDTO getMapZoneDescById(Long id) {
+  public MapEntityDescDTO getMapZoneDescById(Long id) {
     return mapEntityRepo.findById(id)
-        .map(zone -> new MapZoneDescDTO(
+        .map(zone -> new MapEntityDescDTO(
             zone.getName(),
             zone.getDescription(),
             zone.getAddress()))
@@ -95,26 +95,26 @@ public class MapEntityService {
   /**
    * Creates a new emergency zone in the database.
    *
-   * @param mapZoneCreateDTO the MapZoneCreateDTO object containing the details of the new emergency zone
+   * @param zoneCreateDTO the ZoneCreateDTO object containing the details of the new emergency zone
    * @return the ID of the newly created emergency zone
    */
-  public Long createZone(MapZoneCreateDTO mapZoneCreateDTO) {
+  public Long createZone(ZoneCreateDTO zoneCreateDTO) {
     MapEntityType entityType = mapEntityTypeRepo.findByName("zone")
         .orElseThrow(() -> new IllegalArgumentException("Zone entity type not found"));
-    MapZoneType zoneType = mapZoneTypeRepo.findByName(mapZoneCreateDTO.getType())
+    MapZoneType zoneType = mapZoneTypeRepo.findByName(zoneCreateDTO.getType())
         .orElseThrow(() -> new IllegalArgumentException("Zone type not found"));
 
     MapEntity zone = new MapEntity(
-        mapZoneCreateDTO.getName(),
-        mapZoneCreateDTO.getDescription(),
-        mapZoneCreateDTO.getAddress(),
-        mapZoneCreateDTO.getSeverityLevel(),
+        zoneCreateDTO.getName(),
+        zoneCreateDTO.getDescription(),
+        zoneCreateDTO.getAddress(),
+        zoneCreateDTO.getSeverityLevel(),
         entityType,
         zoneType,
         new Coordinate(
-            mapZoneCreateDTO.getCoordinates().getLatitude(),
-            mapZoneCreateDTO.getCoordinates().getLongitude()),
-        mapZoneCreateDTO.getPolygonCoordinateList());
+            zoneCreateDTO.getCoordinates().getLatitude(),
+            zoneCreateDTO.getCoordinates().getLongitude()),
+        zoneCreateDTO.getPolygonCoordinateList());
 
     return mapEntityRepo.save(zone).getId();
   }
@@ -123,48 +123,64 @@ public class MapEntityService {
    * Updates an existing emergency zone in the database.
    *
    * @param zoneId          the ID of the emergency zone to update
-   * @param mapZoneCreateDTO the MapZoneCreateDTO object containing the updated details of the emergency zone
+   * @param zoneCreateDTO the ZoneCreateDTO object containing the updated details of the emergency zone
    */
-  public void updateZone(Long zoneId, MapZoneCreateDTO mapZoneCreateDTO) {
+  public void updateZone(Long zoneId, ZoneCreateDTO zoneCreateDTO) {
     MapEntity zone = mapEntityRepo.findById(zoneId)
         .orElseThrow(() -> new IllegalArgumentException("Zone (" + zoneId + ") not found"));
 
-    MapZoneType zoneType = mapZoneTypeRepo.findByName(mapZoneCreateDTO.getType())
+    MapZoneType zoneType = mapZoneTypeRepo.findByName(zoneCreateDTO.getType())
         .orElseThrow(() -> new IllegalArgumentException("Zone type not found"));
 
-    zone.setName(mapZoneCreateDTO.getName());
-    zone.setDescription(mapZoneCreateDTO.getDescription());
-    zone.setAddress(mapZoneCreateDTO.getAddress());
-    zone.setSeverityLevel(mapZoneCreateDTO.getSeverityLevel());
+    zone.setName(zoneCreateDTO.getName());
+    zone.setDescription(zoneCreateDTO.getDescription());
+    zone.setAddress(zoneCreateDTO.getAddress());
+    zone.setSeverityLevel(zoneCreateDTO.getSeverityLevel());
     zone.setMapZoneType(zoneType);
     zone.setCoordinatePoint(new Coordinate(
-        mapZoneCreateDTO.getCoordinates().getLatitude(),
-        mapZoneCreateDTO.getCoordinates().getLongitude()));
+        zoneCreateDTO.getCoordinates().getLatitude(),
+        zoneCreateDTO.getCoordinates().getLongitude()));
 
     mapEntityRepo.save(zone);
   }
 
   /**
-   * Deletes an emergency zone from the database.
+   * Retrieves the coordinates of a specific map entity by its ID.
    *
-   * @param id the ID of the emergency zone to delete
-   * @throws IllegalArgumentException if the zone id is not found
+   * @param id the ID of the map entity
+   * @return a CoordinatesDTO object representing the coordinates of the map entity
+   * @throws IllegalArgumentException if the entity with the specified ID is not found
    */
-  public void deleteZone(Long id) {
+  public CoordinatesDTO getMapEntityCoordinates(Long id) {
+    MapEntity entity = mapEntityRepo.findById(id)
+        .orElseThrow(() -> new IllegalArgumentException("Entity (" + id + ") not found"));
+
+    return new CoordinatesDTO(
+        entity.getCoordinatePoint().getLatitude(),
+        entity.getCoordinatePoint().getLongitude());
+  }
+
+  /**
+   * Deletes a map entity from the database.
+   *
+   * @param id the ID of the entity to delete
+   * @throws IllegalArgumentException if the entity with the specified ID is not found
+   */
+  public void deleteMapEntity(Long id) {
     MapEntity zone = mapEntityRepo.findById(id)
-        .orElseThrow(() -> new IllegalArgumentException("Zone (" + id + ") not found"));
+        .orElseThrow(() -> new IllegalArgumentException("Entity (" + id + ") not found"));
 
     mapEntityRepo.delete(zone);
   }
 
   /**
-   * Helper method to map a MapEntity object to a MapZoneFullDTO object.
+   * Helper method to map a MapEntity object to a ZoneFullDTO object.
    *
    * @param zone the MapEntity object to map
-   * @return a MapZoneFullDTO object representing the mapped zone
+   * @return a ZoneFullDTO object representing the mapped zone
    */
-  private MapZoneFullDTO mapToMapZoneFullDTO(MapEntity zone) {
-    return new MapZoneFullDTO(
+  private ZoneFullDTO mapToMapZoneFullDTO(MapEntity zone) {
+    return new ZoneFullDTO(
       zone.getId(),
       zone.getName(),
       zone.getDescription(),

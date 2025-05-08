@@ -7,8 +7,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.ntnu.idatt2106.backend.dto.map.CoordinatesDTO;
 
-import java.util.List;
-
 
 /**
  * Data transfer object for creating an emergency zone.
@@ -21,7 +19,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Schema(description = "Data transfer object for creating an emergency zone")
-public class MapZoneCreateDTO {
+public class ZoneCreateDTO {
   @Schema(description = "Name of the emergency zone", example = "Crash site")
   private String name;
 

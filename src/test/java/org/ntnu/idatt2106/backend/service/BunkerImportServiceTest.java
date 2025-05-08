@@ -9,6 +9,7 @@ import org.mockito.*;
 import org.ntnu.idatt2106.backend.model.map.MapEntity;
 import org.ntnu.idatt2106.backend.model.map.MapMarkerType;
 import org.ntnu.idatt2106.backend.repo.map.MapEntityRepo;
+import org.ntnu.idatt2106.backend.repo.map.MapEntityTypeRepo;
 import org.ntnu.idatt2106.backend.repo.map.MapMarkerTypeRepo;
 
 import java.io.IOException;
@@ -28,6 +29,9 @@ class BunkerImportServiceTest {
 
     @Mock
     private MapMarkerTypeRepo mapMarkerTypeRepo;
+
+    @Mock
+    private MapEntityTypeRepo mapEntityTypeRepo;
 
     @Mock
     private ObjectMapper objectMapper;
@@ -128,7 +132,8 @@ class BunkerImportServiceTest {
         ObjectMapper realObjectMapper = new ObjectMapper();
 
         // Create a new BunkerImportService with the real ObjectMapper
-        BunkerImportService service = new BunkerImportService(mapEntityRepo, mapMarkerTypeRepo, realObjectMapper);
+        BunkerImportService service = new BunkerImportService(mapEntityRepo,
+            mapMarkerTypeRepo, realObjectMapper, mapEntityTypeRepo);
 
         String fileName = "testfile.json";
 

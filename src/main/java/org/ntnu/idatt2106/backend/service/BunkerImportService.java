@@ -39,7 +39,8 @@ public class BunkerImportService {
     @Autowired
     public BunkerImportService(MapEntityRepo mapEntityRepo,
                                MapMarkerTypeRepo mapMarkerTypeRepo,
-                               ObjectMapper objectMapper, MapEntityTypeRepo mapEntityTypeRepo) {
+                               ObjectMapper objectMapper,
+                               MapEntityTypeRepo mapEntityTypeRepo) {
         this.mapEntityRepo = mapEntityRepo;
         this.mapMarkerTypeRepo = mapMarkerTypeRepo;
         this.objectMapper = objectMapper;

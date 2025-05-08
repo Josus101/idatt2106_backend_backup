@@ -7,9 +7,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.ntnu.idatt2106.backend.dto.map.CoordinatesDTO;
 
-import java.util.List;
-
-
 /**
  * Data transfer object for emergency zones with full details.
  * This class is used to transfer emergency zone data between the client and server.
@@ -21,7 +18,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Schema(description = "Data transfer object for creating an emergency zone")
-public class MapZoneFullDTO {
+public class ZoneFullDTO {
   @Schema(description = "ID of the emergency zone", example = "12345")
   private Long id;
 

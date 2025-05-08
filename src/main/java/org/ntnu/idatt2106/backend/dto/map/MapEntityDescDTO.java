@@ -1,4 +1,4 @@
-package org.ntnu.idatt2106.backend.dto.map.zones;
+package org.ntnu.idatt2106.backend.dto.map;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
@@ -18,7 +18,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 @Schema(description = "Data transfer object for emergency zone descriptions")
-public class MapZoneDescDTO {
+public class MapEntityDescDTO {
   @Schema(description = "Name of the emergency zone", example = "Crash site")
   private String name;
 
