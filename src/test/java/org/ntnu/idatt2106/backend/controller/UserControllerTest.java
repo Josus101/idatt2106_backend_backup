@@ -1,11 +1,13 @@
 package org.ntnu.idatt2106.backend.controller;
 
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
 import org.ntnu.idatt2106.backend.dto.user.PasswordResetRequest;
+import org.ntnu.idatt2106.backend.dto.user.UserAdminResponse;
 import org.ntnu.idatt2106.backend.dto.user.UserLoginRequest;
 import org.ntnu.idatt2106.backend.dto.user.UserPositionResponse;
 import org.ntnu.idatt2106.backend.dto.user.UserPositionUpdate;
@@ -13,10 +15,13 @@ import org.ntnu.idatt2106.backend.dto.user.UserRegisterRequest;
 import org.ntnu.idatt2106.backend.dto.user.UserTokenResponse;
 import org.ntnu.idatt2106.backend.exceptions.AlreadyInUseException;
 import org.ntnu.idatt2106.backend.exceptions.TokenExpiredException;
+import org.ntnu.idatt2106.backend.exceptions.UnauthorizedException;
 import org.ntnu.idatt2106.backend.exceptions.UserNotFoundException;
+import org.ntnu.idatt2106.backend.model.Admin;
 import org.ntnu.idatt2106.backend.model.User;
 import org.ntnu.idatt2106.backend.repo.UserRepo;
 import org.ntnu.idatt2106.backend.security.JWT_token;
+import org.ntnu.idatt2106.backend.service.AdminService;
 import org.ntnu.idatt2106.backend.service.HouseholdService;
 import org.ntnu.idatt2106.backend.service.LoginService;
 import org.ntnu.idatt2106.backend.service.ReCaptchaService;
@@ -54,6 +59,9 @@ class UserControllerTest {
 
   @Mock
   private UserRepo userRepo;
+
+  @Mock
+  private AdminService adminService;
 
   private MockMvc mockMvc;
 
@@ -151,7 +159,7 @@ class UserControllerTest {
     UserLoginRequest loginDTO = new UserLoginRequest("test@example.com", "wrongPassword");
 
     when(loginService.authenticate(loginDTO.getEmail(), loginDTO.getPassword()))
-            .thenThrow(new UserNotFoundException("No user found with given email and password"));
+        .thenThrow(new UserNotFoundException("No user found with given email and password"));
 
     ResponseEntity<?> response = userController.login(loginDTO);
 
@@ -540,6 +548,110 @@ class UserControllerTest {
 
     assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
     assertEquals("Error: An unexpected error occurred during location retrieval", response.getBody());
+  }
+
+  @Test
+  @DisplayName("Should return 200 and all users when authorized admin token is provided")
+  void shouldReturnAllUsersWhenAuthorizedAdminTokenIsProvided() {
+    String token = "valid.jwt.token";
+    Admin mockAdmin = new Admin();
+    List<UserAdminResponse> mockUsers = List.of(new UserAdminResponse(), new UserAdminResponse());
+
+    when(jwtToken.getAdminUserByToken(token)).thenReturn(mockAdmin);
+    when(adminService.getAllUsers(any())).thenReturn(mockUsers);
+
+    ResponseEntity<?> response = userController.getAllUsers("Bearer " + token);
+
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertEquals(mockUsers, response.getBody());
+  }
+
+  @Test
+  @DisplayName("Should return 401 when no valid admin token is provided")
+  void shouldReturnUnauthorizedWhenNoValidAdminToken() {
+    String token = "invalid.jwt.token";
+
+    when(jwtToken.getAdminUserByToken(token)).thenReturn(null);
+    doThrow(new UnauthorizedException("User not found"))
+        .when(adminService).getAllUsers(any());
+    ResponseEntity<?> response = userController.getAllUsers("Bearer " + token);
+
+    assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    assertEquals("Error: Unauthorized - Invalid token", response.getBody());
+  }
+
+  @Test
+  @DisplayName("Should return 500 when exception occurs in getAllUsers")
+  void shouldReturnInternalServerErrorWhenExceptionOccursInGetAllUsers() {
+    String token = "valid.jwt.token";
+
+    doThrow(new RuntimeException("Unexpected error")).when(adminService)
+        .getAllUsers(any());
+    when(jwtToken.getAdminUserByToken(token)).thenThrow(new RuntimeException("Unexpected"));
+
+    ResponseEntity<?> response = userController.getAllUsers("Bearer " + token);
+
+    assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+    assertEquals("Error: An error occurred while retrieving all users", response.getBody());
+  }
+
+  @Test
+  @DisplayName("Should delete user and return 200 when admin is authorized and user exists")
+  void shouldDeleteUserSuccessfullyWhenAuthorized() {
+    String token = "valid.jwt.token";
+    int userId = 1;
+    Admin mockAdmin = new Admin();
+    User mockUser = new User();
+
+    when(jwtToken.getAdminUserByToken(token)).thenReturn(mockAdmin);
+    when(userRepo.findById(userId)).thenReturn(java.util.Optional.of(mockUser));
+
+    ResponseEntity<?> response = userController.deleteUser(userId, "Bearer " + token);
+
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertEquals("User deleted successfully", response.getBody());
+  }
+
+  @Test
+  @DisplayName("Should return 404 when user is not found for deletion")
+  void shouldReturnNotFoundWhenUserNotFound() {
+    String token = "valid.jwt.token";
+    int userId = 1;
+    Admin mockAdmin = new Admin();
+
+    when(jwtToken.getAdminUserByToken(token)).thenReturn(mockAdmin);
+    doThrow(new UserNotFoundException("User not found"))
+        .when(adminService).deleteUser(any(), any());
+    ResponseEntity<?> response = userController.deleteUser(userId, "Bearer " + token);
+
+    assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    assertEquals("Error: User not found", response.getBody());
+  }
+
+  @Test
+  @DisplayName("Should return 401 when token is not from an admin")
+  void shouldReturnUnauthorizedWhenTokenNotAdmin() {
+    String token = "invalid.jwt.token";
+
+    when(jwtToken.getAdminUserByToken(token)).thenReturn(null);
+    doThrow(new UnauthorizedException("User not found"))
+        .when(adminService).deleteUser(any(), any());
+    ResponseEntity<?> response = userController.deleteUser(1, "Bearer " + token);
+
+    assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    assertEquals("Error: Unauthorized - Invalid token", response.getBody());
+  }
+
+  @Test
+  @DisplayName("Should return 500 when an unexpected error occurs during deletion")
+  void shouldReturnInternalServerErrorWhenExceptionThrownDuringDelete() {
+    String token = "valid.jwt.token";
+    int userId = 1;
+    doThrow(new RuntimeException("Unexpected error")).when(adminService).deleteUser(any(), any());
+    ResponseEntity<?> response = userController.deleteUser(userId, "Bearer " + token);
+
+    assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+    assertEquals("Error: An error occurred while deleting the user", response.getBody());
   }
 
 

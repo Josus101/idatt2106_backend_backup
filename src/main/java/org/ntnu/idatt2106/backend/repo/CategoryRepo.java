@@ -22,4 +22,11 @@ public interface CategoryRepo extends JpaRepository<Category, Integer> {
    * @return the category with the given name
    */
   Optional<Category> findByEnglishName(String name);
+
+  /**
+   * Finds a category by its Norwegian name.
+   * @param norwegianName the Norwegian name of the category
+   * @return the category with the given Norwegian name
+   */
+  Optional<Object> findByNorwegianName(String norwegianName);
 }

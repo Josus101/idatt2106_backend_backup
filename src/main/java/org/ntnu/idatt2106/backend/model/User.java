@@ -173,4 +173,16 @@ public class User {
             .findFirst()
             .orElse(null);
   }
+
+  /**
+   * Get the households of the user
+   * @return the households of the user
+   */
+  public String[] getHouseholdMembershipsString() {
+    String[] householdNames = new String[householdMemberships.size()];
+    for (int i = 0; i < householdMemberships.size(); i++) {
+      householdNames[i] = householdMemberships.get(i).getHousehold().getName();
+    }
+    return householdNames;
+  }
 }
