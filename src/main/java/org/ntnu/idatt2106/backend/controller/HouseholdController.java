@@ -876,4 +876,98 @@ public class HouseholdController {
         }
     }
 
+
+    /**
+     * Endpoint for adding unregistered members to a household.
+     *
+     * @param authorizationHeader The authorization header containing the JWT token.
+     * @param householdId The ID of the household to be deleted.
+     * @param members the members of the household
+     */
+    @PostMapping("/{householdId}/addUnregisteredMembers")
+    @Operation(
+        summary = "Add unregistered members to a household",
+        description = "Adds unregistered members to the household with the given ID"
+    )
+    @ApiResponses(value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "Unregistered members successfully added to the household",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(example = "Unregistered members successfully added to the household")
+            )
+        ),
+        @ApiResponse(
+            responseCode = "400",
+            description = "Invalid household ID or members",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(example = "Error: Invalid household ID or members")
+            )
+        ),
+        @ApiResponse(
+            responseCode = "401",
+            description = "Unauthorized",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(example = "Error: Unauthorized")
+            )
+        ),
+        @ApiResponse(
+            responseCode = "404",
+            description = "Household not found",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(example = "Error: Household not found")
+            )
+        ),
+        @ApiResponse(
+            responseCode = "500",
+            description = "Internal server error",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(example = "Unexpected error: <error message>")
+            )
+        )
+    })
+    public ResponseEntity<?> setUnregisteredMembers(
+        @Parameter(
+            description = "Authorization token (Bearer JWT)",
+            required = true,
+            example = "owiejf4893hfuiw or something"
+        ) @RequestHeader ("Authorization") String authorizationHeader,
+        @Parameter(
+            name = "householdId",
+            description = "The id of the household to add unregistered members to",
+            required = true,
+            example = "1"
+        ) @PathVariable int householdId,
+        @Parameter(
+            name = "members",
+            description = "List of unregistered members to be added to the household",
+            required = true,
+            schema = @Schema(implementation = UnregisteredMembersRequest.class)
+        ) @RequestBody UnregisteredMembersRequest members
+    ){
+        try {
+            if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+                String token = authorizationHeader.substring(7);
+                User user = jwtTokenService.getUserByToken(token);
+                if (user != null) {
+                    householdService.setUnregisteredMembers(householdId, members, user);
+                    return ResponseEntity.ok("Unregistered members successfully added to the household");
+                }
+            }
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Error: Unauthorized");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: " + e.getMessage());
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unexpected error: " + e.getMessage());
+        }
+
+    }
+
 }
