@@ -223,7 +223,7 @@ class DataSeederTest {
     assertEquals(1, household.getMembers().size());
     verify(householdMembersRepo, times(1)).save(any(HouseholdMembers.class));
   }
-/*
+
   @Test
   @DisplayName("Test addHouseholdMember method with existing member")
   void testSeedHouseholdOne() {
@@ -231,8 +231,8 @@ class DataSeederTest {
     when(householdRepo.save(any(Household.class))).thenReturn(new Household());
     when(itemRepo.saveAll(anyList())).thenReturn(new ArrayList<>());
 
-    when(categoryRepo.findByName(anyString())).thenReturn(Optional.of(new Category()));
-    when(unitRepo.findByName(anyString())).thenReturn(Optional.of(new Unit()));
+    when(categoryRepo.findByEnglishName(anyString())).thenReturn(Optional.of(new Category()));
+    when(unitRepo.findByEnglishName(anyString())).thenReturn(Optional.of(new Unit()));
 
     doNothing().when(userSettingsService).saveUserSettings(anyInt(), any(UserStoreSettingsRequest.class));
 
@@ -251,8 +251,8 @@ class DataSeederTest {
     when(householdRepo.save(any(Household.class))).thenReturn(new Household());
     when(itemRepo.saveAll(anyList())).thenReturn(new ArrayList<>());
 
-    when(categoryRepo.findByName(anyString())).thenReturn(Optional.of(new Category()));
-    when(unitRepo.findByName(anyString())).thenReturn(Optional.of(new Unit()));
+    when(categoryRepo.findByEnglishName(anyString())).thenReturn(Optional.of(new Category()));
+    when(unitRepo.findByEnglishName(anyString())).thenReturn(Optional.of(new Unit()));
 
     dataSeeder.seedHouseholdTwo();
 
@@ -269,8 +269,8 @@ class DataSeederTest {
     when(householdRepo.save(any(Household.class))).thenReturn(new Household());
     when(itemRepo.saveAll(anyList())).thenReturn(new ArrayList<>());
 
-    when(categoryRepo.findByName(anyString())).thenReturn(Optional.of(new Category()));
-    when(unitRepo.findByName(anyString())).thenReturn(Optional.of(new Unit()));
+    when(categoryRepo.findByEnglishName(anyString())).thenReturn(Optional.of(new Category()));
+    when(unitRepo.findByEnglishName(anyString())).thenReturn(Optional.of(new Unit()));
 
     dataSeeder.seedHouseholdThree();
 
@@ -287,8 +287,8 @@ class DataSeederTest {
     when(householdRepo.save(any(Household.class))).thenReturn(new Household());
     when(itemRepo.saveAll(anyList())).thenReturn(new ArrayList<>());
 
-    when(categoryRepo.findByName(anyString())).thenReturn(Optional.of(new Category()));
-    when(unitRepo.findByName(anyString())).thenReturn(Optional.of(new Unit()));
+    when(categoryRepo.findByEnglishName(anyString())).thenReturn(Optional.of(new Category()));
+    when(unitRepo.findByEnglishName(anyString())).thenReturn(Optional.of(new Unit()));
 
     dataSeeder.seedHouseholdFour();
 
@@ -296,7 +296,7 @@ class DataSeederTest {
     verify(householdRepo, times(2)).save(any(Household.class));
     verify(householdMembersRepo, times(1)).save(any(HouseholdMembers.class));
     verify(itemRepo, times(1)).saveAll(anyList());
-  }*/
+  }
 
   @Test
   @DisplayName("Test addHouseholdMember method with existing member")

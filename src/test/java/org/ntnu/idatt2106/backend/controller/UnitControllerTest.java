@@ -22,7 +22,6 @@ import static org.mockito.Mockito.when;
  * Unit tests for the UnitController class.
  */
 class UnitControllerTest {
-  /*
   @InjectMocks
   private UnitController unitController;
   @Mock
@@ -35,7 +34,8 @@ class UnitControllerTest {
     MockMvcBuilders.standaloneSetup(unitController).build();
     unitGetResponse = new UnitGetResponse(
             1,
-            "Test Unit"
+            "Test Unit",
+            "Test enhet"
     );
   }
 
@@ -83,6 +83,4 @@ class UnitControllerTest {
     assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
     assertEquals("Error: Unit not found", response.getBody());
   }
-
-   */
 }

@@ -42,7 +42,6 @@ import static org.mockito.Mockito.when;
  * @author Jonas Reiher
  */
 public class ItemServiceTest {
-/*
   @InjectMocks
   private ItemService itemService;
 
@@ -89,15 +88,15 @@ public class ItemServiceTest {
     households = new ArrayList<>();
     households.add(testHousehold);
 
-    testItem = new Item("Water", 1.0, new Unit("Liter"), new Date());
+    testItem = new Item("Water", 1.0, new Unit("Liter", "Liter"), new Date());
     testItem.setId(1);
     testItem.setHousehold(households);
 
-    Unit testItemUnit = new Unit("Liters");
+    Unit testItemUnit = new Unit("Liters", "Liter");
     testItemUnit.setId(111);
     testItem.setUnit(testItemUnit);
 
-    Category testItemCategory = new Category(1, "Liquid", 0, false);
+    Category testItemCategory = new Category(1, "Liquid", "Væske", 0, false);
     testItemCategory.setId(222);
     testItem.setCategory(testItemCategory);
 
@@ -254,11 +253,13 @@ public class ItemServiceTest {
 
     Unit mockUnit = new Unit();
     mockUnit.setId(111);
-    mockUnit.setName("Liter");
+    mockUnit.setEnglishName("Liter");
+    mockUnit.setNorwegianName("Liter");
 
     Category mockCategory = new Category();
     mockCategory.setId(222);
-    mockCategory.setName("Dairy");
+    mockCategory.setEnglishName("Dairy");
+    mockCategory.setNorwegianName("Melk");
     mockCategory.setKcalPerUnit(0);
     mockCategory.setIsEssential(false);
 
@@ -321,7 +322,7 @@ public class ItemServiceTest {
 
     Unit mockUnit = new Unit();
     mockUnit.setId(111);
-    mockUnit.setName("Liter");
+    mockUnit.setEnglishName("Liter");
 
     when(unitRepo.findById(111)).thenReturn(Optional.of(mockUnit));
     when(categoryRepo.findById(222)).thenReturn(Optional.empty());
@@ -361,11 +362,11 @@ public class ItemServiceTest {
 
     Unit mockUnit = new Unit();
     mockUnit.setId(111);
-    mockUnit.setName("Liter");
+    mockUnit.setEnglishName("Liter");
 
     Category mockCategory = new Category();
     mockCategory.setId(222);
-    mockCategory.setName("Dairy");
+    mockCategory.setEnglishName("Dairy");
     mockCategory.setKcalPerUnit(0);
     mockCategory.setIsEssential(false);
 
@@ -497,5 +498,4 @@ public class ItemServiceTest {
 
     assertThrows(IllegalArgumentException.class, () -> itemService.deleteItem(1, 999));
   }
- */
 }
