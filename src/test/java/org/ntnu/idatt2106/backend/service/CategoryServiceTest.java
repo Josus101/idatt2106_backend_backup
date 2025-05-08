@@ -27,7 +27,6 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.client.ExpectedCount.times;
 
 public class CategoryServiceTest {
-
   @InjectMocks
   private CategoryService categoryService;
 
@@ -47,8 +46,8 @@ public class CategoryServiceTest {
     MockitoAnnotations.openMocks(this);
     testCategory = new Category();
     testCategory.setId(1);
-    testCategory.setName("Test Category");
-
+    testCategory.setEnglishName("Test Category");
+    testCategory.setNorwegianName("Test Kategori");
     Admin testAdmin = new Admin();
     when(jwt.getAdminUserByToken("valid-token")).thenReturn(testAdmin);
   }
@@ -61,7 +60,8 @@ public class CategoryServiceTest {
 
     assertNotNull(result);
     assertEquals(testCategory.getId(), result.getId());
-    assertEquals(testCategory.getName(), result.getName());
+    assertEquals(testCategory.getEnglishName(), result.getEnglishName());
+    assertEquals(testCategory.getNorwegianName(), result.getNorwegianName());
   }
 
   @Test
@@ -86,7 +86,8 @@ public class CategoryServiceTest {
     assertNotNull(result);
     assertEquals(1, result.size());
     assertEquals(testCategory.getId(), result.get(0).getId());
-    assertEquals(testCategory.getName(), result.get(0).getName());
+    assertEquals(testCategory.getEnglishName(), result.get(0).getEnglishName());
+    assertEquals(testCategory.getNorwegianName(), result.get(0).getNorwegianName());
   }
 
   @Test
@@ -139,8 +140,8 @@ public class CategoryServiceTest {
   @Test
   @DisplayName("createCategory succeeds with valid input")
   void createCategorySuccess() {
-    CategoryCreateRequest request = new CategoryCreateRequest("New Cat", 100, true);
-    when(categoryRepo.findByName("New Cat")).thenReturn(java.util.Optional.empty());
+    CategoryCreateRequest request = new CategoryCreateRequest("Monkeyhair", "Apehår", 100, true);
+    when(categoryRepo.findByEnglishName("Monkeyhair")).thenReturn(java.util.Optional.empty());
 
     assertDoesNotThrow(() -> categoryService.createCategory(request, "Bearer valid-token"));
     verify(categoryRepo).save(any(Category.class));
@@ -150,14 +151,14 @@ public class CategoryServiceTest {
   @DisplayName("createCategory throws if not admin")
   void createCategoryUnauthorized() {
     assertThrows(IllegalArgumentException.class, () ->
-        categoryService.createCategory(new CategoryCreateRequest("Cat", 50, true), "Bearer invalid")
+        categoryService.createCategory(new CategoryCreateRequest("fish", "fisk", 50, true), "Bearer invalid")
     );
   }
 
   @Test
   @DisplayName("createCategory throws on empty name")
   void createCategoryEmptyName() {
-    CategoryCreateRequest request = new CategoryCreateRequest("", 50, true);
+    CategoryCreateRequest request = new CategoryCreateRequest("", "", 50, true);
     assertThrows(IllegalArgumentException.class, () ->
         categoryService.createCategory(request, "Bearer valid-token")
     );
@@ -166,7 +167,7 @@ public class CategoryServiceTest {
   @Test
   @DisplayName("createCategory throws on negative kcal")
   void createCategoryNegativeKcal() {
-    CategoryCreateRequest request = new CategoryCreateRequest("New Cat", -50, true);
+    CategoryCreateRequest request = new CategoryCreateRequest("tapeworm", "orm", -50, true);
     assertThrows(IllegalArgumentException.class, () ->
         categoryService.createCategory(request, "Bearer valid-token")
     );
@@ -175,8 +176,8 @@ public class CategoryServiceTest {
   @Test
   @DisplayName("createCategory throws if name exists")
   void createCategoryDuplicate() {
-    CategoryCreateRequest request = new CategoryCreateRequest("New Cat", 100, true);
-    when(categoryRepo.findByName("New Cat")).thenReturn(java.util.Optional.of(testCategory));
+    CategoryCreateRequest request = new CategoryCreateRequest("TakenOne", "tatten", 100, true);
+    when(categoryRepo.findByEnglishName("TakenOne")).thenReturn(java.util.Optional.of(testCategory));
 
     assertThrows(IllegalArgumentException.class, () ->
         categoryService.createCategory(request, "Bearer valid-token")
@@ -186,7 +187,7 @@ public class CategoryServiceTest {
   @Test
   @DisplayName("updateCategory succeeds with valid input")
   void updateCategorySuccess() {
-    CategoryCreateRequest request = new CategoryCreateRequest("Updated", 150, false);
+    CategoryCreateRequest request = new CategoryCreateRequest("Updated", "Oppdatert", 150, false);
     when(categoryRepo.findById(1)).thenReturn(java.util.Optional.of(testCategory));
 
     assertDoesNotThrow(() -> categoryService.updateCategory(1, request, "Bearer valid-token"));
@@ -196,7 +197,7 @@ public class CategoryServiceTest {
   @Test
   @DisplayName("updateCategory throws if not admin")
   void updateCategoryUnauthorized() {
-    CategoryCreateRequest request = new CategoryCreateRequest("Updated", 150, false);
+    CategoryCreateRequest request = new CategoryCreateRequest("Updated", "Oppdatert", 150, false);
     assertThrows(IllegalArgumentException.class, () ->
         categoryService.updateCategory(1, request, "Bearer bad-token")
     );
@@ -205,7 +206,7 @@ public class CategoryServiceTest {
   @Test
   @DisplayName("updateCategory throws if category not found")
   void updateCategoryNotFound() {
-    CategoryCreateRequest request = new CategoryCreateRequest("Updated", 150, false);
+    CategoryCreateRequest request = new CategoryCreateRequest("Updated", "Oppdatert", 150, false);
     when(categoryRepo.findById(1)).thenReturn(java.util.Optional.empty());
 
     assertThrows(NoSuchElementException.class, () ->
@@ -218,7 +219,7 @@ public class CategoryServiceTest {
   void deleteCategorySuccess() {
     when(itemRepo.findByCategoryId(Mockito.anyInt())).thenReturn(Collections.emptyList());
     when(categoryRepo.findById(1)).thenReturn(Optional.of(testCategory));
-    when(categoryRepo.findByName("Other")).thenReturn(Optional.of(new Category("Other", 100, true)));
+    when(categoryRepo.findByEnglishName("Other")).thenReturn(Optional.of(new Category("Other", "Annet", 100, true)));
     assertDoesNotThrow(() -> categoryService.deleteCategory(1, "Bearer valid-token"));
     verify(categoryRepo).delete(testCategory);
   }

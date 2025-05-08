@@ -1,6 +1,9 @@
 package org.ntnu.idatt2106.backend.service;
 
+import java.util.Optional;
 import org.ntnu.idatt2106.backend.dto.category.CategoryCreateRequest;
+import java.util.List;
+import java.util.NoSuchElementException;
 import org.ntnu.idatt2106.backend.dto.category.CategoryGetResponse;
 import org.ntnu.idatt2106.backend.model.Admin;
 import org.ntnu.idatt2106.backend.model.Category;
@@ -13,9 +16,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.NoSuchElementException;
 
 /**
  * Service class for handling category-related operations.
@@ -45,7 +45,8 @@ public class CategoryService {
   */
   public CategoryGetResponse getCategoryById(int id) {
     return categoryRepo.findById(id)
-      .map(category -> new CategoryGetResponse(category.getId(), category.getName()))
+        .map(category -> new CategoryGetResponse(category.getId(), category.getEnglishName(),
+            category.getNorwegianName()))
       .orElseThrow(() -> new NoSuchElementException("Category not found"));
   }
 
@@ -57,7 +58,7 @@ public class CategoryService {
   public List<CategoryGetResponse> getAllCategories() {
     return categoryRepo.findAll()
             .stream()
-            .map(category -> new CategoryGetResponse(category.getId(), category.getName()))
+            .map(category -> new CategoryGetResponse(category.getId(), category.getEnglishName(), category.getNorwegianName()))
             .toList();
   }
 
@@ -92,16 +93,18 @@ public class CategoryService {
       throw new IllegalArgumentException("Unauthorized: Only admins can create categories");
     }
     Category newCategory = new Category();
-    if (category.getName().isEmpty()) {
+    if (category.getEnglishName().isEmpty() || category.getNorwegianName().isEmpty()) {
       throw new IllegalArgumentException("Category name cannot be empty");
     }
     if (category.getKcalPerUnit() != null && category.getKcalPerUnit() < 0) {
       throw new IllegalArgumentException("Kcal per unit cannot be negative");
     }
-    if (categoryRepo.findByName(category.getName()).isPresent()) {
+    if (categoryRepo.findByEnglishName(category.getEnglishName()).isPresent() ||
+        categoryRepo.findByNorwegianName(category.getNorwegianName()).isPresent()) {
       throw new IllegalArgumentException("Category with this name already exists");
     }
-    newCategory.setName(category.getName());
+    newCategory.setEnglishName(category.getEnglishName());
+    newCategory.setNorwegianName(category.getNorwegianName());
     newCategory.setKcalPerUnit(category.getKcalPerUnit());
     newCategory.setIsEssential(category.getIsEssential());
     categoryRepo.save(newCategory);
@@ -119,8 +122,11 @@ public class CategoryService {
     }
     Category existingCategory = categoryRepo.findById(id)
         .orElseThrow(() -> new NoSuchElementException("Category not found"));
-    if (category.getName() != null && !category.getName().isEmpty()) {
-      existingCategory.setName(category.getName());
+    if (category.getEnglishName() != null && !category.getEnglishName().isEmpty()) {
+      existingCategory.setEnglishName(category.getEnglishName());
+    }
+    if (category.getNorwegianName() != null && !category.getNorwegianName().isEmpty()) {
+      existingCategory.setNorwegianName(category.getNorwegianName());
     }
     if (category.getKcalPerUnit() != null) {
       existingCategory.setKcalPerUnit(category.getKcalPerUnit());
@@ -143,11 +149,18 @@ public class CategoryService {
 
     Category category = categoryRepo.findById(id)
         .orElseThrow(() -> new NoSuchElementException("Category not found"));
-    if (category.getName().equals("Other")) {
+    if (category.getEnglishName().equals("Other")) {
       throw new IllegalArgumentException("Cannot delete Other category");
     }
-    Category otherCategory = categoryRepo.findByName("Other")
-        .orElseThrow(() -> new NoSuchElementException("Other category not found"));
+    Optional<Category> otherCategoryOp = categoryRepo.findByEnglishName("Other");
+    Category otherCategory = null;
+    if (otherCategoryOp.isEmpty()) {
+      otherCategory = new Category("Other", "Annet", null, false);
+      categoryRepo.save(otherCategory);
+    }
+    else {
+      otherCategory = otherCategoryOp.get();
+    }
     List<Item> items = itemRepo.findByCategoryId(id);
     for (Item item : items) {
       item.setCategory(otherCategory);

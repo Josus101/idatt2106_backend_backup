@@ -8,17 +8,17 @@ import java.util.Date;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class ItemTest {
-
   @Test
   @DisplayName("Test Item constructor sets fields correctly")
   void testConstructorSetsFields() {
     Date date = new Date();
-    Unit unit = new Unit("liters");
+    Unit unit = new Unit("liters", "liter");
     Item item = new Item("Milk", 2.5, unit, date);
 
     assertEquals("Milk", item.getName());
     assertEquals(2.5, item.getAmount());
-    assertEquals("liters", item.getUnit().getName());
+    assertEquals("liters", item.getUnit().getEnglishName());
+    assertEquals("liter", item.getUnit().getNorwegianName());
     assertEquals(date, item.getExpirationDate());
   }
 
@@ -50,9 +50,10 @@ public class ItemTest {
   @DisplayName("Test setUnit and getUnit")
   void testUnitField() {
     Item item = new Item();
-    Unit unit = new Unit("kg");
+    Unit unit = new Unit("kg", "kg");
     item.setUnit(unit);
-    assertEquals("kg", item.getUnit().getName());
+    assertEquals("kg", item.getUnit().getEnglishName());
+    assertEquals("kg", item.getUnit().getNorwegianName());
   }
 
   @Test
@@ -70,7 +71,8 @@ public class ItemTest {
     Item item = new Item();
     Category category = new Category();
     category.setId(1);
-    category.setName("Dairy");
+    category.setEnglishName("Dairy");
+    category.setNorwegianName("Melk");
     item.setCategory(category);
     assertEquals(category, item.getCategory());
   }

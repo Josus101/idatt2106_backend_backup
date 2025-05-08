@@ -19,8 +19,11 @@ import lombok.Setter;
 @Setter
 @Schema(description = "Request object for creating a new category")
 public class CategoryCreateRequest {
-  @Schema(description = "Name of the category", example = "Theft")
-  private String name;
+  @Schema(description = "English of the category", example = "Theft")
+  private String englishName;
+
+  @Schema(description = "Norwegian name of the category", example = "Tyveri")
+  private String norwegianName;
 
   @Schema(description = "kcalPerUnit of the category", example = "100")
   private Integer kcalPerUnit;

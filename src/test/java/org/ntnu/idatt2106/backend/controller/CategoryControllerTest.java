@@ -25,7 +25,6 @@ import static org.mockito.Mockito.when;
  * Unit tests for the CategoryController class.
  */
 class CategoryControllerTest {
-
   @InjectMocks
   private CategoryController categoryController;
 
@@ -40,7 +39,8 @@ class CategoryControllerTest {
     MockMvcBuilders.standaloneSetup(categoryController).build();
     categoryGetResponse = new CategoryGetResponse(
             1,
-            "Test Category"
+            "Test Category",
+        "Test kategori"
     );
   }
 
@@ -92,7 +92,7 @@ class CategoryControllerTest {
   @Test
   @DisplayName("addCategory returns CREATED on valid input")
   void addCategorySuccess() {
-    CategoryCreateRequest request = new CategoryCreateRequest("New Category", 100, true);
+    CategoryCreateRequest request = new CategoryCreateRequest("New Category", "Ny kategoriiiiii", 100, true);
     String token = "Bearer valid-token";
 
     ResponseEntity<?> response = categoryController.addCategory(request, token);
@@ -104,7 +104,7 @@ class CategoryControllerTest {
   @Test
   @DisplayName("addCategory returns BAD_REQUEST on invalid input")
   void addCategoryBadRequest() {
-    CategoryCreateRequest request = new CategoryCreateRequest("", -10, true);
+    CategoryCreateRequest request = new CategoryCreateRequest("", "", -10, true);
     String token = "Bearer invalid-token";
 
     doThrow(new IllegalArgumentException("Invalid category data")).when(categoryService).createCategory(request, token);
@@ -118,7 +118,7 @@ class CategoryControllerTest {
   @Test
   @DisplayName("addCategory returns INTERNAL_SERVER_ERROR on exception")
   void addCategoryServerError() {
-    CategoryCreateRequest request = new CategoryCreateRequest("New Category", 100, true);
+    CategoryCreateRequest request = new CategoryCreateRequest("New Category", "Ny kategoriiiiii", 100, true);
     String token = "Bearer valid-token";
 
     doThrow(new RuntimeException("Unexpected error")).when(categoryService).createCategory(request, token);
@@ -132,7 +132,7 @@ class CategoryControllerTest {
   @Test
   @DisplayName("updateCategory returns OK on success")
   void updateCategorySuccess() {
-    CategoryCreateRequest request = new CategoryCreateRequest("Updated Category", 150, false);
+    CategoryCreateRequest request = new CategoryCreateRequest("Updated Category", "Oppdatert kategoriiiiii", 150, false);
     String token = "Bearer valid-token";
 
     ResponseEntity<?> response = categoryController.updateCategory(1, request, token);
@@ -144,7 +144,7 @@ class CategoryControllerTest {
   @Test
   @DisplayName("updateCategory returns NOT_FOUND when category is missing")
   void updateCategoryNotFound() {
-    CategoryCreateRequest request = new CategoryCreateRequest("Updated Category", 150, false);
+    CategoryCreateRequest request = new CategoryCreateRequest("Updated Category", "Oppdatert kategoriiiiii", 150, false);
     String token = "Bearer valid-token";
 
     doThrow(new EntityNotFoundException("Category not found")).when(categoryService).updateCategory(1, request, token);
@@ -158,7 +158,7 @@ class CategoryControllerTest {
   @Test
   @DisplayName("updateCategory returns BAD_REQUEST on invalid input")
   void updateCategoryBadRequest() {
-    CategoryCreateRequest request = new CategoryCreateRequest(null, 0, true);
+    CategoryCreateRequest request = new CategoryCreateRequest(null, null, 0, true);
     String token = "Bearer invalid-token";
 
     doThrow(new IllegalArgumentException("Invalid data")).when(categoryService).updateCategory(1, request, token);
