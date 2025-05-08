@@ -23,7 +23,6 @@ import static org.mockito.Mockito.when;
  * Unit tests for the CategoryController class.
  */
 class CategoryControllerTest {
-
   @InjectMocks
   private CategoryController categoryController;
 
@@ -38,7 +37,8 @@ class CategoryControllerTest {
     MockMvcBuilders.standaloneSetup(categoryController).build();
     categoryGetResponse = new CategoryGetResponse(
             1,
-            "Test Category"
+            "Test Category",
+        "Test kategori"
     );
   }
 
@@ -86,5 +86,4 @@ class CategoryControllerTest {
     assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
     assertEquals("Error: Category not found", response.getBody());
   }
-
 }

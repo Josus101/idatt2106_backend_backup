@@ -110,8 +110,8 @@ class PreparednessServiceTest {
         // Utgått vann (skal ignoreres)
         Item expiredWater = new Item();
         expiredWater.setAmount(10);
-        expiredWater.setUnit(new Unit("L"));
-        expiredWater.setCategory(new Category(1, "Water", null, false));
+        expiredWater.setUnit(new Unit("L", "L"));
+        expiredWater.setCategory(new Category(1, "Water", "Vann", null, false));
         cal.setTime(new Date());
         cal.add(Calendar.DAY_OF_YEAR, -1);
         expiredWater.setExpirationDate(cal.getTime());
@@ -119,8 +119,8 @@ class PreparednessServiceTest {
         // Mat uten kcalPerUnit (skal ikke regnes som mat)
         Item invalidFood = new Item();
         invalidFood.setAmount(5);
-        invalidFood.setUnit(new Unit("Stk"));
-        invalidFood.setCategory(new Category(2, "Snacks", null, false));
+        invalidFood.setUnit(new Unit("PCS", "Stk"));
+        invalidFood.setCategory(new Category(2, "Snacks", "Snacks", null, false));
         cal.setTime(new Date());
         cal.add(Calendar.DAY_OF_YEAR, 10);
         invalidFood.setExpirationDate(cal.getTime());
@@ -128,15 +128,15 @@ class PreparednessServiceTest {
         // Gyldig vann
         Item validWater = new Item();
         validWater.setAmount(6); // 6L
-        validWater.setUnit(new Unit("L"));
-        validWater.setCategory(new Category(3, "Vann", null, false));
+        validWater.setUnit(new Unit("L", "L"));
+        validWater.setCategory(new Category(3, "Water", "Vann", null, false));
         validWater.setExpirationDate(cal.getTime());
 
         // Gyldig mat
         Item validFood = new Item();
         validFood.setAmount(4); // 4 * 500 = 2000 kcal = 1 dag
-        validFood.setUnit(new Unit("Stk"));
-        validFood.setCategory(new Category(4, "Mat", 500, false));
+        validFood.setUnit(new Unit("PCS", "Stk"));
+        validFood.setCategory(new Category(4, "Food", "Mat", 500, false));
         validFood.setExpirationDate(cal.getTime());
 
         household.setInventory(List.of(expiredWater, invalidFood, validWater, validFood));

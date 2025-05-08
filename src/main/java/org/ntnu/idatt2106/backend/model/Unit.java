@@ -1,7 +1,11 @@
 package org.ntnu.idatt2106.backend.model;
 
-import jakarta.persistence.*;
-
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -22,7 +26,10 @@ public class Unit {
     private int id;
 
     @Column(nullable = false)
-    private String name;
+    private String englishName;
+
+    @Column(nullable = false)
+    private String norwegianName;
 
     /**
      * Blank constructor for the Unit model
@@ -31,9 +38,11 @@ public class Unit {
 
     /**
      * Constructor for the unit model
-     * @param name of the unit
+     * @param englishName of the unit
+     * @param norwegianName of the unit
      */
-    public Unit(String name) {
-        this.name = name;
+    public Unit(String englishName, String norwegianName) {
+        this.englishName = englishName;
+        this.norwegianName = norwegianName;
     }
 }

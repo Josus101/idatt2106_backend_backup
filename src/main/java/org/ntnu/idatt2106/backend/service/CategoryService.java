@@ -1,13 +1,11 @@
 package org.ntnu.idatt2106.backend.service;
 
-import org.ntnu.idatt2106.backend.dto.category.CategoryGetResponse;
-import org.ntnu.idatt2106.backend.repo.CategoryRepo;
-import org.ntnu.idatt2106.backend.repo.UnitRepo;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import java.util.List;
 import java.util.NoSuchElementException;
+import org.ntnu.idatt2106.backend.dto.category.CategoryGetResponse;
+import org.ntnu.idatt2106.backend.repo.CategoryRepo;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 /**
  * Service class for handling category-related operations.
@@ -31,7 +29,8 @@ public class CategoryService {
   */
   public CategoryGetResponse getCategoryById(int id) {
     return categoryRepo.findById(id)
-      .map(category -> new CategoryGetResponse(category.getId(), category.getName()))
+        .map(category -> new CategoryGetResponse(category.getId(), category.getEnglishName(),
+            category.getNorwegianName()))
       .orElseThrow(() -> new NoSuchElementException("Category not found"));
   }
 
@@ -43,7 +42,7 @@ public class CategoryService {
   public List<CategoryGetResponse> getAllCategories() {
     return categoryRepo.findAll()
             .stream()
-            .map(category -> new CategoryGetResponse(category.getId(), category.getName()))
+            .map(category -> new CategoryGetResponse(category.getId(), category.getEnglishName(), category.getNorwegianName()))
             .toList();
   }
 

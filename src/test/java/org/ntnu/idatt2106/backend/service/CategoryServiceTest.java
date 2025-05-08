@@ -17,7 +17,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.when;
 
 public class CategoryServiceTest {
-
   @InjectMocks
   private CategoryService categoryService;
 
@@ -32,7 +31,8 @@ public class CategoryServiceTest {
 
     testCategory = new Category();
     testCategory.setId(1);
-    testCategory.setName("Test Category");
+    testCategory.setEnglishName("Test Category");
+    testCategory.setNorwegianName("Test Kategori");
   }
 
   @Test
@@ -44,7 +44,8 @@ public class CategoryServiceTest {
 
     assertNotNull(result);
     assertEquals(testCategory.getId(), result.getId());
-    assertEquals(testCategory.getName(), result.getName());
+    assertEquals(testCategory.getEnglishName(), result.getEnglishName());
+    assertEquals(testCategory.getNorwegianName(), result.getNorwegianName());
   }
 
   @Test
@@ -69,7 +70,8 @@ public class CategoryServiceTest {
     assertNotNull(result);
     assertEquals(1, result.size());
     assertEquals(testCategory.getId(), result.get(0).getId());
-    assertEquals(testCategory.getName(), result.get(0).getName());
+    assertEquals(testCategory.getEnglishName(), result.get(0).getEnglishName());
+    assertEquals(testCategory.getNorwegianName(), result.get(0).getNorwegianName());
   }
 
   @Test
