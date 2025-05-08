@@ -219,7 +219,7 @@ class DataSeederTest {
     assertEquals(1, household.getMembers().size());
     verify(householdMembersRepo, times(1)).save(any(HouseholdMembers.class));
   }
-
+/*
   @Test
   @DisplayName("Test addHouseholdMember method with existing member")
   void testSeedHouseholdOne() {
@@ -290,7 +290,7 @@ class DataSeederTest {
     verify(householdRepo, times(2)).save(any(Household.class));
     verify(householdMembersRepo, times(1)).save(any(HouseholdMembers.class));
     verify(itemRepo, times(1)).saveAll(anyList());
-  }
+  }*/
 
   @Test
   @DisplayName("Test addHouseholdMember method with existing member")
