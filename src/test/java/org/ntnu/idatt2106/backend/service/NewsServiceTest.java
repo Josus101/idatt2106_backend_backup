@@ -57,7 +57,7 @@ public class NewsServiceTest {
             12.34,
             56.78,
             "Test District",
-            new Date());
+            new Date(1746442184323L));
 
     testNewsGetResponse = new NewsGetResponse(
             testNews.getId(),
@@ -169,9 +169,9 @@ public class NewsServiceTest {
   @DisplayName("groupNewsByCaseIdAndSort returns list of lists of NewsGetResponse on success")
   void groupNewsByCaseIdAndSort_Success() {
     List<NewsGetResponse> newsList = List.of(
-            new NewsGetResponse(1, "CaseId1", "Title1", "Content1", 10.0, 20.0, "Oslo Politidistrikt", new Date().toString()),
-            new NewsGetResponse(2, "CaseId1", "Title2", "Content2", 10.0, 20.0, "Oslo Politidistrikt", new Date().toString()),
-            new NewsGetResponse(3, "CaseId2", "Title3", "Content3", 10.0, 20.0, "Oslo Politidistrikt", new Date().toString())
+            new NewsGetResponse(1, "CaseId1", "Title1", "Content1", 10.0, 20.0, "Oslo Politidistrikt", new Date(1746442184323L).toString()),
+            new NewsGetResponse(2, "CaseId1", "Title2", "Content2", 10.0, 20.0, "Oslo Politidistrikt", new Date(1746442184323L).toString()),
+            new NewsGetResponse(3, "CaseId2", "Title3", "Content3", 10.0, 20.0, "Oslo Politidistrikt", new Date(1746442184323L).toString())
     );
 
     List<List<NewsGetResponse>> groupedNews = newsService.groupNewsByCaseIdAndSort(newsList);
@@ -266,7 +266,7 @@ public class NewsServiceTest {
   @Test
   @DisplayName("retrieveNewsFromAPIFeed saves new entries when not already in DB")
   void testRetrieveNewsAddsNewEntry() throws Exception {
-    Date date = new Date();
+    Date date = new Date(1746442184323L);
     SyndEntry entry = mockSyndEntry("New Title", "Content", date, List.of("Oslo Politidistrikt"));
     SyndFeed feed = mock(SyndFeed.class);
     when(feed.getEntries()).thenReturn(List.of(entry));
@@ -282,7 +282,7 @@ public class NewsServiceTest {
   @Test
   @DisplayName("retrieveNewsFromAPIFeed does not save duplicate news")
   void testRetrieveNewsSkipsDuplicate() throws Exception {
-    Date date = new Date();
+    Date date = new Date(1746442184323L);
     SyndEntry entry = mockSyndEntry("Dup Title", "Dup content", date, List.of("Oslo Politidistrikt"));
     SyndFeed feed = mock(SyndFeed.class);
     when(feed.getEntries()).thenReturn(List.of(entry));
@@ -295,7 +295,7 @@ public class NewsServiceTest {
   @Test
   @DisplayName("retrieveNewsFromAPIFeed uses fallback when category is missing")
   void testRetrieveNewsFallbackDistrict() throws Exception {
-    Date date = new Date();
+    Date date = new Date(1746442184323L);
     SyndEntry entry = mockSyndEntry("Fallback Title", "No category", date, List.of());
     SyndFeed feed = mock(SyndFeed.class);
     when(feed.getEntries()).thenReturn(List.of(entry));
