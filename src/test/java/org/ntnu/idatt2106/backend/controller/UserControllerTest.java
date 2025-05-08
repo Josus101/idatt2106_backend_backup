@@ -495,9 +495,9 @@ class UserControllerTest {
     User user = new User();
 
     when(jwtToken.getUserByToken("valid.jwt.token")).thenReturn(user);
-    when(householdService.getUserPositions(user)).thenReturn(List.of(new UserPositionResponse(59.91, 10.75, "2023-10-01T12:00:00Z", 1, "John Doe")));
+    when(householdService.getUserPosition(user)).thenReturn(new UserPositionResponse(59.91, 10.75, "2023-10-01T12:00:00Z", 1, "John Doe"));
 
-    ResponseEntity<?> response = userController.getPositionsFromHousehold(token);
+    ResponseEntity<?> response = userController.getUserPosition(token);
 
     assertEquals(HttpStatus.OK, response.getStatusCode());
     assertNotNull(response.getBody());
@@ -510,7 +510,7 @@ class UserControllerTest {
 
     when(jwtToken.getUserByToken("invalid.jwt.token")).thenReturn(null);
 
-    ResponseEntity<?> response = userController.getPositionsFromHousehold(token);
+    ResponseEntity<?> response = userController.getUserPosition(token);
 
     assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
     assertEquals("Error: Unauthorized - Invalid token", response.getBody());
@@ -523,7 +523,7 @@ class UserControllerTest {
 
     when(jwtToken.getUserByToken("bad.jwt.token")).thenThrow(new IllegalArgumentException());
 
-    ResponseEntity<?> response = userController.getPositionsFromHousehold(token);
+    ResponseEntity<?> response = userController.getUserPosition(token);
 
     assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     assertEquals("Error: Invalid household ID", response.getBody());
@@ -536,7 +536,7 @@ class UserControllerTest {
 
     when(jwtToken.getUserByToken("error.jwt.token")).thenThrow(new RuntimeException());
 
-    ResponseEntity<?> response = userController.getPositionsFromHousehold(token);
+    ResponseEntity<?> response = userController.getUserPosition(token);
 
     assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
     assertEquals("Error: An unexpected error occurred during location retrieval", response.getBody());
