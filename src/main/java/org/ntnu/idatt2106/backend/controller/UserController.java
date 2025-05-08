@@ -68,6 +68,9 @@ public class UserController {
   @Autowired
   UserSettingsService userSettingsService;
 
+  @Autowired
+  private AdminService adminService;
+
   /**
    * Endpoint for registering a new user.
    * @param userRegister the user registration request containing email and password
@@ -738,14 +741,13 @@ public class UserController {
           @RequestHeader("Authorization") String authorizationHeader
   ){
     try {
-      if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
-        String token = authorizationHeader.substring(7);
-        Admin admin = jwtToken.getAdminUserByToken(token);
-        if (admin != null) {
-          return ResponseEntity.ok(userRepo.findAll());
-        }
-      }
-      return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Error: Unauthorized");
+      return ResponseEntity.ok(adminService.getAllUsers(authorizationHeader));
+    } catch (IllegalArgumentException e) {
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: Invalid token");
+    } catch (IllegalStateException e) {
+      return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Error: Unauthorized - Invalid token");
+    } catch (UserNotFoundException e) {
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: User not found");
     } catch (Exception e) {
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: An error occurred while retrieving all users");
     }
@@ -800,20 +802,14 @@ public class UserController {
           @RequestHeader("Authorization") String authorizationHeader
   ){
     try {
-      if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
-        String token = authorizationHeader.substring(7);
-        Admin admin = jwtToken.getAdminUserByToken(token);
-        if (admin != null) {
-          User user = userRepo.findById(userId).orElse(null);
-          if (user != null) {
-            userRepo.delete(user);
-            return ResponseEntity.ok("User deleted successfully");
-          } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: User not found");
-          }
-        }
-      }
-      return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Error: Unauthorized");
+      adminService.deleteUser(String.valueOf(userId), authorizationHeader);
+      return ResponseEntity.ok("User deleted successfully");
+    } catch (UserNotFoundException e) {
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: User not found");
+    } catch (IllegalArgumentException e) {
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: Invalid user ID");
+    } catch (IllegalStateException e) {
+      return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Error: Unauthorized - Invalid token");
     } catch (Exception e) {
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: An error occurred while deleting the user");
     }

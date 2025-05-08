@@ -4,11 +4,16 @@ import java.util.List;
 import java.util.Optional;
 
 import org.ntnu.idatt2106.backend.dto.admin.AdminGetResponse;
+import org.ntnu.idatt2106.backend.dto.user.UserAdminResponse;
+import org.ntnu.idatt2106.backend.dto.user.UserMinimalGetResponse;
 import org.ntnu.idatt2106.backend.exceptions.UnauthorizedException;
 import org.ntnu.idatt2106.backend.exceptions.UserNotFoundException;
 import org.ntnu.idatt2106.backend.exceptions.UserNotVerifiedException;
 import org.ntnu.idatt2106.backend.model.Admin;
+import org.ntnu.idatt2106.backend.model.User;
 import org.ntnu.idatt2106.backend.repo.AdminRepo;
+import org.ntnu.idatt2106.backend.repo.UserRepo;
+import org.ntnu.idatt2106.backend.repo.UserSettingsRepository;
 import org.ntnu.idatt2106.backend.repo.VerificationTokenRepo;
 import org.ntnu.idatt2106.backend.security.BCryptHasher;
 import org.ntnu.idatt2106.backend.security.JWT_token;
@@ -28,6 +33,12 @@ public class AdminService {
 
   @Autowired
   private AdminRepo adminRepo;
+
+  @Autowired
+  private UserRepo userRepo;
+
+  @Autowired
+  private UserSettingsRepository userSettingsRepo;
 
   @Autowired
   private VerificationTokenRepo verificationTokenRepo;
@@ -388,6 +399,62 @@ public class AdminService {
       throw new IllegalArgumentException("2FA is not enabled for this admin");
     } catch (Exception e) {
       throw new MailSendingFailedException("Failed to send 2FA token", e.getCause());
+    }
+  }
+
+  /**
+   * Retrieves all users.
+   *
+   * @param authorizationHeader The authorization header containing the bearer token.
+   * @return A list of all users.
+   */
+  public List<UserAdminResponse> getAllUsers(String authorizationHeader) {
+    String token = getTokenFromAuthorizationHeader(authorizationHeader);
+    try {
+      verifyAdminIsSuperUser(token);
+      List<UserAdminResponse> users = userRepo.findAll().stream().map(user -> new UserAdminResponse(
+          user.getId(),
+          user.getFirstname() + user.getLastname(),
+          user.getEmail(),
+          user.getPhoneNumber(),
+          user.getHouseholdMembershipsString()
+      )).toList();
+      if (users.isEmpty()) {
+        throw new UserNotFoundException("No users found");
+      }
+      return users;
+    } catch (UnauthorizedException e) {
+      throw new UnauthorizedException("You are not authorized to get all users");
+    }
+  }
+
+  /**
+   * Deletes a user by id
+   *
+   * @param id The id of the user to delete
+   * @param authorizationHeader The authorization header containing the bearer token.
+   * @throws IllegalArgumentException if the user is not found.
+   * @throws UnauthorizedException if the admin is not authorized to delete a user.
+   */
+  public void deleteUser(String id, String authorizationHeader) {
+    String token = getTokenFromAuthorizationHeader(authorizationHeader);
+    try {
+      verifyAdminIsSuperUser(token);
+      Optional<User> user = userRepo.findById(Integer.parseInt(id));
+      if (user.isEmpty()) {
+        throw new IllegalArgumentException("No user found with given id");
+      }
+      if (user.get().getHouseholdMemberships() != null) {
+        user.get().getHouseholdMemberships().forEach(hm -> {
+          hm.getHousehold().removeMember(user.get());
+        });
+      }
+      if (user.get().getUserSettings() != null) {
+        userSettingsRepo.delete(user.get().getUserSettings());
+      }
+      userRepo.delete(user.get());
+    } catch (UnauthorizedException e) {
+      throw new UnauthorizedException("You are not authorized to delete a user");
     }
   }
 }
