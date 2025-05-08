@@ -3,10 +3,10 @@ package org.ntnu.idatt2106.backend.service;
 import org.junit.jupiter.api.DisplayName;
 import org.ntnu.idatt2106.backend.dto.user.UserStoreSettingsRequest;
 import org.ntnu.idatt2106.backend.model.*;
+import org.ntnu.idatt2106.backend.model.map.MapZoneType;
 import org.ntnu.idatt2106.backend.repo.*;
+import org.ntnu.idatt2106.backend.repo.map.MapZoneTypeRepo;
 import org.ntnu.idatt2106.backend.security.BCryptHasher;
-import org.ntnu.idatt2106.backend.service.TestUtils;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -32,16 +32,10 @@ class DataSeederTest {
   private CategoryRepo categoryRepo;
 
   @Mock
-  private EmergencyServiceRepo emergencyServiceRepo;
-
-  @Mock
   private HouseholdRepo householdRepo;
 
   @Mock
   private ItemRepo itemRepo;
-
-  @Mock
-  private TypeRepo typeRepo;
 
   @Mock
   private UnitRepo unitRepo;
@@ -314,28 +308,6 @@ class DataSeederTest {
     assertEquals(now, cal.getTime());
   }
 
-  @Test
-  @DisplayName("Test addHouseholdMember method with existing member")
-  void testSeedEmergencyServicesWithTypes_WhenEmpty() {
-    when(emergencyServiceRepo.count()).thenReturn(0L);
-    when(typeRepo.findByName(anyString())).thenReturn(Optional.empty());
-    when(typeRepo.save(any(Type.class))).thenAnswer(invocation -> invocation.getArgument(0));
-
-    dataSeeder.seedEmergencyServicesWithTypes();
-
-    verify(typeRepo, atLeastOnce()).save(any(Type.class));
-    verify(emergencyServiceRepo, times(1)).saveAll(anyList());
-  }
-
-  @Test
-  @DisplayName("Test addHouseholdMember method with existing member")
-  void testSeedEmergencyServicesWithTypes_WhenNotEmpty() {
-    when(emergencyServiceRepo.count()).thenReturn(1L);
-
-    dataSeeder.seedEmergencyServicesWithTypes();
-
-    verify(emergencyServiceRepo, never()).saveAll(anyList());
-  }
 
   @Test
   @DisplayName("Test addHouseholdMember method with member is null")

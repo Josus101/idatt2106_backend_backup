@@ -1,4 +1,4 @@
-package org.ntnu.idatt2106.backend.model;
+package org.ntnu.idatt2106.backend.model.map;
 
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -9,14 +9,15 @@ import java.util.List;
 
 /**
  * The model that represents a type of emergency service
+ *
  * @Author Jonas Reiher
  * @since 0.1
  */
 @Entity
-@Table(name = "type")
+@Table(name = "map_zone_type")
 @Getter
 @Setter
-public class Type {
+public class MapZoneType {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private int id;
@@ -24,40 +25,40 @@ public class Type {
   @Column(nullable = false, unique = true)
   private String name;
 
-  @OneToMany(mappedBy = "type")
-  private List<EmergencyService> services;
+  @OneToMany(mappedBy = "mapZoneType")
+  private List<MapEntity> entities;
 
   /**
-   * Blank constructor for the Type model
+   * Blank constructor for the MapZoneType model
    */
-  public Type() {}
+  public MapZoneType() {}
 
   /**
-   * Constructor for the Type model
+   * Constructor for the MapZoneType model
    * @param id of the type
    * @param name of the type
-   * @param services the services that are of this type
+   * @param entities the services that are of this type
    */
-  public Type(int id, String name, List<EmergencyService> services) {
+  public MapZoneType(int id, String name, List<MapEntity> entities) {
     this.id = id;
     this.name = name;
-    this.services = services;
+    this.entities = entities;
   }
 
   /**
-   * Constructor for the Type model
+   * Constructor for the MapZoneType model
    * @param id of the type
    * @param name of the type
    */
-  public Type(int id, String name) {
+  public MapZoneType(int id, String name) {
     this(id, name, null);
   }
 
   /**
-   * Constructor for the Type model
+   * Constructor for the MapZoneType model
    * @param name of the type
    */
-  public Type(String name) {
+  public MapZoneType(String name) {
     this(0, name, null);
   }
 

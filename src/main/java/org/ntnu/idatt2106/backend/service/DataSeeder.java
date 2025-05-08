@@ -3,11 +3,12 @@ package org.ntnu.idatt2106.backend.service;
 import jakarta.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import org.ntnu.idatt2106.backend.dto.user.UserStoreSettingsRequest;
 import org.ntnu.idatt2106.backend.model.*;
+import org.ntnu.idatt2106.backend.model.map.MapZoneType;
 import org.ntnu.idatt2106.backend.repo.*;
+import org.ntnu.idatt2106.backend.repo.map.MapZoneTypeRepo;
 import org.ntnu.idatt2106.backend.security.BCryptHasher;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
@@ -27,10 +28,8 @@ public class DataSeeder implements CommandLineRunner {
   private final AdminRepo adminRepo;
   private final UserRepo userRepo;
   private final CategoryRepo categoryRepo;
-  private final EmergencyServiceRepo emergencyServiceRepo;
   private final HouseholdRepo householdRepo;
   private final ItemRepo itemRepo;
-  private final TypeRepo typeRepo;
   private final UnitRepo unitRepo;
   private final HouseholdMembersRepo householdMembersRepo;
   private final BCryptHasher hasher;
@@ -45,26 +44,21 @@ public class DataSeeder implements CommandLineRunner {
    * @param hasher Password hasher
    * @param loginService Login service
    * @param categoryRepo Category repository
-   * @param emergencyServiceRepo Emergency service repository
    * @param householdRepo Household repository
    * @param itemRepo Item repository
-   * @param typeRepo Type repository
    * @param unitRepo Unit repository
    * @param householdMembersRepo Household members repository
    * @param userSettingsService User settings service
    */
   public DataSeeder(AdminRepo adminRepo, UserRepo userRepo,
-      BCryptHasher hasher, LoginService loginService, CategoryRepo categoryRepo,
-      EmergencyServiceRepo emergencyServiceRepo, HouseholdRepo householdRepo,
-      ItemRepo itemRepo, TypeRepo typeRepo, UnitRepo unitRepo,
-      HouseholdMembersRepo householdMembersRepo, UserSettingsService userSettingsService) {
+                    BCryptHasher hasher, LoginService loginService, CategoryRepo categoryRepo,
+                    HouseholdRepo householdRepo, ItemRepo itemRepo, UnitRepo unitRepo,
+                    HouseholdMembersRepo householdMembersRepo, UserSettingsService userSettingsService) {
     this.userRepo = userRepo;
     this.adminRepo = adminRepo;
     this.categoryRepo = categoryRepo;
-    this.emergencyServiceRepo = emergencyServiceRepo;
     this.householdRepo = householdRepo;
     this.itemRepo = itemRepo;
-    this.typeRepo = typeRepo;
     this.unitRepo = unitRepo;
     this.householdMembersRepo = householdMembersRepo;
     this.hasher = hasher;
@@ -447,28 +441,6 @@ public class DataSeeder implements CommandLineRunner {
    * This method is called during the application startup.
    */
   public void seedEmergencyServicesWithTypes() {
-    Type shelter = typeRepo.findByName("Shelter").orElseGet(() -> typeRepo.save(new Type("Shelter")));
-    Type hospital = typeRepo.findByName("Hospital").orElseGet(() -> typeRepo.save(new Type("Hospital")));
-    Type fireStation = typeRepo.findByName("Fire Station").orElseGet(() -> typeRepo.save(new Type("Fire Station")));
-    Type police = typeRepo.findByName("Police Station").orElseGet(() -> typeRepo.save(new Type("Police Station")));
-    Type heartStarter = typeRepo.findByName("Heart Starter").orElseGet(() -> typeRepo.save(new Type("Heart Starter")));
-    Type foodDistribution = typeRepo.findByName("Food Distribution").orElseGet(() -> typeRepo.save(new Type("Food Distribution")));
-    Type waterStation = typeRepo.findByName("Water Station").orElseGet(() -> typeRepo.save(new Type("Water Station")));
 
-    if (emergencyServiceRepo.count() == 0) {
-      List<EmergencyService> services = List.of(
-          new EmergencyService("Bomb Shelter - Oslo Center", "Capacity: 150",59.9139, 10.7522, null,shelter),
-          new EmergencyService("Community Hospital - Bergen", "Hospital",60.3913, 5.3221, null, hospital),
-          new EmergencyService("Central Fire Station - Stavanger", "Police Station",58.9690, 5.7331, null, fireStation),
-          new EmergencyService("City Police HQ - Trondheim", "Police Station", 63.4305, 10.3951, null, police),
-          new EmergencyService("Temporary Shelter - Tromsø", "Capacity: 50", 69.6496, 18.9560, null, shelter),
-          new EmergencyService("Emergency Food Distribution - Drammen", "Food Distribution", 59.7439, 10.2045, null, foodDistribution),
-          new EmergencyService("Water Station - Kristiansand", "Water station", 58.1467, 7.9956, null, waterStation),
-          new EmergencyService("Water Tanker - Bodø Harbor", "Water tanker", 67.2804, 14.4049, null, waterStation),
-          new EmergencyService("Defibrillator - Oslo Train Station", "Defibrillator", 59.9115, 10.7553, null, heartStarter),
-          new EmergencyService("Defibrillator - Bergen Airport", "Defibrillator", 60.2934, 5.2181, null, heartStarter)
-      );
-      emergencyServiceRepo.saveAll(services);
-    }
   }
 }

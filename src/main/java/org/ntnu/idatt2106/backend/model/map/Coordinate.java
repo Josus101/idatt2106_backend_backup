@@ -28,11 +28,7 @@ public class Coordinate {
   private double longitude;
 
   @OneToOne(mappedBy = "coordinatePoint", cascade = CascadeType.ALL, orphanRemoval = true)
-  private MapZone mapZonePoint;
-
-  @ManyToOne
-  @JoinColumn(name = "coordinate_ring_id")
-  private CoordinateRing ring;
+  private MapEntity mapEntity;
 
   /**
    * Blank constructor for the Coordinate model

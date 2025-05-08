@@ -1,14 +1,15 @@
 package org.ntnu.idatt2106.backend.service;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
-import org.ntnu.idatt2106.backend.model.EmergencyService;
-import org.ntnu.idatt2106.backend.model.Type;
-import org.ntnu.idatt2106.backend.repo.EmergencyServiceRepo;
-import org.ntnu.idatt2106.backend.repo.TypeRepo;
+import org.ntnu.idatt2106.backend.model.map.MapEntity;
+import org.ntnu.idatt2106.backend.model.map.MapMarkerType;
+import org.ntnu.idatt2106.backend.repo.map.MapEntityRepo;
+import org.ntnu.idatt2106.backend.repo.map.MapMarkerTypeRepo;
 
 import java.io.IOException;
 import java.util.List;
@@ -18,14 +19,15 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class BunkerImportServiceTest {
+
     @InjectMocks
     private BunkerImportService bunkerImportService;
 
     @Mock
-    private EmergencyServiceRepo emergencyServiceRepo;
+    private MapEntityRepo mapEntityRepo;
 
     @Mock
-    private TypeRepo typeRepo;
+    private MapMarkerTypeRepo mapMarkerTypeRepo;
 
     @Mock
     private ObjectMapper objectMapper;
@@ -71,12 +73,12 @@ class BunkerImportServiceTest {
         when(xCoordNode.asDouble()).thenReturn(500000.0);
         when(yCoordNode.asDouble()).thenReturn(7000000.0);
 
-        // Mock typeRepo
-        Type bunkerType = new Type("Bunker");
-        when(typeRepo.findByName("Bunker")).thenReturn(Optional.of(bunkerType));
+        // Mock mapMarkerTypeRepo
+        MapMarkerType bunkerMapMarkerType = new MapMarkerType("Bunker");
+        when(mapMarkerTypeRepo.findByName("Bunker")).thenReturn(Optional.of(bunkerMapMarkerType));
 
         // Mock repo to return empty so service will be saved
-        when(emergencyServiceRepo.findByLocalID("localID123")).thenReturn(Optional.empty());
+        when(mapEntityRepo.findByLocalID("localID123")).thenReturn(Optional.empty());
 
         // Spy BunkerImportService for mocking file reading
         BunkerImportService spyService = Mockito.spy(bunkerImportService);
@@ -86,26 +88,25 @@ class BunkerImportServiceTest {
         spyService.importBunkerDataFromJson("dummy-file.json");
 
         // Assert
-        verify(emergencyServiceRepo, times(1)).save(any(EmergencyService.class));
+        verify(mapEntityRepo, times(1)).save(any(MapEntity.class));
     }
 
-
     @Test
-    @DisplayName("Should create new type if Bunker type does not exist")
-    void testCreatesNewTypeIfNotExists() throws Exception {
+    @DisplayName("Should create new marker type if Bunker type does not exist")
+    void testCreatesNewMarkerTypeIfNotExists() throws Exception {
         JsonNode rootNode = mock(JsonNode.class);
         when(rootNode.get("features")).thenReturn(mock(JsonNode.class));
         when(rootNode.get("features").iterator()).thenReturn(List.<JsonNode>of().iterator());
 
-        when(typeRepo.findByName("Bunker")).thenReturn(Optional.empty());
-        when(typeRepo.save(any(Type.class))).thenReturn(new Type("Bunker"));
+        when(mapMarkerTypeRepo.findByName("Bunker")).thenReturn(Optional.empty());
+        when(mapMarkerTypeRepo.save(any(MapMarkerType.class))).thenReturn(new MapMarkerType("Bunker"));
 
         BunkerImportService spyService = Mockito.spy(bunkerImportService);
         doReturn(rootNode).when(spyService).readJsonFromFile(anyString());
 
         spyService.importBunkerDataFromJson("anyfile.json");
 
-        verify(typeRepo, times(1)).save(any(Type.class));
+        verify(mapMarkerTypeRepo, times(1)).save(any(MapMarkerType.class));
     }
 
     @Test
@@ -123,11 +124,11 @@ class BunkerImportServiceTest {
     @Test
     @DisplayName("Should read JSON file successfully with readJsonFromFile")
     void testReadJsonFromFileSuccess() throws Exception {
-        // Lag ekte ObjectMapper
+        // Use a real ObjectMapper
         ObjectMapper realObjectMapper = new ObjectMapper();
 
-        // Lag en ny BunkerImportService med ekte ObjectMapper
-        BunkerImportService service = new BunkerImportService(emergencyServiceRepo, typeRepo, realObjectMapper);
+        // Create a new BunkerImportService with the real ObjectMapper
+        BunkerImportService service = new BunkerImportService(mapEntityRepo, mapMarkerTypeRepo, realObjectMapper);
 
         String fileName = "testfile.json";
 
@@ -136,6 +137,4 @@ class BunkerImportServiceTest {
         assertNotNull(jsonNode);
         assertTrue(jsonNode.has("features"), "JSON root should have 'features' node");
     }
-
-
 }

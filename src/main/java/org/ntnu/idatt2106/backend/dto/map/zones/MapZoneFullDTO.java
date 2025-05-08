@@ -36,21 +36,21 @@ public class MapZoneFullDTO {
       example = "Bergen, Norway")
   private String address;
 
-  @Schema(description = "Coordinates of the center of the emergency zone",
-      example = "[60.39299, 5.32415]")
-  private CoordinatesDTO coordinates;
+  @Schema(description = "Severity level of the emergency zone. 1-3 with 3 being severe and 1 being less severe",
+      example = "1, 2, 3")
+  private int severityLevel;
 
   @Schema(description = "Type of the emergency zone", example = "Fire, Flood, Power outage, etc.")
   private String type;
 
-  @Schema(description = "Severity level of the emergency zone. 1-3 with 3 being severe and 1 being less severe",
-      example = "1, 2, 3")
-  private int severityLevel;
+  @Schema(description = "Coordinates of the center of the emergency zone",
+      example = "{ \"latitude\": 60.39299, \"longitude\": 5.32415 }")
+  private CoordinatesDTO coordinates;
 
   @Schema(description = "Coordinates of the borders of the emergency zone. The inner lists are the coordinates" +
       " which makes up the rings that then make up the polygon. The outer list is the list of all polygons" +
       " associated with this zone.",
       example = "[[[[60.39299, 5.32415], [60.39299, 5.32415], [60.39299, 5.32415]]," +
           " [[60.39299, 5.32415], [60.39299, 5.32415], [60.39299, 5.32415]]]]")
-  private List<List<List<CoordinatesDTO>>> polygonCoordinates;
+  private String polygonCoordinateList;
 }
