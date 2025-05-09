@@ -575,7 +575,7 @@ public class AdminServiceTest {
     Admin admin = new Admin();
     admin.setTwoFactorEnabled(true);
     admin.setActive(false);
-    when(adminRepo.findByEmail(email)).thenReturn(Optional.of(admin));
+    when(adminRepo.findByUsername(email)).thenReturn(Optional.of(admin));
     UserNotVerifiedException ex = assertThrows(UserNotVerifiedException.class, () -> {
       adminService.send2FAToken(email);
     });
@@ -587,7 +587,7 @@ public class AdminServiceTest {
   @DisplayName("send2FAToken throws IllegalArgumentException if 2FA is not enabled for admin")
   void send2FAToken_ThrowsIllegalArgumentException() throws MessagingException {
     Admin admin = new Admin();
-    when(adminRepo.findByEmail("email")).thenReturn(Optional.of(admin));
+    when(adminRepo.findByUsername("email")).thenReturn(Optional.of(admin));
     doThrow(new IllegalArgumentException("2FA is not enabled for this admin"))
         .when(emailService).send2FA(any(), anyString());
 
@@ -604,7 +604,7 @@ public class AdminServiceTest {
     Admin admin = new Admin();
     admin.setTwoFactorEnabled(true);
     admin.setActive(true);
-    when(adminRepo.findByEmail(email)).thenReturn(Optional.of(admin));
+    when(adminRepo.findByUsername(email)).thenReturn(Optional.of(admin));
 
     doThrow(new RuntimeException("Email service failure")).when(emailService).send2FA(any(), any());
 

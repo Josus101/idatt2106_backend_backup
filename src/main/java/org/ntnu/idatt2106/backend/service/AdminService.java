@@ -383,14 +383,14 @@ public class AdminService {
   /**
    * Sends a 2FA token to the admin user.
    *
-   * @param email The email of the admin user.
+   * @param username The email of the admin user.
    */
-  public void send2FAToken(String email) {
+  public void send2FAToken(String username) {
     try {
-      if (email == null || email.isEmpty()) {
-        throw new IllegalArgumentException("Email is required");
+      if (username == null || username.isEmpty()) {
+        throw new IllegalArgumentException("Username is required");
       }
-      Admin admin = adminRepo.findByEmail(email)
+      Admin admin = adminRepo.findByUsername(username)
           .orElseThrow(() -> new UserNotFoundException("Admin not found"));
       send2FAToken(admin);
     } catch (UserNotFoundException e) {

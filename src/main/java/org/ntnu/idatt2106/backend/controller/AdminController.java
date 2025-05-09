@@ -479,7 +479,7 @@ public class AdminController {
   /**
    * Sends 2fa code to the admin email.
    *
-   * @param email The email of the admin to send the 2fa code to.
+   * @param username The username of the admin to send the 2fa code to.
    * @return a response entity containing the result of the operation
    */
   @PostMapping("/2fa")
@@ -535,9 +535,9 @@ public class AdminController {
           name= "email",
           description = "The email of the admin to send the 2FA code to",
           required = true
-      ) @RequestBody EmailRequest email) {
+      ) @RequestBody AdminLoginRequest username) {
     try {
-      adminService.send2FAToken(email.getEmail());
+      adminService.send2FAToken(username.getUsername());
       return ResponseEntity.ok(true);
     } catch (IllegalArgumentException e) {
       return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: Invalid admin data");
