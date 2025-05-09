@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.ntnu.idatt2106.backend.dto.admin.AdminGetResponse;
+import org.ntnu.idatt2106.backend.dto.admin.AdminLoginResponse;
 import org.ntnu.idatt2106.backend.dto.user.UserAdminResponse;
 import org.ntnu.idatt2106.backend.dto.user.UserMinimalGetResponse;
 import org.ntnu.idatt2106.backend.exceptions.UnauthorizedException;
@@ -143,7 +144,7 @@ public class AdminService {
    * @param password The admin's password.
    * @return A token response object on successful authentication.
    */
-  public String authenticate(String username, String password, String token) {
+  public AdminLoginResponse authenticate(String username, String password, String token) {
     Optional<Admin> admin = adminRepo.findByUsername(username);
     if (admin.isEmpty()) {
       throw new UserNotFoundException("No admin found with given username and password");
@@ -155,7 +156,10 @@ public class AdminService {
       throw new IllegalArgumentException("Incorrect password for given username");
     }
     if (!admin.get().isTwoFactorEnabled()) {
-      return jwt.generateJwtToken(admin.get()).getToken();
+      if (admin.get().isSuperUser()) {
+        return new AdminLoginResponse(jwt.generateJwtToken(admin.get()).getToken(), true);
+      }
+      return new AdminLoginResponse(jwt.generateJwtToken(admin.get()).getToken(), false);
     }
     if (token == null || token.isEmpty()) {
       throw new IllegalArgumentException("2FA token is required");
@@ -169,7 +173,11 @@ public class AdminService {
       throw new IllegalArgumentException("Invalid 2FA token");
     }
 
-    return jwt.generateJwtToken(admin.get()).getToken();
+    if(admin.get().isSuperUser()) {
+      return new AdminLoginResponse(jwt.generateJwtToken(admin.get()).getToken(), true);
+    }
+
+    return new AdminLoginResponse(jwt.generateJwtToken(admin.get()).getToken(), false);
   }
 
   /**
@@ -179,7 +187,7 @@ public class AdminService {
    * @param password The admin's password.
    * @return A token response object on successful authentication.
    */
-  public String authenticate(String username, String password) {
+  public AdminLoginResponse authenticate(String username, String password) {
     return authenticate(username, password, null);
   }
 
