@@ -36,7 +36,7 @@ public class MapEntityService {
    * @return a list of ZoneFullDTO objects representing all emergency zones
    */
   public List<ZoneFullDTO> getAllMapZones() {
-    return mapEntityRepo.findAllByMapEntityTypeName("zone")
+    return mapEntityRepo.findAllByMapEntityType_Name("zone")
         .stream()
         .map(this::mapToMapZoneFullDTO)
         .toList();
@@ -57,7 +57,7 @@ public class MapEntityService {
 
     Set<Long> excludedIds = new HashSet<>(Arrays.asList(zoneIds));
 
-    return mapEntityRepo.findAllByMapEntityTypeName("zone")
+    return mapEntityRepo.findAllByMapEntityType_Name("zone")
         .stream()
         .filter(zone -> !excludedIds.contains(zone.getId()))
         .filter(zone -> {
@@ -146,7 +146,7 @@ public class MapEntityService {
    * @return a list of MarkerFullDTO objects representing all markers
    */
   public List<MarkerFullDTO> getAllMapMarkers() {
-    return mapEntityRepo.findAllByMapEntityTypeName("marker")
+    return mapEntityRepo.findAllByMapEntityType_Name("marker")
         .stream()
         .map(this::mapToMapMarkerFullDTO)
         .toList();
@@ -167,7 +167,7 @@ public class MapEntityService {
 
     Set<Long> excludedIds = new HashSet<>(Arrays.asList(markerIds));
 
-    return mapEntityRepo.findAllByMapEntityTypeName("marker")
+    return mapEntityRepo.findAllByMapEntityType_Name("marker")
         .stream()
         .filter(marker -> !excludedIds.contains(marker.getId()))
         .filter(marker -> {

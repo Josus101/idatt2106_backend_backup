@@ -60,14 +60,27 @@ public class MapController {
               mediaType = "application/json",
               schema = @Schema(example = "Error: No emergency zones found.")
           )
+      ),
+      @ApiResponse(
+          responseCode = "500",
+          description = "Internal server error",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(example = "Error: Internal server error occurred.")
+          )
       )
   })
   public ResponseEntity<?> getEmergencyZones() {
-    List<ZoneFullDTO> emergencyZones = mapEntityService.getAllMapZones();
-    if (emergencyZones.isEmpty()) {
-      return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: No emergency zones found.");
+    try {
+      List<ZoneFullDTO> emergencyZones = mapEntityService.getAllMapZones();
+      if (emergencyZones.isEmpty()) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: No emergency zones found.");
+      }
+      return ResponseEntity.ok(emergencyZones);
+    } catch (Exception e) {
+
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: Internal server error occurred. " + e.getMessage());
     }
-    return ResponseEntity.ok(emergencyZones);
   }
 
   /**
@@ -319,7 +332,7 @@ public class MapController {
       )
   })
   public ResponseEntity<?> getMarkers() {
-    List<ZoneFullDTO> markers = mapEntityService.getAllMapZones();
+    List<MarkerFullDTO> markers = mapEntityService.getAllMapMarkers();
     if (markers.isEmpty()) {
       return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: No markers found.");
     }

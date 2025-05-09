@@ -4,6 +4,7 @@ import org.ntnu.idatt2106.backend.model.map.MapEntity;
 import org.ntnu.idatt2106.backend.model.map.MapEntityType;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -34,9 +35,9 @@ public interface MapEntityRepo extends JpaRepository<MapEntity, Long> {
   /**
    * Finds map entities by its type.
    *
-   * @param mapEntityTypeName the name of the map entity type
-   * @return the map entity with the given type
+   * @param name the name of the map entity type
+   * @return the list of map entities with the given type
    */
-  Optional<MapEntity> findAllByMapEntityTypeName(String mapEntityTypeName);
+  List<MapEntity> findAllByMapEntityType_Name(String name);
 
 }
