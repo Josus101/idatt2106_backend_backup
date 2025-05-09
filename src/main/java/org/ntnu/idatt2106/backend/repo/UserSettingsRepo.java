@@ -8,7 +8,7 @@ import java.util.Optional;
  * Repository interface for accessing user settings data in the database.
  * This interface extends JpaRepository to provide CRUD operations for UserSettings entities.
  */
-public interface UserSettingsRepository extends JpaRepository<UserSettings, Integer> {
+public interface UserSettingsRepo extends JpaRepository<UserSettings, Integer> {
 
     /**
      * Finds a UserSettings entity by its user ID.

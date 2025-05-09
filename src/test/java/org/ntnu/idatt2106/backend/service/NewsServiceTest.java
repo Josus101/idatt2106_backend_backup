@@ -4,6 +4,8 @@ import com.rometools.rome.feed.synd.SyndCategory;
 import com.rometools.rome.feed.synd.SyndContent;
 import com.rometools.rome.feed.synd.SyndEntry;
 import com.rometools.rome.feed.synd.SyndFeed;
+import com.rometools.rome.io.SyndFeedInput;
+import com.rometools.rome.io.XmlReader;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -19,9 +21,10 @@ import org.ntnu.idatt2106.backend.exceptions.AlreadyInUseException;
 import org.ntnu.idatt2106.backend.model.News;
 import org.ntnu.idatt2106.backend.repo.NewsRepo;
 
+import java.io.IOException;
+import java.net.URL;
 import java.util.Date;
 import java.util.List;
-import java.util.NoSuchElementException;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -250,6 +253,28 @@ public class NewsServiceTest {
   }
 
   @Test
+  void testLoadFeed_ThrowsAfterAllAttempts() throws Exception {
+    int maxAttempts = 3;
+    NewsService newsService = spy(new NewsService());
+
+    SyndFeedInput mockInput = mock(SyndFeedInput.class);
+    when(mockInput.build(any(XmlReader.class))).thenThrow(new RuntimeException("Feed loading failed"));
+
+    URL mockUrl = new URL("https://api.politiet.no/politiloggen/v1/rss");
+
+    doReturn(mockUrl).when(newsService).getFeedUrl();
+    doReturn(mockInput).when(newsService).getSyndFeedInput();
+
+    RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+      newsService.loadFeed(maxAttempts);
+    });
+
+    assertEquals("Failed to load feed after " + maxAttempts + " attempts", exception.getMessage());
+
+    verify(mockInput, times(maxAttempts)).build(any(XmlReader.class));
+  }
+
+  @Test
   @DisplayName("addNews should throw IllegalArgumentException if district is empty")
   void testAddNews_EmptyDistrict() {
     validRequest.setDistrict("");
@@ -327,6 +352,92 @@ public class NewsServiceTest {
     doThrow(new Exception("Feed not found")).when(newsService).loadFeed(10);
     assertThrows(Exception.class, () -> newsService.loadFeed(10));
   }
+
+  @Test
+  void testLoadFeed_ThrowsAfterMaxAttempts() throws Exception {
+    // Arrange
+    int maxAttempts = 3;
+    NewsService newsService = spy(new NewsService());
+
+    // Mocking SyndFeedInput to always throw an IOException
+    SyndFeedInput mockInput = mock(SyndFeedInput.class);
+    when(mockInput.build(any(XmlReader.class))).thenThrow(new RuntimeException("Feed loading failed"));
+
+    // Mocking the URL object
+    URL mockUrl = new URL("https://api.politiet.no/politiloggen/v1/rss");
+
+    // Use spy to replace internal method calls
+    doReturn(mockUrl).when(newsService).getFeedUrl();
+    doReturn(mockInput).when(newsService).getSyndFeedInput();
+
+    // Act & Assert
+    Exception exception = assertThrows(RuntimeException.class, () -> {
+      newsService.loadFeed(maxAttempts);
+    });
+
+    // Verify the exception message
+    assertEquals("Failed to load feed after 3 attempts", exception.getMessage());
+
+    // Verify the number of attempts
+    verify(mockInput, times(maxAttempts)).build(any(XmlReader.class));
+  }
+
+  @Test
+  void testLoadFeed_SuccessWithDefaultAttempts() throws Exception {
+    // Arrange
+    NewsService newsService = spy(new NewsService());
+
+    // Mocking a successful feed
+    SyndFeed mockFeed = mock(SyndFeed.class);
+    SyndFeedInput mockInput = mock(SyndFeedInput.class);
+    when(mockInput.build(any(XmlReader.class))).thenReturn(mockFeed);
+
+    // Mocking the URL object
+    URL mockUrl = new URL("https://api.politiet.no/politiloggen/v1/rss");
+
+    // Use spy to replace internal method calls
+    doReturn(mockUrl).when(newsService).getFeedUrl();
+    doReturn(mockInput).when(newsService).getSyndFeedInput();
+
+    // Act
+    SyndFeed result = newsService.loadFeed();
+
+    // Assert
+    assertNotNull(result, "Feed should not be null");
+    assertEquals(mockFeed, result, "Returned feed should match the mocked feed");
+
+    // Verify the build method is called only once since the feed loads successfully
+    verify(mockInput, times(1)).build(any(XmlReader.class));
+  }
+
+  @Test
+  void testLoadFeed_ThrowsAfterDefaultAttempts() throws Exception {
+    // Arrange
+    NewsService newsService = spy(new NewsService());
+
+    // Mocking SyndFeedInput to always throw an IOException
+    SyndFeedInput mockInput = mock(SyndFeedInput.class);
+    when(mockInput.build(any(XmlReader.class))).thenThrow(new RuntimeException("Feed loading failed"));
+
+    // Mocking the URL object
+    URL mockUrl = new URL("https://api.politiet.no/politiloggen/v1/rss");
+
+    // Use spy to replace internal method calls
+    doReturn(mockUrl).when(newsService).getFeedUrl();
+    doReturn(mockInput).when(newsService).getSyndFeedInput();
+
+    // Act & Assert
+    RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+      newsService.loadFeed();
+    });
+
+    // Check the exception message
+    assertEquals("Failed to load feed after 10 attempts", exception.getMessage());
+
+    // Verify that the build method was called the default 10 times
+    verify(mockInput, times(10)).build(any(XmlReader.class));
+  }
+
 
   @Test
   @DisplayName("clearExpiredNews clears expired news (older than 2 days)")

@@ -4,10 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import java.util.Date;
 import java.util.Optional;
@@ -27,6 +24,11 @@ import org.ntnu.idatt2106.backend.repo.AdminRepo;
 import org.ntnu.idatt2106.backend.repo.UserRepo;
 import org.ntnu.idatt2106.backend.repo.VerificationTokenRepo;
 
+/**
+ * Unit tests for the VerificationService class.
+ * This class tests the functionality of the VerificationService class,
+ * including methods for verifying email, resetting password, and finding users by token.
+ */
 public class VerificationServiceTest {
 
 
@@ -42,16 +44,18 @@ public class VerificationServiceTest {
   @Mock
   private LoginService loginService;
 
-  private User testUser;
-  private VerificationToken validEmailToken;
-  private VerificationToken validPasswordToken;
-  private VerificationToken validAdminToken;
-  private Admin admin;
   @Mock
   private AdminRepo adminRepo;
 
   @Mock
   private AdminService adminService;
+
+  private User testUser;
+  private VerificationToken validEmailToken;
+  private VerificationToken validPasswordToken;
+  private VerificationToken validAdminToken;
+  private Admin admin;
+
 
   @BeforeEach
   void setUp() {
@@ -131,17 +135,12 @@ public class VerificationServiceTest {
   @DisplayName("Should throw UserNotFoundException when user is null")
   void testVerifyEmailWhenUserNull() {
     String token = "valid-token";
-    String newPassword = "newPassword123";
 
-    VerificationToken mockToken = mock(VerificationToken.class);
-    when(mockToken.getExpirationDate()).thenReturn(new Date(System.currentTimeMillis() + 10000));
-    when(mockToken.getEmail()).thenReturn("nullusermail");
+    when(userRepo.findByEmail(anyString())).thenReturn(Optional.empty());
 
-    when(verificationTokenRepo.findByToken(token)).thenReturn(Optional.of(mockToken));
-    when(mockToken.getType()).thenReturn(VerificationTokenType.EMAIL_VERIFICATION);
-    when(userRepo.findByEmail(mockToken.getEmail())).thenReturn(Optional.empty());
     assertThrows(UserNotFoundException.class, () -> verificationService.verifyEmail(token));
   }
+
 
   @Test
   @DisplayName("Should return user when token is valid and not expired")
@@ -239,6 +238,48 @@ public class VerificationServiceTest {
   }
 
   @Test
+  @DisplayName("findAdminByToken throws UserNotFoundException when email not found")
+  void testFindAdminByTokenEmailNotFound() {
+    when(verificationTokenRepo.findByToken("valid-admin-token")).thenReturn(Optional.of(validAdminToken));
+    when(adminRepo.findByEmail("unknown-email")).thenReturn(Optional.empty());
+
+    assertThrows(UserNotFoundException.class, () -> {
+      verificationService.findAdminByToken("valid-admin-token", VerificationTokenType.ADMIN_VERIFICATION);
+    });
+  }
+
+  @Test
+  @DisplayName("findAdminByToken throws UserNotFoundException when token is null")
+  void testFindAdminByTokenNull() {
+    assertThrows(UserNotFoundException.class, () -> {
+      verificationService.findAdminByToken(null, VerificationTokenType.ADMIN_VERIFICATION);
+    });
+  }
+
+  @Test
+  @DisplayName("findAdminByToken throws UserNotFoundException when admin not found with valid token")
+  void testFindAdminByTokenAdminNotFound() {
+    when(verificationTokenRepo.findByToken("valid-token")).thenReturn(Optional.of(validAdminToken));
+    when(adminRepo.findByEmail("non-existent-email")).thenReturn(Optional.empty());
+
+    assertThrows(UserNotFoundException.class, () -> {
+      verificationService.findAdminByToken("valid-token", VerificationTokenType.ADMIN_VERIFICATION);
+    });
+  }
+
+  @Test
+  @DisplayName("findAdminByToken throws UserNotFoundException for invalid token type")
+  void testFindAdminByTokenInvalidType() {
+    when(verificationTokenRepo.findByToken("valid-token")).thenReturn(Optional.of(validAdminToken));
+    when(adminRepo.findByEmail("admin@example.com")).thenReturn(Optional.of(admin));
+
+    assertThrows(UserNotFoundException.class, () -> {
+      verificationService.findAdminByToken("valid-token", VerificationTokenType.ADMIN_VERIFICATION);
+    });
+  }
+
+
+  @Test
   @DisplayName("activateAdmin activates admin when token is valid")
   void testActivateAdmin() {
     when(verificationTokenRepo.findByToken("valid-admin-token")).thenReturn(Optional.of(validAdminToken));
@@ -264,6 +305,16 @@ public class VerificationServiceTest {
     admin.setActive(true);
     assertThrows(IllegalStateException.class, () -> {
       verificationService.activateAdmin("valid-admin-token", "pass");
+    });
+  }
+
+  @Test
+  @DisplayName("findEmailByToken throws IllegalArgumentException when not token type matche provided type")
+  void testFindEmailByTokenTypeMismatch() {
+    when(verificationTokenRepo.findByToken("valid-token")).thenReturn(Optional.of(validEmailToken));
+
+    assertThrows(IllegalArgumentException.class, () -> {
+      verificationService.findEmailByToken("valid-token", VerificationTokenType.PASSWORD_RESET);
     });
   }
 

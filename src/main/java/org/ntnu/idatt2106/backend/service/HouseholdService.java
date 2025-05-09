@@ -385,7 +385,19 @@ public class HouseholdService {
         }
       }
 
-      households.add(new HouseholdRequest(household.getId(), household.getName(), household.getLatitude(), household.getLongitude(), members, inventory));
+      households.add(
+              new HouseholdRequest(
+                      household.getId(),
+                      household.getName(),
+                      household.getLatitude(),
+                      household.getLongitude(),
+                      members,
+                      household.getUnregisteredAdultCount(),
+                      household.getUnregisteredChildCount(),
+                      household.getUnregisteredPetCount(),
+                      inventory
+              )
+      );
     }
     return households;
   }
@@ -521,6 +533,26 @@ public class HouseholdService {
       }
     }
     return userPositions;
+  }
+
+  /**
+   * Gets the position of a user.
+   *
+   * @param user The user whose position is to be retrieved.
+   * @return The user's position.
+   * @throws IllegalArgumentException if the user is null.
+   */
+  public UserPositionResponse getUserPosition(User user) {
+      if (user == null) {
+      throw new IllegalArgumentException("User cannot be null");
+    }
+    return new UserPositionResponse(
+        user.getLatitude(),
+        user.getLongitude(),
+        user.getFormattedPositionUpdateTime(),
+        user.getId(),
+        user.toString()
+    );
   }
 
   /**

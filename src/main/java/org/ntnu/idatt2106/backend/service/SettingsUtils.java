@@ -20,14 +20,19 @@ public class SettingsUtils {
    *
    * @param settings The UserStoreSettingsRequest object to convert.
    * @return The JSON string representation of the settings.
+   * @throws RuntimeException if the conversion fails.
    */
   public static String convertToJson(UserStoreSettingsRequest settings) {
+    if (settings == null) {
+      throw new RuntimeException("Error: Provided settings object is null");
+    }
     try {
       return objectMapper.writeValueAsString(settings);
     } catch (JsonProcessingException e) {
-      throw new RuntimeException("Error converting settings to JSON", e);
+      throw new RuntimeException("Error:", e);
     }
   }
+
 
   /**
    * Converts a JSON string to a UserStoreSettingsRequest object.
