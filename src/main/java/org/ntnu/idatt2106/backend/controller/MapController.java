@@ -238,7 +238,7 @@ public class MapController {
    * @param zone The emergency zone to create.
    * @return The ID of the newly created emergency zone.
    */
-  @PostMapping("/zone/create/")
+  @PostMapping("/zone/create")
   @Operation(
       summary = "Create a new emergency zone",
       description = "Creates a new emergency zone."
