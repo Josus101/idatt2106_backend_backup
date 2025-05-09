@@ -531,7 +531,7 @@ public class MapController {
           required = true
       ) @PathVariable Long markerId,
       @Parameter(
-          description = "The updated emergency zone data.",
+          description = "The updated marker data.",
           required = true,
           content = @Content(
               mediaType = "application/json",
@@ -540,7 +540,7 @@ public class MapController {
       ) @RequestBody MarkerCreateDTO marker) {
     try {
       mapEntityService.updateMarker(markerId, marker);
-      return ResponseEntity.ok("Zone updated successfully.");
+      return ResponseEntity.ok("Marker updated successfully.");
     } catch (Exception e) {
       return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: " + e.getMessage());
     }
