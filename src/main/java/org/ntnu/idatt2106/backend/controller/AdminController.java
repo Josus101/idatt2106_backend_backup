@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.ntnu.idatt2106.backend.dto.admin.AdminGetResponse;
 import org.ntnu.idatt2106.backend.dto.admin.AdminLoginRequest;
+import org.ntnu.idatt2106.backend.dto.admin.AdminLoginResponse;
 import org.ntnu.idatt2106.backend.dto.admin.AdminRegisterRequest;
 import org.ntnu.idatt2106.backend.dto.news.NewsGetResponse;
 import org.ntnu.idatt2106.backend.dto.user.EmailRequest;
@@ -240,14 +241,14 @@ public class AdminController {
       )
       @RequestBody AdminLoginRequest adminLogin) {
     try {
-      String token;
+      AdminLoginResponse response;
       if (adminLogin.getTwoFactorCode() == null) {
-        token = adminService.authenticate(adminLogin.getUsername(), adminLogin.getPassword());
+        response = adminService.authenticate(adminLogin.getUsername(), adminLogin.getPassword());
       }
       else {
-        token = adminService.authenticate(adminLogin.getUsername(), adminLogin.getPassword(), adminLogin.getTwoFactorCode());
+        response = adminService.authenticate(adminLogin.getUsername(), adminLogin.getPassword(), adminLogin.getTwoFactorCode());
       }
-      return ResponseEntity.ok(token);
+      return ResponseEntity.ok(response);
     } catch (IllegalArgumentException e) {
       return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: " + e.getMessage());
     } catch (UserNotFoundException e) {

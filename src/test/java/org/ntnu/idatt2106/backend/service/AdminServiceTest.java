@@ -8,6 +8,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
 import org.ntnu.idatt2106.backend.dto.admin.AdminGetResponse;
+import org.ntnu.idatt2106.backend.dto.admin.AdminLoginResponse;
 import org.ntnu.idatt2106.backend.dto.user.UserAdminResponse;
 import org.ntnu.idatt2106.backend.exceptions.MailSendingFailedException;
 import org.ntnu.idatt2106.backend.exceptions.UnauthorizedException;
@@ -131,10 +132,10 @@ public class AdminServiceTest {
         .thenReturn(new UserTokenResponse("jwtToken", System.currentTimeMillis()));
     when(jwt.getAdminUserByToken("token")).thenReturn(testAdmin);
     testAdmin.setActive(true);
-    String token = adminService.authenticate("admin", "password");
+    AdminLoginResponse response = adminService.authenticate("admin", "password");
     testAdmin.setActive(false);
-    assertNotNull(token);
-    assertEquals("jwtToken", token);
+    assertNotNull(response);
+    assertEquals("jwtToken", response.getToken());
   }
 
   @Test
@@ -467,10 +468,10 @@ public class AdminServiceTest {
     when(jwt.getAdminUserByToken("token")).thenReturn(testAdmin);
     testAdmin.setTwoFactorEnabled(true);
     testAdmin.setActive(true);
-    String token = adminService.authenticate("admin", "password", "code");
+    AdminLoginResponse response = adminService.authenticate("admin", "password", "code");
     testAdmin.setTwoFactorEnabled(false);
-    assertNotNull(token);
-    assertEquals("jwtToken", token);
+    assertNotNull(response);
+    assertEquals("jwtToken", response.getToken());
   }
 
   @Test
