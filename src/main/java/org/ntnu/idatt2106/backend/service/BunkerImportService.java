@@ -2,10 +2,13 @@ package org.ntnu.idatt2106.backend.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.ntnu.idatt2106.backend.model.EmergencyService;
-import org.ntnu.idatt2106.backend.model.Type;
-import org.ntnu.idatt2106.backend.repo.EmergencyServiceRepo;
-import org.ntnu.idatt2106.backend.repo.TypeRepo;
+import org.ntnu.idatt2106.backend.model.map.Coordinate;
+import org.ntnu.idatt2106.backend.model.map.MapEntity;
+import org.ntnu.idatt2106.backend.model.map.MapEntityType;
+import org.ntnu.idatt2106.backend.model.map.MapMarkerType;
+import org.ntnu.idatt2106.backend.repo.map.MapEntityRepo;
+import org.ntnu.idatt2106.backend.repo.map.MapEntityTypeRepo;
+import org.ntnu.idatt2106.backend.repo.map.MapMarkerTypeRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
@@ -21,22 +24,27 @@ import java.io.InputStream;
  */
 @Service
 public class BunkerImportService {
-    private final EmergencyServiceRepo emergencyServiceRepo;
-    private final TypeRepo typeRepo;
+    private final MapEntityRepo mapEntityRepo;
+    private final MapMarkerTypeRepo mapMarkerTypeRepo;
     private final ObjectMapper objectMapper;
+    private final MapEntityTypeRepo mapEntityTypeRepo;
 
     /**
      * Constructor for BunkerImportService.
      *
-     * @param emergencyServiceRepo The repository for EmergencyService entities.
-     * @param typeRepo The repository for Type entities.
+     * @param mapEntityRepo The repository for MapEntity entities.
+     * @param mapMarkerTypeRepo The repository for MapMarkerType entities.
      * @param objectMapper The ObjectMapper for parsing JSON data.
      */
     @Autowired
-    public BunkerImportService(EmergencyServiceRepo emergencyServiceRepo, TypeRepo typeRepo, ObjectMapper objectMapper) {
-        this.emergencyServiceRepo = emergencyServiceRepo;
-        this.typeRepo = typeRepo;
+    public BunkerImportService(MapEntityRepo mapEntityRepo,
+                               MapMarkerTypeRepo mapMarkerTypeRepo,
+                               ObjectMapper objectMapper,
+                               MapEntityTypeRepo mapEntityTypeRepo) {
+        this.mapEntityRepo = mapEntityRepo;
+        this.mapMarkerTypeRepo = mapMarkerTypeRepo;
         this.objectMapper = objectMapper;
+        this.mapEntityTypeRepo = mapEntityTypeRepo;
     }
 
     /**
@@ -48,9 +56,14 @@ public class BunkerImportService {
     public void importBunkerDataFromJson(String fileName) throws IOException {
         JsonNode rootNode = readJsonFromFile(fileName);
 
-        Type bunkerType = typeRepo.findByName("Bunker").orElseGet(() -> {
-            Type newType = new Type("Bunker");
-            return typeRepo.save(newType);
+        MapMarkerType bunkerMapMarkerType = mapMarkerTypeRepo.findByName("Bunker").orElseGet(() -> {
+            MapMarkerType newMapMarkerType = new MapMarkerType("Bunker");
+            return mapMarkerTypeRepo.save(newMapMarkerType);
+        });
+
+        MapEntityType entityType = mapEntityTypeRepo.findByName("marker").orElseGet(() -> {
+            MapEntityType newMapEntityType = new MapEntityType("marker");
+            return mapEntityTypeRepo.save(newMapEntityType);
         });
 
         for (JsonNode feature : rootNode.get("features")) {
@@ -69,16 +82,17 @@ public class BunkerImportService {
             double latitude = latlon[0];
             double longitude = latlon[1];
 
-            if (emergencyServiceRepo.findByLocalID(localID).isEmpty()) {
-                EmergencyService service = new EmergencyService();
+            if (mapEntityRepo.findByLocalID(localID) == null) {
+                MapEntity service = new MapEntity();
+                service.setName("Bunker " + localID);
+                service.setDescription("Bunker with capacity: " + capacity);
+                service.setAddress(address);
+                service.setMapEntityType(entityType);
+                service.setMapMarkerType(bunkerMapMarkerType);
+                service.setCoordinatePoint(new Coordinate(latitude, longitude));
                 service.setLocalID(localID);
-                service.setName(address);
-                service.setDescription(capacity);
-                service.setLongitude(longitude);
-                service.setLatitude(latitude);
-                service.setType(bunkerType);
 
-                emergencyServiceRepo.save(service);
+                mapEntityRepo.save(service);
             }
         }
     }

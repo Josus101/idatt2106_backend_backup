@@ -1,24 +1,30 @@
-package org.ntnu.idatt2106.backend.repo;
+package org.ntnu.idatt2106.backend.repo.map;
 
 import java.util.Optional;
-import org.ntnu.idatt2106.backend.model.Type;
+
+import org.ntnu.idatt2106.backend.model.map.MapZoneType;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 /**
  * Repository interface for type entity.
+ *
+ * @author André Merkesdal
+ * @version 0.2
+ * @since 0.1
  */
-public interface TypeRepo extends JpaRepository<Type, Integer> {
+public interface MapZoneTypeRepo extends JpaRepository<MapZoneType, Integer> {
+
   /**
    * Finds a type by its id.
     * @param id the id of the type
    * @return the type with the given id
    */
-  Optional<Type> findById(int id);
+  Optional<MapZoneType> findById(int id);
 
   /**
    * Finds a type by its name.
    * @param name the name of the type
    * @return the type with the given name
    */
-  Optional<Type> findByName(String name);
+  Optional<MapZoneType> findByName(String name);
 }

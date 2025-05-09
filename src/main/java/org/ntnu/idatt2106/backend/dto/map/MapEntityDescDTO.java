@@ -1,4 +1,4 @@
-package org.ntnu.idatt2106.backend.dto.map.zones;
+package org.ntnu.idatt2106.backend.dto.map;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
@@ -12,13 +12,16 @@ import lombok.Setter;
  * This class is used to transfer emergency zone data between the client and server.
  * It includes fields for the name, description, type, and severity level of the emergency zone.
  *
+ * @author André Merkesdal
+ * @version 0.2
+ * @since 0.2
  */
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Schema(description = "Data transfer object for emergency zone descriptions")
-public class MapZoneDescDTO {
+public class MapEntityDescDTO {
   @Schema(description = "Name of the emergency zone", example = "Crash site")
   private String name;
 
@@ -27,6 +30,6 @@ public class MapZoneDescDTO {
   private String description;
 
   @Schema(description = "Address of the emergency zone, based on the coordinates of the centered point",
-      example = "Bergen, Norway")
+      example = "Høgskoleringen 5, 7034 Trondheim")
   private String address;
 }
