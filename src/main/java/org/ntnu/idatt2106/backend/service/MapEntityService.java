@@ -80,20 +80,6 @@ public class MapEntityService {
         .map(this::mapToMapZoneFullDTO)
         .orElse(null);
   }
-  /**
-   * Retrieves a specific emergency zones description by its ID.
-   *
-   * @param id the ID of the emergency zone
-   * @return a MapEntityDescDTO object representing the emergency zone with the specified ID
-   */
-  public MapEntityDescDTO getMapZoneDescById(Long id) {
-    return mapEntityRepo.findById(id)
-        .map(zone -> new MapEntityDescDTO(
-            zone.getName(),
-            zone.getDescription(),
-            zone.getAddress()))
-        .orElse(null);
-  }
 
   /**
    * Creates a new emergency zone in the database.
@@ -206,21 +192,6 @@ public class MapEntityService {
   }
 
   /**
-   * Retrieves a specific marker's description by its ID.
-   *
-   * @param id the ID of the marker
-   * @return a MapEntityDescDTO object representing the marker with the specified ID
-   */
-  public MapEntityDescDTO getMapMarkerDescById(Long id) {
-    return mapEntityRepo.findById(id)
-        .map(marker -> new MapEntityDescDTO(
-            marker.getName(),
-            marker.getDescription(),
-            marker.getAddress()))
-        .orElse(null);
-  }
-
-  /**
    * Creates a new marker in the database.
    *
    * @param markerCreateDTO the MarkerCreateDTO object containing the details of the new marker
@@ -255,7 +226,7 @@ public class MapEntityService {
    * @param markerId        the ID of the emergency marker to update
    * @param markerCreateDTO the MarkerCreateDTO object containing the updated details of the emergency marker
    */
-  public void updateMarker(Long markerId, ZoneCreateDTO markerCreateDTO) {
+  public void updateMarker(Long markerId, MarkerCreateDTO markerCreateDTO) {
     MapEntity marker = mapEntityRepo.findById(markerId)
         .orElseThrow(() -> new IllegalArgumentException("Marker (" + markerId + ") not found"));
     MapMarkerType markerType = mapMarkerTypeRepo.findByName(markerCreateDTO.getType())
@@ -293,6 +264,21 @@ public class MapEntityService {
   }
 
   /**
+   * Retrieves a specific emergency zones description by its ID.
+   *
+   * @param id the ID of the emergency zone
+   * @return a MapEntityDescDTO object representing the emergency zone with the specified ID
+   */
+  public MapEntityDescDTO getMapEntityDescById(Long id) {
+    return mapEntityRepo.findById(id)
+        .map(entity -> new MapEntityDescDTO(
+            entity.getName(),
+            entity.getDescription(),
+            entity.getAddress()))
+        .orElse(null);
+  }
+
+  /**
    * Deletes a map entity from the database.
    *
    * @param id the ID of the entity to delete
@@ -306,9 +292,9 @@ public class MapEntityService {
   }
 
   /**
-   * Retrieves all map marker types from the database.
+   * Retrieves all map zone types from the database.
    *
-   * @return a list of MapMarkerType objects representing all map marker types
+   * @return a list of TypeFullDTO objects representing all map zone types
    */
   public List<TypeFullDTO> getZoneTypes() {
     return mapZoneTypeRepo.findAll()
@@ -322,7 +308,7 @@ public class MapEntityService {
   /**
    * Retrieves all marker types from the database.
    *
-   * @return a list of MapMarkerType objects representing all marker types
+   * @return a list of TypeFullDTO objects representing all marker types
    */
   public List<TypeFullDTO> getMarkerTypes() {
     return mapMarkerTypeRepo.findAll()

@@ -8,6 +8,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.ntnu.idatt2106.backend.dto.map.CoordinatesDTO;
 import org.ntnu.idatt2106.backend.dto.map.MapEntityDescDTO;
+import org.ntnu.idatt2106.backend.dto.map.markers.MarkerCreateDTO;
+import org.ntnu.idatt2106.backend.dto.map.markers.MarkerFullDTO;
+import org.ntnu.idatt2106.backend.dto.map.types.TypeFullDTO;
 import org.ntnu.idatt2106.backend.dto.map.zones.ZoneCreateDTO;
 import org.ntnu.idatt2106.backend.dto.map.zones.ZoneFullDTO;
 import org.ntnu.idatt2106.backend.service.MapEntityService;
@@ -190,49 +193,6 @@ public class MapController {
   }
 
   /**
-   * Endpoint for retrieving the description of a specific emergency zone by its ID.
-   *
-   * @param zoneId The ID of the emergency zone to retrieve the description from.
-   * @return The description of the emergency zone with the specified ID.
-   */
-  @GetMapping("/zone/{zoneId}/description")
-  @Operation(
-      summary = "Get emergency zone description by ID",
-      description = "Retrieves the description of a specific emergency zone by its ID."
-  )
-  @ApiResponses(value = {
-      @ApiResponse(
-          responseCode = "200",
-          description = "Emergency zone description retrieved successfully.",
-          content = @Content(
-              mediaType = "application/json",
-              schema = @Schema(implementation = MapEntityDescDTO.class)
-          )
-      ),
-      @ApiResponse(
-          responseCode = "404",
-          description = "Emergency zone not found.",
-          content = @Content(
-              mediaType = "application/json",
-              schema = @Schema(example = "Error: Emergency zone not found.")
-          )
-      )
-  })
-  public ResponseEntity<?> getZoneDescription(
-      @Parameter(
-          description = "The ID of the emergency zone to retrieve the description from.",
-          example = "12345",
-          required = true
-      ) @PathVariable Long zoneId) {
-    try {
-      MapEntityDescDTO emergencyZoneDesc = mapEntityService.getMapZoneDescById(zoneId);
-      return ResponseEntity.ok(emergencyZoneDesc);
-    } catch (Exception e) {
-      return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: Emergency zone not found." + e.getMessage());
-    }
-  }
-
-  /**
    * Endpoint for creating a new emergency zone.
    *
    * @param zone The emergency zone to create.
@@ -331,20 +291,362 @@ public class MapController {
   }
 
   /**
-   * Endpoint for deleting an emergency zone.
+   * Endpoint for retrieving all markers from the database.
    *
-   * @param zoneId The ID of the emergency zone to delete.
-   * @return A success message.
+   * @return A list of all markers.
    */
-  @DeleteMapping("/zone/delete/{zoneId}")
+  @GetMapping("/markers")
   @Operation(
-      summary = "Delete an emergency zone",
-      description = "Deletes an emergency zone."
+      summary = "Get all markers",
+      description = "Retrieves all markers from the database."
   )
   @ApiResponses(value = {
       @ApiResponse(
           responseCode = "200",
-          description = "Emergency zone deleted successfully.",
+          description = "Markers retrieved successfully.",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(implementation = MarkerFullDTO.class)
+          )
+      ),
+      @ApiResponse(
+          responseCode = "404",
+          description = "No markers found.",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(example = "Error: No markers found.")
+          )
+      )
+  })
+  public ResponseEntity<?> getMarkers() {
+    List<ZoneFullDTO> markers = mapEntityService.getAllMapZones();
+    if (markers.isEmpty()) {
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: No markers found.");
+    }
+    return ResponseEntity.ok(markers);
+  }
+
+  /**
+   * Endpoint for retrieving all markers in a specific map area.
+   *
+   * @param mapArea The map area to retrieve markers from.
+   * @param excludedZoneIds The zone IDs to exclude from the response (which have already been retrieved).
+   * @return A list of markers in the specified map area.
+   */
+  @GetMapping("/markers/{mapArea}/{excludedZoneIds}")
+  @Operation(
+      summary = "Get markers in map area",
+      description = "Retrieves markers in a specific map area."
+  )
+  @ApiResponses(value = {
+      @ApiResponse(
+          responseCode = "200",
+          description = "Markers retrieved successfully.",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(implementation = MarkerFullDTO.class)
+          )
+      ),
+      @ApiResponse(
+          responseCode = "404",
+          description = "No markers found in the specified area.",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(example = "Error: No markers found in the specified area.")
+          )
+      ),
+      @ApiResponse(
+          responseCode = "400",
+          description = "Invalid request parameters.",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(example = "Error: Map area cannot be null or empty.")
+          )
+      ),
+      @ApiResponse(
+          responseCode = "500",
+          description = "Internal server error.",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(example = "Error: An unexpected error occurred.")
+          )
+      )
+  })
+  public ResponseEntity<?> getMarkersInMapArea(
+      @Parameter(
+          description = "The map area to retrieve markers from.",
+          example = "",
+          required = true
+      ) @PathVariable List<CoordinatesDTO> mapArea,
+      @Parameter(
+          description = "The zone IDs to exclude from the response. Can be an empty array.",
+          example = "[1, 2, 3]",
+          required = true
+      ) @PathVariable Long[] excludedZoneIds) {
+    try {
+      if (mapArea == null || mapArea.isEmpty()) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+            .body("Error: Map area cannot be null or empty.");
+      }
+
+      List<MarkerFullDTO> markers = mapEntityService.getMapMarkersInMapArea(mapArea, excludedZoneIds);
+
+      if (markers.isEmpty()) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+            .body("Error: No emergency zones found in the specified area.");
+      }
+      return ResponseEntity.ok(markers);
+    } catch (IllegalArgumentException e) {
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+          .body("Error: " + e.getMessage());
+    } catch (Exception e) {
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+          .body("Error: An unexpected error occurred. " + e.getMessage());
+    }
+  }
+
+  /**
+   * Endpoint for retrieving a specific marker by its ID.
+   *
+   * @param markerId The ID of the marker to retrieve.
+   * @return The marker with the specified ID.
+   */
+  @GetMapping("/marker/{markerId}")
+  @Operation(
+      summary = "Get marker by ID",
+      description = "Retrieves a specific marker by its ID."
+  )
+  @ApiResponses(value = {
+      @ApiResponse(
+          responseCode = "200",
+          description = "Marker retrieved successfully.",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(implementation = MarkerFullDTO.class)
+          )
+      ),
+      @ApiResponse(
+          responseCode = "404",
+          description = "Marker not found.",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(example = "Error: Marker not found.")
+          )
+      )
+  })
+  public ResponseEntity<?> getMarkerById(
+      @Parameter(
+          description = "The ID of the marker to retrieve.",
+          example = "12345",
+          required = true
+      ) @PathVariable Long markerId) {
+    try {
+      MarkerFullDTO emergencyZone = mapEntityService.getMapMarkerById(markerId);
+      return ResponseEntity.ok(emergencyZone);
+    } catch (Exception e) {
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: Marker not found." + e.getMessage());
+    }
+  }
+
+  /**
+   * Endpoint for creating a new marker.
+   *
+   * @param marker The marker to create.
+   * @return The ID of the newly created marker.
+   */
+  @PostMapping("/marker/create")
+  @Operation(
+      summary = "Create a new marker",
+      description = "Creates a new marker."
+  )
+  @ApiResponses(value = {
+      @ApiResponse(
+          responseCode = "201",
+          description = "Marker created successfully.",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(implementation = Long.class)
+          )
+      ),
+      @ApiResponse(
+          responseCode = "400",
+          description = "Invalid request parameters.",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(example = "Error: Invalid request parameters.")
+          )
+      )
+  })
+  public ResponseEntity<?> createMarker(
+      @Parameter(
+          description = "The marker to create.",
+          required = true,
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(implementation = MarkerCreateDTO.class)
+          )
+      ) @RequestBody MarkerCreateDTO marker) {
+    try {
+      Long markerId = mapEntityService.createMarker(marker);
+      return ResponseEntity.status(HttpStatus.CREATED).body(markerId);
+    } catch (Exception e) {
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: " + e.getMessage());
+    }
+  }
+
+  /**
+   * Endpoint for updating an existing marker
+   *
+   * @param markerId The ID of the marker to update.
+   * @param marker The updated marker data.
+   * @return A success message.
+   */
+  @PutMapping("/marker/update/{markerId}")
+  @Operation(
+      summary = "Update an existing marker",
+      description = "Updates an existing marker."
+  )
+  @ApiResponses(value = {
+      @ApiResponse(
+          responseCode = "200",
+          description = "Marker updated successfully.",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(implementation = String.class)
+          )
+      ),
+      @ApiResponse(
+          responseCode = "400",
+          description = "Invalid request parameters.",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(example = "Error: Invalid request parameters.")
+          )
+      )
+  })
+  public ResponseEntity<?> updateMarker(
+      @Parameter(
+          description = "The ID of the marker to update.",
+          example = "12345",
+          required = true
+      ) @PathVariable Long markerId,
+      @Parameter(
+          description = "The updated emergency zone data.",
+          required = true,
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(implementation = MarkerCreateDTO.class)
+          )
+      ) @RequestBody MarkerCreateDTO marker) {
+    try {
+      mapEntityService.updateMarker(markerId, marker);
+      return ResponseEntity.ok("Zone updated successfully.");
+    } catch (Exception e) {
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: " + e.getMessage());
+    }
+  }
+
+  /**
+   * Endpoint for retrieving the coordinates of a specific map entity by its ID.
+   *
+   * @param id The ID of the map entity to retrieve the coordinates from.
+   * @return The coordinates of the map entity with the specified ID.
+   */
+  @GetMapping("/coordinates/{id}")
+  @Operation(
+      summary = "Get map entity coordinates by ID",
+      description = "Retrieves the coordinates of a specific map entity by its ID."
+  )
+  @ApiResponses(value = {
+      @ApiResponse(
+          responseCode = "200",
+          description = "Emergency zone coordinates retrieved successfully.",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(implementation = CoordinatesDTO.class)
+          )
+      ),
+      @ApiResponse(
+          responseCode = "404",
+          description = "Map entity not found.",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(example = "Error: Map Entity not found.")
+          )
+      )
+  })
+  public ResponseEntity<?> getMapEntityCoordinates(
+      @Parameter(
+          description = "The ID of the map entity to retrieve the coordinates from.",
+          example = "12345",
+          required = true
+      ) @PathVariable Long id) {
+    try {
+      CoordinatesDTO coordinates = mapEntityService.getMapEntityCoordinates(id);
+      return ResponseEntity.ok(coordinates);
+    } catch (Exception e) {
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: Map Entity not found." + e.getMessage());
+    }
+  }
+
+  /**
+   * Endpoint for retrieving the description of a specific map entity by its ID.
+   *
+   * @param id The ID of the map entity to retrieve the description from.
+   * @return The description of the map entity with the specified ID.
+   */
+  @GetMapping("/description/{id}")
+  @Operation(
+      summary = "Get map entity description by ID",
+      description = "Retrieves the description of a specific map entity by its ID."
+  )
+  @ApiResponses(value = {
+      @ApiResponse(
+          responseCode = "200",
+          description = "Emergency zone description retrieved successfully.",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(implementation = MapEntityDescDTO.class)
+          )
+      ),
+      @ApiResponse(
+          responseCode = "404",
+          description = "Map entity not found.",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(example = "Error: Map Entity not found.")
+          )
+      )
+  })
+  public ResponseEntity<?> getDescription(
+      @Parameter(
+          description = "The ID of the map entity to retrieve the description from.",
+          example = "12345",
+          required = true
+      ) @PathVariable Long id) {
+    try {
+      MapEntityDescDTO mapEntityDesc = mapEntityService.getMapEntityDescById(id);
+      return ResponseEntity.ok(mapEntityDesc);
+    } catch (Exception e) {
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: Map Entity not found." + e.getMessage());
+    }
+  }
+
+  /**
+   * Endpoint for deleting a map entity by its ID.
+   *
+   * @param id The ID of the map entity to delete.
+   * @return A success message.
+   */
+  @DeleteMapping("/delete/{id}")
+  @Operation(
+      summary = "Delete a map entity by ID",
+      description = "Deletes a map entity by its ID."
+  )
+  @ApiResponses(value = {
+      @ApiResponse(
+          responseCode = "200",
+          description = "Map entity deleted successfully.",
           content = @Content(
               mediaType = "application/json",
               schema = @Schema(implementation = String.class)
@@ -364,12 +666,84 @@ public class MapController {
           description = "The ID of the entity to delete.",
           example = "12345",
           required = true
-      ) @PathVariable Long zoneId) {
+      ) @PathVariable Long id) {
     try {
-      mapEntityService.deleteMapEntity(zoneId);
-      return ResponseEntity.ok("Zone deleted successfully.");
+      mapEntityService.deleteMapEntity(id);
+      return ResponseEntity.ok("Entity deleted successfully.");
     } catch (Exception e) {
       return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: " + e.getMessage());
     }
+  }
+
+  /**
+   * Endpoint for retrieving all zone types as a list of strings.
+   *
+   * @return A list of all zone types.
+   */
+  @GetMapping("/zone-types")
+  @Operation(
+      summary = "Get all zone types",
+      description = "Retrieves all zone types as a list of strings."
+  )
+  @ApiResponses(value = {
+      @ApiResponse(
+          responseCode = "200",
+          description = "Zone types retrieved successfully.",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(implementation = String.class)
+          )
+      ),
+      @ApiResponse(
+          responseCode = "404",
+          description = "No zone types found.",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(example = "Error: No zone types found.")
+          )
+      )
+  })
+  public ResponseEntity<?> getAllZoneTypes() {
+    List<TypeFullDTO> zoneTypes = mapEntityService.getZoneTypes();
+    if (zoneTypes.isEmpty()) {
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: No zone types found.");
+    }
+    return ResponseEntity.ok(zoneTypes);
+  }
+
+  /**
+   * Endpoint for retrieving all marker types as a list of strings.
+   *
+   * @return A list of all marker types.
+   */
+  @GetMapping("/marker-types")
+  @Operation(
+      summary = "Get all marker types",
+      description = "Retrieves all marker types as a list of strings."
+  )
+  @ApiResponses(value = {
+      @ApiResponse(
+          responseCode = "200",
+          description = "Marker types retrieved successfully.",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(implementation = String.class)
+          )
+      ),
+      @ApiResponse(
+          responseCode = "404",
+          description = "No marker types found.",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(example = "Error: No marker types found.")
+          )
+      )
+  })
+  public ResponseEntity<?> getAllMarkerTypes() {
+    List<TypeFullDTO> markerTypes = mapEntityService.getMarkerTypes();
+    if (markerTypes.isEmpty()) {
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: No marker types found.");
+    }
+    return ResponseEntity.ok(markerTypes);
   }
 }
