@@ -17,6 +17,13 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 
+/**
+ * Service class for managing map entities such as zones and markers.
+ *
+ * @author André Merkesdal
+ * @version 0.2
+ * @since 0.2
+ */
 @Service
 public class MapEntityService {
 

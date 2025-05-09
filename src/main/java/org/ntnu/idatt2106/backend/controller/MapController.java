@@ -26,7 +26,8 @@ import java.util.List;
  * It contains an endpoint for importing emergency zone data.
  *
  * @author André Merkesdal
- * @since 0.1
+ * @version 0.2
+ * @since 0.2
  */
 @RestController
 @RequestMapping("/api/map")
@@ -96,10 +97,30 @@ public class MapController {
       description = "Retrieves emergency zones in a specific map area."
   )
   @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Emergency zones retrieved successfully."),
-      @ApiResponse(responseCode = "404", description = "No emergency zones found in the specified area."),
-      @ApiResponse(responseCode = "400", description = "Invalid request parameters."),
-      @ApiResponse(responseCode = "500", description = "Internal server error.")
+      @ApiResponse(responseCode = "200",
+          description = "Emergency zones retrieved successfully.",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(implementation = ZoneFullDTO.class)
+          )),
+      @ApiResponse(responseCode = "404",
+          description = "No emergency zones found in the specified area.",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(example = "Error: No emergency zones found in the specified area.")
+          )),
+      @ApiResponse(responseCode = "400",
+          description = "Invalid request parameters.",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(example = "Error: Invalid request parameters.")
+          )),
+      @ApiResponse(responseCode = "500",
+          description = "Internal server error.",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(example = "Error: An unexpected error occurred.")
+          ))
   })
   public ResponseEntity<?> getZonesInMapArea(
       @RequestBody QueryRequestInArea request) {
@@ -316,10 +337,30 @@ public class MapController {
       description = "Retrieves markers in a specific map area."
   )
   @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Markers retrieved successfully."),
-      @ApiResponse(responseCode = "404", description = "No markers found in the specified area."),
-      @ApiResponse(responseCode = "400", description = "Invalid request parameters."),
-      @ApiResponse(responseCode = "500", description = "Internal server error.")
+      @ApiResponse(responseCode = "200",
+          description = "Markers retrieved successfully.",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(implementation = MarkerFullDTO.class)
+          )),
+      @ApiResponse(responseCode = "404",
+          description = "No markers found in the specified area.",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(example = "Error: No markers found in the specified area.")
+          )),
+      @ApiResponse(responseCode = "400",
+          description = "Invalid request parameters.",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(example = "Error: Invalid request parameters.")
+          )),
+      @ApiResponse(responseCode = "500",
+          description = "Internal server error.",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(example = "Error: An unexpected error occurred.")
+          ))
   })
   public ResponseEntity<?> getMarkersInMapArea(
       @RequestBody QueryRequestInArea request) {
