@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.ntnu.idatt2106.backend.dto.map.CoordinatesDTO;
 import org.ntnu.idatt2106.backend.dto.map.MapEntityDescDTO;
+import org.ntnu.idatt2106.backend.dto.map.QueryRequestInArea;
 import org.ntnu.idatt2106.backend.dto.map.markers.MarkerCreateDTO;
 import org.ntnu.idatt2106.backend.dto.map.markers.MarkerFullDTO;
 import org.ntnu.idatt2106.backend.dto.map.types.TypeFullDTO;
@@ -84,69 +85,33 @@ public class MapController {
   }
 
   /**
-   * Endpoint for retrieving all emergency zones in a specific map area.
+   * Endpoint for retrieving emergency zones in a specific map area.
    *
-   * @param mapArea The map area to retrieve emergency zones from.
-   * @param excludedZoneIds The zone IDs to exclude from the response (which have already been retrieved).
+   * @param request Contains map area and excluded zone IDs
    * @return A list of emergency zones in the specified map area.
    */
-  @GetMapping("/zones/{mapArea}/{excludedZoneIds}")
+  @PostMapping("/zones/in-area")
   @Operation(
       summary = "Get emergency zones in map area",
       description = "Retrieves emergency zones in a specific map area."
   )
   @ApiResponses(value = {
-      @ApiResponse(
-          responseCode = "200",
-          description = "Emergency zones retrieved successfully.",
-          content = @Content(
-              mediaType = "application/json",
-              schema = @Schema(implementation = ZoneFullDTO.class)
-          )
-      ),
-      @ApiResponse(
-          responseCode = "404",
-          description = "No emergency zones found in the specified area.",
-          content = @Content(
-              mediaType = "application/json",
-              schema = @Schema(example = "Error: No emergency zones found in the specified area.")
-          )
-      ),
-      @ApiResponse(
-          responseCode = "400",
-          description = "Invalid request parameters.",
-          content = @Content(
-              mediaType = "application/json",
-              schema = @Schema(example = "Error: Map area cannot be null or empty.")
-          )
-      ),
-      @ApiResponse(
-          responseCode = "500",
-          description = "Internal server error.",
-          content = @Content(
-              mediaType = "application/json",
-              schema = @Schema(example = "Error: An unexpected error occurred.")
-          )
-      )
+      @ApiResponse(responseCode = "200", description = "Emergency zones retrieved successfully."),
+      @ApiResponse(responseCode = "404", description = "No emergency zones found in the specified area."),
+      @ApiResponse(responseCode = "400", description = "Invalid request parameters."),
+      @ApiResponse(responseCode = "500", description = "Internal server error.")
   })
   public ResponseEntity<?> getZonesInMapArea(
-      @Parameter(
-          description = "The map area to retrieve emergency zones from.",
-          example = "",
-          required = true
-      ) @PathVariable List<CoordinatesDTO> mapArea,
-      @Parameter(
-          description = "The zone IDs to exclude from the response. Can be an empty array.",
-          example = "[1, 2, 3]",
-          required = true
-      ) @PathVariable Long[] excludedZoneIds) {
+      @RequestBody QueryRequestInArea request) {
     try {
-      if (mapArea == null || mapArea.isEmpty()) {
+      if (request.getMapArea() == null || request.getMapArea().isEmpty()) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
             .body("Error: Map area cannot be null or empty.");
       }
 
-      List<ZoneFullDTO> emergencyZones = mapEntityService.getMapZonesInMapArea(mapArea, excludedZoneIds);
+      List<ZoneFullDTO> emergencyZones = mapEntityService.getMapZonesInMapArea(
+          request.getMapArea(),
+          request.getExcludedIds().toArray(new Long[0]));
 
       if (emergencyZones.isEmpty()) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
@@ -340,73 +305,37 @@ public class MapController {
   }
 
   /**
-   * Endpoint for retrieving all markers in a specific map area.
+   * Endpoint for retrieving markers in a specific map area.
    *
-   * @param mapArea The map area to retrieve markers from.
-   * @param excludedZoneIds The zone IDs to exclude from the response (which have already been retrieved).
+   * @param request Contains map area and excluded marker IDs
    * @return A list of markers in the specified map area.
    */
-  @GetMapping("/markers/{mapArea}/{excludedZoneIds}")
+  @PostMapping("/markers/in-area")
   @Operation(
       summary = "Get markers in map area",
       description = "Retrieves markers in a specific map area."
   )
   @ApiResponses(value = {
-      @ApiResponse(
-          responseCode = "200",
-          description = "Markers retrieved successfully.",
-          content = @Content(
-              mediaType = "application/json",
-              schema = @Schema(implementation = MarkerFullDTO.class)
-          )
-      ),
-      @ApiResponse(
-          responseCode = "404",
-          description = "No markers found in the specified area.",
-          content = @Content(
-              mediaType = "application/json",
-              schema = @Schema(example = "Error: No markers found in the specified area.")
-          )
-      ),
-      @ApiResponse(
-          responseCode = "400",
-          description = "Invalid request parameters.",
-          content = @Content(
-              mediaType = "application/json",
-              schema = @Schema(example = "Error: Map area cannot be null or empty.")
-          )
-      ),
-      @ApiResponse(
-          responseCode = "500",
-          description = "Internal server error.",
-          content = @Content(
-              mediaType = "application/json",
-              schema = @Schema(example = "Error: An unexpected error occurred.")
-          )
-      )
+      @ApiResponse(responseCode = "200", description = "Markers retrieved successfully."),
+      @ApiResponse(responseCode = "404", description = "No markers found in the specified area."),
+      @ApiResponse(responseCode = "400", description = "Invalid request parameters."),
+      @ApiResponse(responseCode = "500", description = "Internal server error.")
   })
   public ResponseEntity<?> getMarkersInMapArea(
-      @Parameter(
-          description = "The map area to retrieve markers from.",
-          example = "",
-          required = true
-      ) @PathVariable List<CoordinatesDTO> mapArea,
-      @Parameter(
-          description = "The zone IDs to exclude from the response. Can be an empty array.",
-          example = "[1, 2, 3]",
-          required = true
-      ) @PathVariable Long[] excludedZoneIds) {
+      @RequestBody QueryRequestInArea request) {
     try {
-      if (mapArea == null || mapArea.isEmpty()) {
+      if (request.getMapArea() == null || request.getMapArea().isEmpty()) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
             .body("Error: Map area cannot be null or empty.");
       }
 
-      List<MarkerFullDTO> markers = mapEntityService.getMapMarkersInMapArea(mapArea, excludedZoneIds);
+      List<MarkerFullDTO> markers = mapEntityService.getMapMarkersInMapArea(
+          request.getMapArea(),
+          request.getExcludedIds().toArray(new Long[0]));
 
       if (markers.isEmpty()) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
-            .body("Error: No emergency zones found in the specified area.");
+            .body("Error: No markers found in the specified area.");
       }
       return ResponseEntity.ok(markers);
     } catch (IllegalArgumentException e) {
