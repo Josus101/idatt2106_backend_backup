@@ -153,7 +153,7 @@ public class DataSeeder implements CommandLineRunner {
       adminRepo.save(urek);
     }
     if (!adminRepo.existsByUsername("albert")) {
-      Admin albert = new Admin("albert", hasher.hashPassword("admin123"), "youremail@example.com", true);
+      Admin albert = new Admin("albert", hasher.hashPassword("admin123"), "albert@example.com", true);
       albert.setActive(true);
       albert.setTwoFactorEnabled(false);
       adminRepo.save(albert);
@@ -166,7 +166,7 @@ public class DataSeeder implements CommandLineRunner {
    */
   public void seedHouseholdOne() {
     User testUser = createVerifiedUser("test@example.com", "test123", "Test", "Bruker", "12345678");
-    User albert = createVerifiedUser("youremail@example.com", "password123", "Albert", "Zindel", "98765432");
+    User albert = createVerifiedUser("albert@example.com", "password123", "Albert", "Zindel", "98765432");
     Household household = createHousehold("Test Household", 59.9139, 10.7522);
     Household household2 = createHousehold("Albert household", 40.0815, 124.4993);
 
