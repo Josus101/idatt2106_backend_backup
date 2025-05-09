@@ -131,7 +131,6 @@ public class AdminService {
    */
   public void verifyAdminIsSuperUser(String token) {
     Admin admin = getAdminUserByToken(token);
-    System.out.println("Admin: " + admin);
     if (!admin.isSuperUser()) {
       throw new UnauthorizedException("Admin is not a super user");
     }
