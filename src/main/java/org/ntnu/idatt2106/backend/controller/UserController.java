@@ -17,8 +17,10 @@ import org.ntnu.idatt2106.backend.dto.user.*;
 import org.ntnu.idatt2106.backend.exceptions.AlreadyInUseException;
 import org.ntnu.idatt2106.backend.exceptions.MailSendingFailedException;
 import org.ntnu.idatt2106.backend.exceptions.TokenExpiredException;
+import org.ntnu.idatt2106.backend.exceptions.UnauthorizedException;
 import org.ntnu.idatt2106.backend.exceptions.UserNotFoundException;
 import org.ntnu.idatt2106.backend.exceptions.UserNotVerifiedException;
+import org.ntnu.idatt2106.backend.model.Admin;
 import org.ntnu.idatt2106.backend.model.User;
 import org.ntnu.idatt2106.backend.repo.UserRepo;
 import org.ntnu.idatt2106.backend.security.JWT_token;
@@ -66,6 +68,9 @@ public class UserController {
 
   @Autowired
   UserSettingsService userSettingsService;
+
+  @Autowired
+  private AdminService adminService;
 
   /**
    * Endpoint for registering a new user.
@@ -532,10 +537,10 @@ public class UserController {
    * @param authorizationHeader the JWT token for authorization
    * @return a response entity containing the user's last known location
    */
-  @GetMapping("/locations")
+  @GetMapping("/location")
   @Operation(
       summary = "Get user location",
-      description = "Gets the last known location of all users the requesting user has access to"
+      description = "Gets the last known location of a user with a given token"
   )
   @ApiResponses(value = {
       @ApiResponse(
@@ -543,9 +548,8 @@ public class UserController {
           description = "Location retrieved successfully",
           content = @Content(
               mediaType = "application/json",
-              array = @ArraySchema(
-                  schema = @Schema(implementation = UserPositionResponse.class))
-              )
+              schema = @Schema(implementation = UserPositionResponse.class)
+          )
       ),
       @ApiResponse(
           responseCode = "400",
@@ -569,14 +573,14 @@ public class UserController {
               schema = @Schema(example = "An unexpected error occurred during location retrieval"))
       )
   })
-  public ResponseEntity<?> getPositionsFromHousehold(
+  public ResponseEntity<?> getUserPosition(
       @Parameter(description = "Authorization header with JWT token", example = "Bearer <token>")
       @RequestHeader("Authorization") String authorizationHeader) {
     try {
       String token = authorizationHeader.substring(7);
       User user = jwtToken.getUserByToken(token);
       if (user != null) {
-        return ResponseEntity.ok(householdService.getUserPositions(user));
+        return ResponseEntity.ok(householdService.getUserPosition(user));
       } else {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Error: Unauthorized - Invalid token");
       }
@@ -696,6 +700,120 @@ public class UserController {
     }
   }
 
+  /**
+   * Endpoint for getting all users in the database.
+   * Only usable by admin.
+   *
+   * @param authorizationHeader the JWT token for authorization
+   * @return a response entity containing the list of all users
+   */
+  @GetMapping("/all")
+  @Operation(
+      summary = "Get all users",
+      description = "Gets all users in the database"
+  )
+  @ApiResponses(value = {
+      @ApiResponse(
+          responseCode = "200",
+          description = "Users retrieved successfully",
+          content = @Content(
+              mediaType = "application/json",
+              array = @ArraySchema(
+                  schema = @Schema(implementation = User.class))
+              )
+      ),
+      @ApiResponse(
+          responseCode = "401",
+          description = "Unauthorized - Invalid token",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(example = "Error: Unauthorized - Invalid token"))
+      ),
+      @ApiResponse(
+          responseCode = "500",
+          description = "Internal server error",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(example = "Error: An unexpected error occurred while retrieving all users"))
+      )
+  })
+  public ResponseEntity<?> getAllUsers(
+          @RequestHeader("Authorization") String authorizationHeader
+  ){
+    try {
+      return ResponseEntity.ok(adminService.getAllUsers(authorizationHeader));
+    } catch (IllegalArgumentException e) {
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: Invalid token");
+    } catch (UnauthorizedException e) {
+      return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Error: Unauthorized - Invalid token");
+    } catch (UserNotFoundException e) {
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: User not found");
+    } catch (Exception e) {
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: An error occurred while retrieving all users");
+    }
+  }
+
+  /**
+   * Endpoint for deleting a user.
+   * Only usable by admin.
+   *
+   * @param userId the ID of the user to be deleted
+   * @param authorizationHeader the JWT token for authorization
+   * @return a response entity indicating the result of the operation
+   */
+  @DeleteMapping("/delete/{userId}")
+  @Operation(
+      summary = "Delete user",
+      description = "Deletes a user from the database"
+  )
+  @ApiResponses(value = {
+      @ApiResponse(
+          responseCode = "200",
+          description = "User deleted successfully",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(example = "User deleted successfully"))
+      ),
+      @ApiResponse(
+          responseCode = "401",
+          description = "Unauthorized - Invalid token",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(example = "Error: Unauthorized - Invalid token"))
+      ),
+      @ApiResponse(
+          responseCode = "404",
+          description = "User not found",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(example = "Error: User not found"))
+      ),
+      @ApiResponse(
+          responseCode = "500",
+          description = "Internal server error",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(example = "Error: An unexpected error occurred while deleting the user"))
+      )
+  })
+  public ResponseEntity<?> deleteUser(
+          @Parameter(description = "ID of the user to be deleted", example = "1")
+          @PathVariable int userId,
+          @RequestHeader("Authorization") String authorizationHeader
+  ){
+    try {
+      adminService.deleteUser(String.valueOf(userId), authorizationHeader);
+      return ResponseEntity.ok("User deleted successfully");
+    } catch (UserNotFoundException e) {
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: User not found");
+    } catch (IllegalArgumentException e) {
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: Invalid user ID");
+    } catch (UnauthorizedException e) {
+      return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Error: Unauthorized - Invalid token");
+    } catch (Exception e) {
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: An error occurred while deleting the user");
+    }
+  }
 
 }
 

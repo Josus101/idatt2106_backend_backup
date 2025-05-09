@@ -4,6 +4,8 @@ import com.rometools.rome.feed.synd.SyndCategory;
 import com.rometools.rome.feed.synd.SyndContent;
 import com.rometools.rome.feed.synd.SyndEntry;
 import com.rometools.rome.feed.synd.SyndFeed;
+import com.rometools.rome.io.SyndFeedInput;
+import com.rometools.rome.io.XmlReader;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -19,9 +21,10 @@ import org.ntnu.idatt2106.backend.exceptions.AlreadyInUseException;
 import org.ntnu.idatt2106.backend.model.News;
 import org.ntnu.idatt2106.backend.repo.NewsRepo;
 
+import java.io.IOException;
+import java.net.URL;
 import java.util.Date;
 import java.util.List;
-import java.util.NoSuchElementException;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -57,7 +60,7 @@ public class NewsServiceTest {
             12.34,
             56.78,
             "Test District",
-            new Date());
+            new Date(1746442184323L));
 
     testNewsGetResponse = new NewsGetResponse(
             testNews.getId(),
@@ -169,9 +172,9 @@ public class NewsServiceTest {
   @DisplayName("groupNewsByCaseIdAndSort returns list of lists of NewsGetResponse on success")
   void groupNewsByCaseIdAndSort_Success() {
     List<NewsGetResponse> newsList = List.of(
-            new NewsGetResponse(1, "CaseId1", "Title1", "Content1", 10.0, 20.0, "Oslo Politidistrikt", new Date().toString()),
-            new NewsGetResponse(2, "CaseId1", "Title2", "Content2", 10.0, 20.0, "Oslo Politidistrikt", new Date().toString()),
-            new NewsGetResponse(3, "CaseId2", "Title3", "Content3", 10.0, 20.0, "Oslo Politidistrikt", new Date().toString())
+            new NewsGetResponse(1, "CaseId1", "Title1", "Content1", 10.0, 20.0, "Oslo Politidistrikt", new Date(1746442184323L).toString()),
+            new NewsGetResponse(2, "CaseId1", "Title2", "Content2", 10.0, 20.0, "Oslo Politidistrikt", new Date(1746442184323L).toString()),
+            new NewsGetResponse(3, "CaseId2", "Title3", "Content3", 10.0, 20.0, "Oslo Politidistrikt", new Date(1746442184323L).toString())
     );
 
     List<List<NewsGetResponse>> groupedNews = newsService.groupNewsByCaseIdAndSort(newsList);
@@ -250,6 +253,28 @@ public class NewsServiceTest {
   }
 
   @Test
+  void testLoadFeed_ThrowsAfterAllAttempts() throws Exception {
+    int maxAttempts = 3;
+    NewsService newsService = spy(new NewsService());
+
+    SyndFeedInput mockInput = mock(SyndFeedInput.class);
+    when(mockInput.build(any(XmlReader.class))).thenThrow(new RuntimeException("Feed loading failed"));
+
+    URL mockUrl = new URL("https://api.politiet.no/politiloggen/v1/rss");
+
+    doReturn(mockUrl).when(newsService).getFeedUrl();
+    doReturn(mockInput).when(newsService).getSyndFeedInput();
+
+    RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+      newsService.loadFeed(maxAttempts);
+    });
+
+    assertEquals("Failed to load feed after " + maxAttempts + " attempts", exception.getMessage());
+
+    verify(mockInput, times(maxAttempts)).build(any(XmlReader.class));
+  }
+
+  @Test
   @DisplayName("addNews should throw IllegalArgumentException if district is empty")
   void testAddNews_EmptyDistrict() {
     validRequest.setDistrict("");
@@ -266,11 +291,11 @@ public class NewsServiceTest {
   @Test
   @DisplayName("retrieveNewsFromAPIFeed saves new entries when not already in DB")
   void testRetrieveNewsAddsNewEntry() throws Exception {
-    Date date = new Date();
+    Date date = new Date(1746442184323L);
     SyndEntry entry = mockSyndEntry("New Title", "Content", date, List.of("Oslo Politidistrikt"));
     SyndFeed feed = mock(SyndFeed.class);
     when(feed.getEntries()).thenReturn(List.of(entry));
-    doReturn(feed).when(newsService).loadFeed();
+    doReturn(feed).when(newsService).loadFeed(10);
     when(newsRepo.existsByTitleAndDate("New Title", date)).thenReturn(false);
     newsService.retrieveNewsFromAPIFeed();
     verify(newsRepo).save(argThat(news ->
@@ -282,11 +307,11 @@ public class NewsServiceTest {
   @Test
   @DisplayName("retrieveNewsFromAPIFeed does not save duplicate news")
   void testRetrieveNewsSkipsDuplicate() throws Exception {
-    Date date = new Date();
+    Date date = new Date(1746442184323L);
     SyndEntry entry = mockSyndEntry("Dup Title", "Dup content", date, List.of("Oslo Politidistrikt"));
     SyndFeed feed = mock(SyndFeed.class);
     when(feed.getEntries()).thenReturn(List.of(entry));
-    doReturn(feed).when(newsService).loadFeed();
+    doReturn(feed).when(newsService).loadFeed(10);
     when(newsRepo.existsByTitleAndDate("Dup Title", date)).thenReturn(true);
     newsService.retrieveNewsFromAPIFeed();
     verify(newsRepo, never()).save(any());
@@ -295,11 +320,11 @@ public class NewsServiceTest {
   @Test
   @DisplayName("retrieveNewsFromAPIFeed uses fallback when category is missing")
   void testRetrieveNewsFallbackDistrict() throws Exception {
-    Date date = new Date();
+    Date date = new Date(1746442184323L);
     SyndEntry entry = mockSyndEntry("Fallback Title", "No category", date, List.of());
     SyndFeed feed = mock(SyndFeed.class);
     when(feed.getEntries()).thenReturn(List.of(entry));
-    doReturn(feed).when(newsService).loadFeed();
+    doReturn(feed).when(newsService).loadFeed(10);
     when(newsRepo.existsByTitleAndDate("Fallback Title", date)).thenReturn(false);
     newsService.retrieveNewsFromAPIFeed();
     verify(newsRepo).save(argThat(news -> news.getDistrict().equals("Ukjent distrikt")));
@@ -324,12 +349,98 @@ public class NewsServiceTest {
   @Test
   @DisplayName("loadFeed throws exception when feed cannot be loaded")
   void testLoadFeedThrowsException() throws Exception {
-    doThrow(new Exception("Feed not found")).when(newsService).loadFeed();
-    assertThrows(Exception.class, () -> newsService.loadFeed());
+    doThrow(new Exception("Feed not found")).when(newsService).loadFeed(10);
+    assertThrows(Exception.class, () -> newsService.loadFeed(10));
   }
 
   @Test
-  @DisplayName("clearExpiredNews clears expired news (older than 2 days)")
+  void testLoadFeed_ThrowsAfterMaxAttempts() throws Exception {
+    // Arrange
+    int maxAttempts = 3;
+    NewsService newsService = spy(new NewsService());
+
+    // Mocking SyndFeedInput to always throw an IOException
+    SyndFeedInput mockInput = mock(SyndFeedInput.class);
+    when(mockInput.build(any(XmlReader.class))).thenThrow(new RuntimeException("Feed loading failed"));
+
+    // Mocking the URL object
+    URL mockUrl = new URL("https://api.politiet.no/politiloggen/v1/rss");
+
+    // Use spy to replace internal method calls
+    doReturn(mockUrl).when(newsService).getFeedUrl();
+    doReturn(mockInput).when(newsService).getSyndFeedInput();
+
+    // Act & Assert
+    Exception exception = assertThrows(RuntimeException.class, () -> {
+      newsService.loadFeed(maxAttempts);
+    });
+
+    // Verify the exception message
+    assertEquals("Failed to load feed after 3 attempts", exception.getMessage());
+
+    // Verify the number of attempts
+    verify(mockInput, times(maxAttempts)).build(any(XmlReader.class));
+  }
+
+  @Test
+  void testLoadFeed_SuccessWithDefaultAttempts() throws Exception {
+    // Arrange
+    NewsService newsService = spy(new NewsService());
+
+    // Mocking a successful feed
+    SyndFeed mockFeed = mock(SyndFeed.class);
+    SyndFeedInput mockInput = mock(SyndFeedInput.class);
+    when(mockInput.build(any(XmlReader.class))).thenReturn(mockFeed);
+
+    // Mocking the URL object
+    URL mockUrl = new URL("https://api.politiet.no/politiloggen/v1/rss");
+
+    // Use spy to replace internal method calls
+    doReturn(mockUrl).when(newsService).getFeedUrl();
+    doReturn(mockInput).when(newsService).getSyndFeedInput();
+
+    // Act
+    SyndFeed result = newsService.loadFeed();
+
+    // Assert
+    assertNotNull(result, "Feed should not be null");
+    assertEquals(mockFeed, result, "Returned feed should match the mocked feed");
+
+    // Verify the build method is called only once since the feed loads successfully
+    verify(mockInput, times(1)).build(any(XmlReader.class));
+  }
+
+  @Test
+  void testLoadFeed_ThrowsAfterDefaultAttempts() throws Exception {
+    // Arrange
+    NewsService newsService = spy(new NewsService());
+
+    // Mocking SyndFeedInput to always throw an IOException
+    SyndFeedInput mockInput = mock(SyndFeedInput.class);
+    when(mockInput.build(any(XmlReader.class))).thenThrow(new RuntimeException("Feed loading failed"));
+
+    // Mocking the URL object
+    URL mockUrl = new URL("https://api.politiet.no/politiloggen/v1/rss");
+
+    // Use spy to replace internal method calls
+    doReturn(mockUrl).when(newsService).getFeedUrl();
+    doReturn(mockInput).when(newsService).getSyndFeedInput();
+
+    // Act & Assert
+    RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+      newsService.loadFeed();
+    });
+
+    // Check the exception message
+    assertEquals("Failed to load feed after 10 attempts", exception.getMessage());
+
+    // Verify that the build method was called the default 10 times
+    verify(mockInput, times(10)).build(any(XmlReader.class));
+  }
+
+
+  @Test
+  @DisplayName("clearExpiredNews clears expired news (older than 1 days)")
   void testClearExpiredNews() {
     News expiredNews = new News(
             "Expired",
@@ -346,7 +457,7 @@ public class NewsServiceTest {
   }
 
   @Test
-  @DisplayName("clearExpiredNews does not clear news newer than 2 days")
+  @DisplayName("clearExpiredNews does not clear news newer than 1 days")
   void testClearExpiredNewsNotExpired() {
     News freshNews = new News(
             "Recent",
@@ -355,7 +466,7 @@ public class NewsServiceTest {
             12.34,
             56.78,
             "Fresh District",
-            new Date(System.currentTimeMillis() - 1000L * 60 * 60 * 24)); // 1 day ago
+            new Date(System.currentTimeMillis() - 1000L * 60 * 60 * 22)); // 22 hours ago
 
     when(newsRepo.findAll()).thenReturn(List.of(freshNews));
     newsService.clearExpiredNews();
@@ -374,15 +485,5 @@ public class NewsServiceTest {
     newsService.initOnStartup();
     verify(newsService).retrieveNewsFromAPIFeed();
   }
-
-
-  @Test
-  @DisplayName("retrieveNewsFromAPIFeed throws RuntimeException when feed fails")
-  void testRetrieveNewsThrowsRuntimeException() throws Exception {
-    doThrow(new Exception("Feed not found")).when(newsService).loadFeed();
-    RuntimeException ex = assertThrows(RuntimeException.class, () -> newsService.retrieveNewsFromAPIFeed());
-    assertTrue(ex.getMessage().contains("Failed to retrieve news from API"));
-  }
-
 
 }

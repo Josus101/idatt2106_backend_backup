@@ -151,11 +151,12 @@ class DataSeederTest {
   void testSeedAdminUsersWhenNotExist() {
     when(adminRepo.existsByUsername("admin")).thenReturn(false);
     when(adminRepo.existsByUsername("urekmazino")).thenReturn(false);
+    when(adminRepo.existsByUsername("albert")).thenReturn(false);
     when(hasher.hashPassword("admin123")).thenReturn("hashedPassword");
 
     dataSeeder.seedAdminUsers();
 
-    verify(adminRepo, times(2)).save(any(Admin.class));
+    verify(adminRepo, times(3)).save(any(Admin.class));
   }
 
   @Test
@@ -163,6 +164,7 @@ class DataSeederTest {
   void testSeedAdminUsersWhenExist() {
     when(adminRepo.existsByUsername("admin")).thenReturn(true);
     when(adminRepo.existsByUsername("urekmazino")).thenReturn(true);
+    when(adminRepo.existsByUsername("albert")).thenReturn(true);
 
     dataSeeder.seedAdminUsers();
 
@@ -225,8 +227,8 @@ class DataSeederTest {
     when(householdRepo.save(any(Household.class))).thenReturn(new Household());
     when(itemRepo.saveAll(anyList())).thenReturn(new ArrayList<>());
 
-    when(categoryRepo.findByName(anyString())).thenReturn(Optional.of(new Category()));
-    when(unitRepo.findByName(anyString())).thenReturn(Optional.of(new Unit()));
+    when(categoryRepo.findByEnglishName(anyString())).thenReturn(Optional.of(new Category()));
+    when(unitRepo.findByEnglishName(anyString())).thenReturn(Optional.of(new Unit()));
 
     doNothing().when(userSettingsService).saveUserSettings(anyInt(), any(UserStoreSettingsRequest.class));
 
@@ -245,8 +247,8 @@ class DataSeederTest {
     when(householdRepo.save(any(Household.class))).thenReturn(new Household());
     when(itemRepo.saveAll(anyList())).thenReturn(new ArrayList<>());
 
-    when(categoryRepo.findByName(anyString())).thenReturn(Optional.of(new Category()));
-    when(unitRepo.findByName(anyString())).thenReturn(Optional.of(new Unit()));
+    when(categoryRepo.findByEnglishName(anyString())).thenReturn(Optional.of(new Category()));
+    when(unitRepo.findByEnglishName(anyString())).thenReturn(Optional.of(new Unit()));
 
     dataSeeder.seedHouseholdTwo();
 
@@ -263,8 +265,8 @@ class DataSeederTest {
     when(householdRepo.save(any(Household.class))).thenReturn(new Household());
     when(itemRepo.saveAll(anyList())).thenReturn(new ArrayList<>());
 
-    when(categoryRepo.findByName(anyString())).thenReturn(Optional.of(new Category()));
-    when(unitRepo.findByName(anyString())).thenReturn(Optional.of(new Unit()));
+    when(categoryRepo.findByEnglishName(anyString())).thenReturn(Optional.of(new Category()));
+    when(unitRepo.findByEnglishName(anyString())).thenReturn(Optional.of(new Unit()));
 
     dataSeeder.seedHouseholdThree();
 
@@ -281,8 +283,8 @@ class DataSeederTest {
     when(householdRepo.save(any(Household.class))).thenReturn(new Household());
     when(itemRepo.saveAll(anyList())).thenReturn(new ArrayList<>());
 
-    when(categoryRepo.findByName(anyString())).thenReturn(Optional.of(new Category()));
-    when(unitRepo.findByName(anyString())).thenReturn(Optional.of(new Unit()));
+    when(categoryRepo.findByEnglishName(anyString())).thenReturn(Optional.of(new Category()));
+    when(unitRepo.findByEnglishName(anyString())).thenReturn(Optional.of(new Unit()));
 
     dataSeeder.seedHouseholdFour();
 

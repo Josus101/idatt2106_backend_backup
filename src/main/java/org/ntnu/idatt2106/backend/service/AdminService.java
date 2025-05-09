@@ -1,14 +1,20 @@
 package org.ntnu.idatt2106.backend.service;
 
+import jakarta.mail.MessagingException;
 import java.util.List;
 import java.util.Optional;
 
 import org.ntnu.idatt2106.backend.dto.admin.AdminGetResponse;
+import org.ntnu.idatt2106.backend.dto.user.UserAdminResponse;
+import org.ntnu.idatt2106.backend.dto.user.UserMinimalGetResponse;
 import org.ntnu.idatt2106.backend.exceptions.UnauthorizedException;
 import org.ntnu.idatt2106.backend.exceptions.UserNotFoundException;
 import org.ntnu.idatt2106.backend.exceptions.UserNotVerifiedException;
 import org.ntnu.idatt2106.backend.model.Admin;
+import org.ntnu.idatt2106.backend.model.User;
 import org.ntnu.idatt2106.backend.repo.AdminRepo;
+import org.ntnu.idatt2106.backend.repo.UserRepo;
+import org.ntnu.idatt2106.backend.repo.UserSettingsRepo;
 import org.ntnu.idatt2106.backend.repo.VerificationTokenRepo;
 import org.ntnu.idatt2106.backend.security.BCryptHasher;
 import org.ntnu.idatt2106.backend.security.JWT_token;
@@ -28,6 +34,12 @@ public class AdminService {
 
   @Autowired
   private AdminRepo adminRepo;
+
+  @Autowired
+  private UserRepo userRepo;
+
+  @Autowired
+  private UserSettingsRepo userSettingsRepo;
 
   @Autowired
   private VerificationTokenRepo verificationTokenRepo;
@@ -114,7 +126,7 @@ public class AdminService {
    * Verifies if the admin is a superuser.
    *
    * @param token The token to validate and check if the admin is a superuser.
-   * @throws IllegalArgumentException if the token is invalid or the admin is not a superuser
+   * @throws UnauthorizedException if the token is invalid or the admin is not a superuser
    */
   public void verifyAdminIsSuperUser(String token) {
     Admin admin = getAdminUserByToken(token);
@@ -277,6 +289,7 @@ public class AdminService {
       List<AdminGetResponse> admins = adminRepo.findAll().stream().map(admin -> new AdminGetResponse(
           admin.getId(),
           admin.getUsername(),
+          admin.getEmail(),
           admin.isSuperUser()
       )).toList();
       if (admins.isEmpty()) {
@@ -370,14 +383,14 @@ public class AdminService {
   /**
    * Sends a 2FA token to the admin user.
    *
-   * @param email The email of the admin user.
+   * @param username The email of the admin user.
    */
-  public void send2FAToken(String email) {
+  public void send2FAToken(String username) {
     try {
-      if (email == null || email.isEmpty()) {
-        throw new IllegalArgumentException("Email is required");
+      if (username == null || username.isEmpty()) {
+        throw new IllegalArgumentException("Username is required");
       }
-      Admin admin = adminRepo.findByEmail(email)
+      Admin admin = adminRepo.findByUsername(username)
           .orElseThrow(() -> new UserNotFoundException("Admin not found"));
       send2FAToken(admin);
     } catch (UserNotFoundException e) {
@@ -389,5 +402,98 @@ public class AdminService {
     } catch (Exception e) {
       throw new MailSendingFailedException("Failed to send 2FA token", e.getCause());
     }
+  }
+
+  /**
+   * Verifies the admin user from the provided token.
+   *
+   * @param token The token to verify.
+   * @throws IllegalArgumentException if the token is invalid or the admin is not found.
+   */
+  public void verifyAdminFromToken(String token) {
+    if (token == null || token.isEmpty()) {
+      throw new IllegalArgumentException("Token is required");
+    }
+    Admin admin = jwt.getAdminUserByToken(token);
+    if (admin == null) {
+      throw new UnauthorizedException("Invalid token");
+    }
+  }
+
+  /**
+   * Retrieves all users.
+   *
+   * @param authorizationHeader The authorization header containing the bearer token.
+   * @return A list of all users.
+   */
+  public List<UserAdminResponse> getAllUsers(String authorizationHeader) {
+    String token = getTokenFromAuthorizationHeader(authorizationHeader);
+    try {
+      verifyAdminFromToken(token);
+      List<UserAdminResponse> users = userRepo.findAll().stream().map(user -> new UserAdminResponse(
+          user.getId(),
+          user.getFirstname() +" "+ user.getLastname(),
+          user.getEmail(),
+          user.getPhoneNumber(),
+          user.getHouseholdMembershipsString()
+      )).toList();
+      if (users.isEmpty()) {
+        throw new UserNotFoundException("No users found");
+      }
+      return users;
+    } catch (UnauthorizedException e) {
+      throw new UnauthorizedException("You are not authorized to get all users");
+    }
+  }
+
+  /**
+   * Deletes a user by id
+   *
+   * @param id The id of the user to delete
+   * @param authorizationHeader The authorization header containing the bearer token.
+   * @throws IllegalArgumentException if the user is not found.
+   * @throws UnauthorizedException if the admin is not authorized to delete a user.
+   */
+  public void deleteUser(String id, String authorizationHeader) {
+    String token = getTokenFromAuthorizationHeader(authorizationHeader);
+    try {
+      verifyAdminFromToken(token);
+      Optional<User> user = userRepo.findById(Integer.parseInt(id));
+      if (user.isEmpty()) {
+        throw new IllegalArgumentException("No user found with given id");
+      }
+      if (user.get().getHouseholdMemberships() != null) {
+        user.get().getHouseholdMemberships().forEach(hm -> {
+          hm.getHousehold().removeMember(user.get());
+        });
+      }
+      if (user.get().getUserSettings() != null) {
+        userSettingsRepo.delete(user.get().getUserSettings());
+      }
+      userRepo.delete(user.get());
+    } catch (UnauthorizedException e) {
+      throw new UnauthorizedException("You are not authorized to delete a user");
+    }
+  }
+
+  /**
+   * Sends a password reset email to the user.
+   *
+   * @param email The email of the user.
+   * @param authorizationHeader The authorization header containing the bearer token.
+   * @throws MessagingException if the email sending fails.
+   */
+  public void sendPasswordResetEmail(String email, String authorizationHeader)
+      throws MessagingException {
+    if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
+      throw new IllegalArgumentException("Invalid authorization header");
+    }
+    verifyAdminIsSuperUser(authorizationHeader.substring(7));
+    if (email == null || email.isEmpty()) {
+      throw new IllegalArgumentException("Email is required");
+    }
+    Admin admin = adminRepo.findByEmail(email)
+        .orElseThrow(() -> new UserNotFoundException("Admin not found"));
+    emailService.sendAdminPasswordResetEmail(admin);
   }
 }

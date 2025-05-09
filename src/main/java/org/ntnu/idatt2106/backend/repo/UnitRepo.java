@@ -21,5 +21,5 @@ public interface UnitRepo extends JpaRepository<Unit, Integer> {
    * @param name the name of the unit
    * @return the unit with the given name
    */
-  Optional<Unit> findByName(String name);
+  Optional<Unit> findByEnglishName(String name);
 }

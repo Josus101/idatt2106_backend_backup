@@ -20,6 +20,8 @@ public class AdminGetResponse {
   private int id;
   @Schema(description = "Username of the admin user", example = "admin")
   private String username;
+  @Schema(description = "Email of the admin user", example = "example@gmail.com")
+  private String email;
   @Schema(description = "Password of the admin user", example = "password")
   private boolean isSuperUser;
 

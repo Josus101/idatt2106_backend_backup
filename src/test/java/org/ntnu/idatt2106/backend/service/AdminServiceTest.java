@@ -8,6 +8,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
 import org.ntnu.idatt2106.backend.dto.admin.AdminGetResponse;
+import org.ntnu.idatt2106.backend.dto.user.UserAdminResponse;
 import org.ntnu.idatt2106.backend.exceptions.MailSendingFailedException;
 import org.ntnu.idatt2106.backend.exceptions.UnauthorizedException;
 import org.ntnu.idatt2106.backend.exceptions.UserNotFoundException;
@@ -15,6 +16,7 @@ import org.ntnu.idatt2106.backend.exceptions.UserNotVerifiedException;
 import org.ntnu.idatt2106.backend.model.Admin;
 import org.ntnu.idatt2106.backend.model.User;
 import org.ntnu.idatt2106.backend.repo.AdminRepo;
+import org.ntnu.idatt2106.backend.repo.UserRepo;
 import org.ntnu.idatt2106.backend.repo.VerificationTokenRepo;
 import org.ntnu.idatt2106.backend.security.BCryptHasher;
 import org.ntnu.idatt2106.backend.security.JWT_token;
@@ -37,7 +39,7 @@ public class AdminServiceTest {
   private JWT_token jwt;
 
   private Admin testAdmin;
-
+  private User testUser;
   @Mock
   private EmailService emailService;
 
@@ -46,6 +48,9 @@ public class AdminServiceTest {
 
   @Mock
   private TwoFactorService twoFactorService;
+  
+  @Mock
+  private UserRepo userRepo;
 
   @BeforeEach
   void setUp() {
@@ -54,6 +59,8 @@ public class AdminServiceTest {
     testAdmin = new Admin("admin", hasher.hashPassword("password"), "test@mail.com",
         true);
     testAdmin.setTwoFactorEnabled(false);
+
+    testUser = new User(1,"ape","ape","ape","ape","true");
   }
 
   @Test
@@ -568,7 +575,7 @@ public class AdminServiceTest {
     Admin admin = new Admin();
     admin.setTwoFactorEnabled(true);
     admin.setActive(false);
-    when(adminRepo.findByEmail(email)).thenReturn(Optional.of(admin));
+    when(adminRepo.findByUsername(email)).thenReturn(Optional.of(admin));
     UserNotVerifiedException ex = assertThrows(UserNotVerifiedException.class, () -> {
       adminService.send2FAToken(email);
     });
@@ -580,7 +587,7 @@ public class AdminServiceTest {
   @DisplayName("send2FAToken throws IllegalArgumentException if 2FA is not enabled for admin")
   void send2FAToken_ThrowsIllegalArgumentException() throws MessagingException {
     Admin admin = new Admin();
-    when(adminRepo.findByEmail("email")).thenReturn(Optional.of(admin));
+    when(adminRepo.findByUsername("email")).thenReturn(Optional.of(admin));
     doThrow(new IllegalArgumentException("2FA is not enabled for this admin"))
         .when(emailService).send2FA(any(), anyString());
 
@@ -597,7 +604,7 @@ public class AdminServiceTest {
     Admin admin = new Admin();
     admin.setTwoFactorEnabled(true);
     admin.setActive(true);
-    when(adminRepo.findByEmail(email)).thenReturn(Optional.of(admin));
+    when(adminRepo.findByUsername(email)).thenReturn(Optional.of(admin));
 
     doThrow(new RuntimeException("Email service failure")).when(emailService).send2FA(any(), any());
 
@@ -607,5 +614,80 @@ public class AdminServiceTest {
     assertTrue(ex.getMessage().contains("Failed to send 2FA token"));
   }
 
+  @Test
+  @DisplayName("verifyAdminFromToken should pass with valid token")
+  void verifyAdminFromTokenSuccess() {
+    when(jwt.getAdminUserByToken("valid-token")).thenReturn(testAdmin);
+    assertDoesNotThrow(() -> adminService.verifyAdminFromToken("valid-token"));
+  }
 
+  @Test
+  @DisplayName("verifyAdminFromToken should throw IllegalArgumentException for null token")
+  void verifyAdminFromTokenNull() {
+    Exception exception = assertThrows(IllegalArgumentException.class, () -> adminService.verifyAdminFromToken(null));
+    assertEquals("Token is required", exception.getMessage());
+  }
+
+  @Test
+  @DisplayName("verifyAdminFromToken should throw UnauthorizedException for invalid token")
+  void verifyAdminFromTokenInvalid() {
+    when(jwt.getAdminUserByToken("invalid-token")).thenReturn(null);
+    assertThrows(UnauthorizedException.class, () -> adminService.verifyAdminFromToken("invalid-token"));
+  }
+
+  @Test
+  @DisplayName("getAllUsers should return list of users when authorized")
+  void getAllUsersSuccess() {
+    when(jwt.getAdminUserByToken("valid-token")).thenReturn(testAdmin);
+    when(userRepo.findAll()).thenReturn(List.of(testUser));
+
+    List<UserAdminResponse> users = adminService.getAllUsers("Bearer valid-token");
+
+    assertEquals(1, users.size());
+    assertEquals("ape ape", users.get(0).getName());
+  }
+
+  @Test
+  @DisplayName("getAllUsers should throw UserNotFoundException if no users exist")
+  void getAllUsersEmpty() {
+    when(jwt.getAdminUserByToken("valid-token")).thenReturn(testAdmin);
+    when(userRepo.findAll()).thenReturn(List.of());
+
+    Exception exception = assertThrows(UserNotFoundException.class, () -> adminService.getAllUsers("Bearer valid-token"));
+    assertEquals("No users found", exception.getMessage());
+  }
+
+  @Test
+  @DisplayName("getAllUsers should throw UnauthorizedException if token is invalid")
+  void getAllUsersUnauthorized() {
+    when(jwt.getAdminUserByToken("invalid-token")).thenReturn(null);
+    assertThrows(UnauthorizedException.class, () -> adminService.getAllUsers("Bearer invalid-token"));
+  }
+
+  @Test
+  @DisplayName("deleteUser should delete user when authorized")
+  void deleteUserSuccess() {
+    when(jwt.getAdminUserByToken("valid-token")).thenReturn(testAdmin);
+    when(userRepo.findById(1)).thenReturn(Optional.of(testUser));
+
+    assertDoesNotThrow(() -> adminService.deleteUser("1", "Bearer valid-token"));
+  }
+
+  @Test
+  @DisplayName("deleteUser should throw if user not found")
+  void deleteUserNotFound() {
+    when(jwt.getAdminUserByToken("valid-token")).thenReturn(testAdmin);
+    when(userRepo.findById(1)).thenReturn(Optional.empty());
+
+    Exception exception = assertThrows(IllegalArgumentException.class, () -> adminService.deleteUser("1", "Bearer valid-token"));
+    assertEquals("No user found with given id", exception.getMessage());
+  }
+
+  @Test
+  @DisplayName("deleteUser should throw UnauthorizedException with invalid token")
+  void deleteUserUnauthorized() {
+    when(jwt.getAdminUserByToken("invalid-token")).thenReturn(null);
+    assertThrows(UnauthorizedException.class, () -> adminService.deleteUser("1", "Bearer invalid-token"));
+  }
 }
+

@@ -249,7 +249,7 @@ public class AdminController {
       }
       return ResponseEntity.ok(token);
     } catch (IllegalArgumentException e) {
-      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: Invalid admin data");
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: " + e.getMessage());
     } catch (UserNotFoundException e) {
 
       return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: " + e.getMessage());
@@ -344,7 +344,6 @@ public class AdminController {
   @Operation(
       summary = "Get all admin users",
       description = "Get request to retrieve all admin users. "
-          + "Requires superuser privileges. "
           + "Returns a list of admin users."
   )
   @ApiResponses(value = {
@@ -413,7 +412,6 @@ public class AdminController {
   @Operation(
       summary = "Activate an admin account",
       description = "Put request to activate an admin account. "
-          + "Requires superuser privileges. "
           + "Returns true if the admin was activated successfully, false otherwise."
   )
   @ApiResponses(value = {
@@ -481,14 +479,13 @@ public class AdminController {
   /**
    * Sends 2fa code to the admin email.
    *
-   * @param email The email of the admin to send the 2fa code to.
+   * @param username The username of the admin to send the 2fa code to.
    * @return a response entity containing the result of the operation
    */
   @PostMapping("/2fa")
   @Operation(
       summary = "Send 2FA code to admin email",
       description = "Post request to send 2FA code to admin email. "
-          + "Requires superuser privileges. "
           + "Returns true if the 2FA code was sent successfully, false otherwise."
   )
   @ApiResponses(value = {
@@ -538,9 +535,9 @@ public class AdminController {
           name= "email",
           description = "The email of the admin to send the 2FA code to",
           required = true
-      ) @RequestBody EmailRequest email) {
+      ) @RequestBody AdminLoginRequest username) {
     try {
-      adminService.send2FAToken(email.getEmail());
+      adminService.send2FAToken(username.getUsername());
       return ResponseEntity.ok(true);
     } catch (IllegalArgumentException e) {
       return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: Invalid admin data");
@@ -551,9 +548,167 @@ public class AdminController {
     } catch (UserNotVerifiedException e) {
       return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Error: " + e.getMessage() + ". Please activate your account via the email.");
     } catch (Exception e) {
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: An unexpected error occurred");
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: An unexpected error occurred." + e.getMessage() + ". Please try again.");
     }
   }
 
+  /**
+   * Resets the password for the admin account using the provided token.
+   *
+   * @param token The token to reset password of the admin account.
+   * @param newPassword The new password to set for the admin account.
+   * @return a response entity containing the result of the operation
+   */
+  @PutMapping("/reset-password/{token}")
+  @Operation(
+      summary = "Reset admin password",
+      description = "Put request to reset admin password. "
+          + "Returns true if the password was reset successfully, false otherwise."
+  )
+  @ApiResponses(value = {
+      @ApiResponse(
+          responseCode = "200",
+          description = "Admin account password reset successfully",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(type = "boolean", example = "true")
+          )
+      ),
+      @ApiResponse(
+          responseCode = "400",
+          description = "Invalid request",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(type = "boolean", example = "false")
+          )
+      ),
+      @ApiResponse(
+          responseCode = "401",
+          description = "Unauthorized",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(type = "boolean", example = "false")
+          )
+      ),
+      @ApiResponse(
+          responseCode = "500",
+          description = "Internal Server Error",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(type = "boolean", example = "false")
+          )
+      )
+  })
+  public ResponseEntity<?> resetPasswordAdmin(
+      @Parameter(
+          name = "token",
+          description = "The token to activate the admin account",
+          required = true,
+          example = "eyJhbGciOiJIUzI1N.iIsInR5cCI6IkpXVCJ9..."
+      )
+      @PathVariable String token,
+      @Parameter(
+          name = "newPassword",
+          description = "The new password to set for the admin account",
+          required = true,
+          example = "newpassword123"
+      )
+      @RequestParam String newPassword)
+  {
+    try {
+      verificationService.changeAdminPassword(token, newPassword);
+    } catch (IllegalArgumentException e) {
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: " + e.getMessage() + ". Please try again.");
+    } catch (UnauthorizedException e) {
+      return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Error: " + e.getMessage());
+    } catch (Exception e) {
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: An unexpected error occurred." + e.getMessage());
+    }
+    return ResponseEntity.ok(true);
+  }
+
+  /**
+   * Endpoint for sending a password reset email to the admin user.
+   * Requires the admin's email address, and superuser privileges.
+   *
+   * @param emailRequest the email request containing the admin's email address
+   * @param authorizationHeader the authorization header containing the JWT token
+   * @return a response entity containing the list of news
+   */
+  @PostMapping("/reset-password")
+  @Operation(
+      summary = "Send password reset email to admin user",
+      description = "Post request to send a password reset email to the admin user. "
+          + "Requires superuser privileges. "
+          + "Returns true if the email was sent successfully, false otherwise."
+  )
+  @ApiResponses(value = {
+      @ApiResponse(
+          responseCode = "200",
+          description = "Password reset email sent successfully",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(type = "boolean", example = "true")
+          )
+      ),
+      @ApiResponse(
+          responseCode = "400",
+          description = "Invalid request",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(type = "boolean", example = "false")
+          )
+      ),
+      @ApiResponse(
+          responseCode = "401",
+          description = "Unauthorized",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(type = "boolean", example = "false")
+          )
+      ),
+      @ApiResponse(
+        responseCode = "500",
+        description = "Internal Server Error",
+        content = @Content(
+            mediaType = "application/json",
+            schema = @Schema(type = "boolean", example = "false")
+        )
+      )
+  })
+  public ResponseEntity<?> sendPasswordResetEmail(
+      @io.swagger.v3.oas.annotations.parameters.RequestBody(
+          description = "Email request containing the admin's email address",
+          required = true,
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(implementation = EmailRequest.class)
+          )
+      )
+      @RequestBody EmailRequest emailRequest,
+      @Parameter(
+          name = "Authorization",
+          description = "Bearer token in the format `Bearer <JWT>`",
+          required = true,
+          example = "Bearer eyJhbGciOiJIUzI1N.iIsInR5cCI6IkpXVCJ9..."
+      ) @RequestHeader("Authorization") String authorizationHeader) {
+    try {
+      if (authorizationHeader == null || authorizationHeader.isEmpty()) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Error: Authorization header is missing");
+      }
+      adminService.sendPasswordResetEmail(emailRequest.getEmail(), authorizationHeader);
+    } catch (IllegalArgumentException e) {
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error : Invalid data");
+    } catch (UnauthorizedException e) {
+      return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Error: " + e.getMessage());
+    } catch (UserNotFoundException e) {
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: " + e.getMessage());
+    } catch (UserNotVerifiedException e) {
+      return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Error: " + e.getMessage() + ". Please activate your account via the email.");
+    } catch (Exception e) {
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: An unexpected error occurred");
+    }
+    return ResponseEntity.ok(true);
+  }
 
 }

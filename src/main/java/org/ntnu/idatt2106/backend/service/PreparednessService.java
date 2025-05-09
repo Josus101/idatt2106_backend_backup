@@ -57,8 +57,8 @@ public class PreparednessService {
 
             Category category = item.getCategory();
             double amount = item.getAmount();
-            String unit = item.getUnit().getName().toLowerCase();
-            String catName = category.getName().toLowerCase();
+            String unit = item.getUnit().getEnglishName().toLowerCase();
+            String catName = category.getEnglishName().toLowerCase();
 
             // Beregn vann
             if ((catName.equals("vann") || catName.equals("water")) && unit.equals("l")) {
@@ -73,11 +73,24 @@ public class PreparednessService {
         }
 
         // Antall dager med mat og vann
-        double kcalPerPersonPerDay = 2000;
-        double waterPerPersonPerDay = 3;
+        double kcalPerAdultPerDay = 2000;
+        double waterPerAdultPerDay = 3;
 
-        double daysOfFood = totalKcal / (numPeople * kcalPerPersonPerDay);
-        double daysOfWater = totalWater / (numPeople * waterPerPersonPerDay);
+        double kcalPerChildPerDay = 1400;
+        double waterPerChildPerDay = 1.5;
+
+        double kcalPerPetPerDay = 500;
+        double waterPerPetPerDay = 1.0;
+
+        double kcalPerDay = ((numPeople + household.getUnregisteredAdultCount()) * kcalPerAdultPerDay +
+            household.getUnregisteredChildCount() * kcalPerChildPerDay +
+            household.getUnregisteredPetCount() * kcalPerPetPerDay);
+        double waterPerDay = ((numPeople + household.getUnregisteredAdultCount()) * waterPerAdultPerDay +
+            household.getUnregisteredChildCount() * waterPerChildPerDay +
+            household.getUnregisteredPetCount() * waterPerPetPerDay);
+
+        double daysOfFood = totalKcal / (kcalPerDay);
+        double daysOfWater = totalWater / (waterPerDay);
 
         return new MyHouseholdStatusGetResponse(household.getId(), household.getName(), new PreparednessStatus(daysOfFood, daysOfWater));
     }

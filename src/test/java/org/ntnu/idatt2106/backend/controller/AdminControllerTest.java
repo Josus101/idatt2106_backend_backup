@@ -137,7 +137,7 @@ class AdminControllerTest {
     ResponseEntity<?> response = adminController.login(loginDTO);
 
     assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-    assertEquals("Error: Invalid admin data", response.getBody());
+    assertEquals("Error: Invalid credentials", response.getBody());
   }
 
   @Test
@@ -200,8 +200,8 @@ class AdminControllerTest {
   @DisplayName("Should return 200 with admin list on success")
   void testGetAllAdminsSuccess() {
     List<AdminGetResponse> mockAdmins = List.of(
-        new AdminGetResponse(1, "admin1", true),
-        new AdminGetResponse(2, "admin2", false)
+        new AdminGetResponse(1, "admin1", "admin1", true),
+        new AdminGetResponse(2, "admin2", "admin1", false)
     );
     when(adminService.getAllAdmins("Bearer token")).thenReturn(mockAdmins);
 
@@ -283,8 +283,8 @@ class AdminControllerTest {
   @Test
   @DisplayName("sendMeTheCode returns 200 OK when successful")
   void sendMeTheCode_Success() {
-    EmailRequest emailRequest = new EmailRequest("adminEmail");
-    ResponseEntity<?> response = adminController.sendMeTheCode(emailRequest);
+    AdminLoginRequest loginRequest = new AdminLoginRequest("admin", "", "");
+    ResponseEntity<?> response = adminController.sendMeTheCode(loginRequest);
     assertEquals(HttpStatus.OK, response.getStatusCode());
     assertEquals(true, response.getBody());
   }
@@ -293,7 +293,7 @@ class AdminControllerTest {
   @DisplayName("sendMeTheCode returns 400 BAD_REQUEST on IllegalArgumentException")
   void sendMeTheCode_BadRequest() {
     doThrow(new IllegalArgumentException()).when(adminService).send2FAToken(anyString());
-    ResponseEntity<?> response = adminController.sendMeTheCode(new EmailRequest("adminEmail"));
+    ResponseEntity<?> response = adminController.sendMeTheCode(new AdminLoginRequest("admin", "", ""));
     assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     assertTrue(response.getBody().toString().contains("Invalid admin data"));
   }
@@ -302,7 +302,7 @@ class AdminControllerTest {
   @DisplayName("sendMeTheCode returns 401 UNAUTHORIZED on UnauthorizedException")
   void sendMeTheCode_Unauthorized() {
     doThrow(new UnauthorizedException("Unauthorized")).when(adminService).send2FAToken(anyString());
-    ResponseEntity<?> response = adminController.sendMeTheCode(new EmailRequest("adminEmail"));
+    ResponseEntity<?> response = adminController.sendMeTheCode(new AdminLoginRequest("admin", "", ""));
     assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
     assertTrue(response.getBody().toString().contains("Unauthorized"));
   }
@@ -311,7 +311,7 @@ class AdminControllerTest {
   @DisplayName("sendMeTheCode returns 404 NOT_FOUND on UserNotFoundException")
   void sendMeTheCode_NotFound() {
     doThrow(new UserNotFoundException("Admin not found")).when(adminService).send2FAToken(anyString());
-    ResponseEntity<?> response = adminController.sendMeTheCode(new EmailRequest("adminEmail"));
+    ResponseEntity<?> response = adminController.sendMeTheCode(new AdminLoginRequest("admin", "", ""));
     assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
     assertTrue(response.getBody().toString().contains("Admin not found"));
   }
@@ -320,7 +320,7 @@ class AdminControllerTest {
   @DisplayName("sendMeTheCode returns 401 UNAUTHORIZED on UserNotVerifiedException")
   void sendMeTheCode_NotVerified() {
     doThrow(new UserNotVerifiedException("Account not verified")).when(adminService).send2FAToken(anyString());
-    ResponseEntity<?> response = adminController.sendMeTheCode(new EmailRequest("adminEmail"));
+    ResponseEntity<?> response = adminController.sendMeTheCode(new AdminLoginRequest("admin", "", ""));
     assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
     assertTrue(response.getBody().toString().contains("Account not verified"));
   }
@@ -329,7 +329,7 @@ class AdminControllerTest {
   @DisplayName("sendMeTheCode returns 500 INTERNAL_SERVER_ERROR on generic exception")
   void sendMeTheCode_ServerError() {
     doThrow(new RuntimeException()).when(adminService).send2FAToken(anyString());
-    ResponseEntity<?> response = adminController.sendMeTheCode(new EmailRequest("adminEmail"));
+    ResponseEntity<?> response = adminController.sendMeTheCode(new AdminLoginRequest("admin", "", ""));
     assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
     assertTrue(response.getBody().toString().contains("unexpected error"));
   }

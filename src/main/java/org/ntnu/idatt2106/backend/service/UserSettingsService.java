@@ -4,7 +4,7 @@ import org.ntnu.idatt2106.backend.dto.user.UserStoreSettingsRequest;
 import org.ntnu.idatt2106.backend.model.User;
 import org.ntnu.idatt2106.backend.model.UserSettings;
 import org.ntnu.idatt2106.backend.repo.UserRepo;
-import org.ntnu.idatt2106.backend.repo.UserSettingsRepository;
+import org.ntnu.idatt2106.backend.repo.UserSettingsRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -20,18 +20,20 @@ import java.util.Optional;
 @Service
 public class UserSettingsService {
 
-  private final UserSettingsRepository repository;
+  private final UserSettingsRepo userSettingsRepo;
 
-  @Autowired
-  private UserRepo userRepo;
+  private final UserRepo userRepo;
 
   /**
    * Constructor for UserSettingsService.
    *
-   * @param repository The UserSettingsRepository to be used for database operations.
+   * @param userSettingsRepo The UserSettingsRepo to be used for database operations.
+   *
    */
-  public UserSettingsService(UserSettingsRepository repository) {
-    this.repository = repository;
+  @Autowired
+  public UserSettingsService(UserSettingsRepo userSettingsRepo, UserRepo userRepo) {
+    this.userSettingsRepo = userSettingsRepo;
+    this.userRepo = userRepo;
   }
 
   /**
@@ -46,11 +48,11 @@ public class UserSettingsService {
     User user = userRepo.findById(userId)
             .orElseThrow(() -> new IllegalArgumentException("User not found with ID: " + userId));
 
-    UserSettings userSettings = repository.findByUserId(userId).orElse(new UserSettings());
+    UserSettings userSettings = userSettingsRepo.findByUserId(userId).orElse(new UserSettings());
     userSettings.setUser(user); // viktig: setter JPA-managed User
     userSettings.setSettings(settingsJson);
 
-    repository.save(userSettings);
+    userSettingsRepo.save(userSettings);
   }
 
 
@@ -60,11 +62,11 @@ public class UserSettingsService {
    * @param userId The ID of the user.
    * @return The UserStoreSettingsRequest object containing the user's settings, or null if not found.
    */
-  public UserStoreSettingsRequest getUserSettings(int userId) {
-    Optional<UserSettings> optionalSettings = repository.findByUserId(userId);
+  public UserStoreSettingsRequest getUserSettings(int userId) throws RuntimeException {
+    Optional<UserSettings> optionalSettings = userSettingsRepo.findByUserId(userId);
 
     if (optionalSettings.isEmpty()) {
-      System.out.println("⚠️ No settings found for user ID: " + userId);
+      System.out.println("No settings found for user ID: " + userId);
       return null;
     }
 
@@ -73,9 +75,8 @@ public class UserSettingsService {
     try {
       return SettingsUtils.convertFromJson(json);
     } catch (Exception e) {
-      System.out.println("❌ Failed to parse JSON for user ID " + userId + ": " + json);
-      e.printStackTrace();
-      return null;
+      System.out.println("Failed to parse JSON for user ID " + userId + ": " + json);
+      throw new RuntimeException("Failed to parse JSON for user ID " + userId, e);
     }
   }
 }

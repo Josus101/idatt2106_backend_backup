@@ -20,7 +20,10 @@ public class Category {
   private int id;
 
   @Column(nullable = false, unique = true)
-  private String name;
+  private String englishName;
+
+  @Column(nullable = false, unique = true)
+  private String norwegianName;
 
   @Column
   private Integer kcalPerUnit;
@@ -37,25 +40,27 @@ public class Category {
   /**
    * Constructor for the Category model
    * @param id of the category
-   * @param name of the category
+   * @param englishName of the category
    * @param kcalPerUnit of the category (nullable)
    * @param isEssential whether the category is essential
    */
-  public Category(int id, String name, Integer kcalPerUnit, Boolean isEssential) {
+  public Category(int id, String englishName, String norwegianName, Integer kcalPerUnit, Boolean isEssential) {
     this.id = id;
-    this.name = name;
+    this.englishName = englishName;
+    this.norwegianName = norwegianName;
     this.kcalPerUnit = kcalPerUnit;
     this.isEssential = isEssential;
   }
 
   /**
    * Constructor for the Category model
-   * @param name of the category
+   * @param englishName of the category
    * @param kcalPerUnit of the category (nullable)
    * @param isEssential whether the category is essential
    */
-  public Category(String name, Integer kcalPerUnit, Boolean isEssential) { // Changed int to Integer
-    this.name = name;
+  public Category(String englishName, String norwegianName, Integer kcalPerUnit, Boolean isEssential) { // Changed int to Integer
+    this.englishName = englishName;
+    this.norwegianName = norwegianName;
     this.kcalPerUnit = kcalPerUnit;
     this.isEssential = isEssential;
   }

@@ -42,10 +42,23 @@ public class Household {
   )
   private List<Item> inventory;
 
+  @Column
+  private int unregisteredAdultCount;
+
+  @Column
+  private int unregisteredChildCount;
+
+  @Column
+  private int unregisteredPetCount;
+
   /**
    * Blank constructor for the Household model
    */
-  public Household() {}
+  public Household() {
+    unregisteredAdultCount = 0;
+    unregisteredChildCount = 0;
+    unregisteredPetCount = 0;
+  }
 
 
   /**
@@ -60,6 +73,9 @@ public class Household {
     this.name = name;
     this.latitude = latitude;
     this.longitude = longitude;
+    unregisteredAdultCount = 0;
+    unregisteredChildCount = 0;
+    unregisteredPetCount = 0;
   }
 
 
@@ -79,5 +95,26 @@ public class Household {
     this.longitude = longitude;
     this.members = members;
     this.inventory = inventory;
+    unregisteredAdultCount = 0;
+    unregisteredChildCount = 0;
+    unregisteredPetCount = 0;
+  }
+
+  /**
+   * Removes a member from the household
+   * @param user the user to remove
+   */
+  public void removeMember(User user) {
+    HouseholdMembers householdMember = null;
+    for (HouseholdMembers member : members) {
+      if (member.getUser().getId() == user.getId()) {
+        householdMember = member;
+        break;
+      }
+    }
+    if (householdMember != null) {
+      members.remove(householdMember);
+      householdMember.setHousehold(null);
+    }
   }
 }

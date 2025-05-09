@@ -34,7 +34,8 @@ class UnitControllerTest {
     MockMvcBuilders.standaloneSetup(unitController).build();
     unitGetResponse = new UnitGetResponse(
             1,
-            "Test Unit"
+            "Test Unit",
+            "Test enhet"
     );
   }
 
@@ -82,5 +83,4 @@ class UnitControllerTest {
     assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
     assertEquals("Error: Unit not found", response.getBody());
   }
-
 }

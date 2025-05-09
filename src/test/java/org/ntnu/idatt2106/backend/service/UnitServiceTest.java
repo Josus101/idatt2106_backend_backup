@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
@@ -44,7 +45,8 @@ public class UnitServiceTest {
     int unitId = 1;
     Unit mockUnit = new Unit();
     mockUnit.setId(unitId);
-    mockUnit.setName("Liter");
+    mockUnit.setEnglishName("Liter");
+    mockUnit.setNorwegianName("Liter");
 
     when(unitRepo.findById(unitId)).thenReturn(Optional.of(mockUnit));
 
@@ -52,7 +54,8 @@ public class UnitServiceTest {
 
     assertNotNull(result);
     assertEquals(unitId, result.getId());
-    assertEquals("Liter", result.getName());
+    assertEquals("Liter", result.getEnglishName());
+    assertEquals("Liter", result.getNorwegianName());
   }
 
   @Test
@@ -67,11 +70,13 @@ public class UnitServiceTest {
   void getAllUnitsSuccess() {
     Unit unit1 = new Unit();
     unit1.setId(1);
-    unit1.setName("Liter");
+    unit1.setEnglishName("Liter");
+    unit1.setNorwegianName("Liter");
 
     Unit unit2 = new Unit();
     unit2.setId(2);
-    unit2.setName("Kilogram");
+    unit2.setEnglishName("Kilo gram");
+    unit2.setNorwegianName("Kilogram");
 
     when(unitRepo.findAll()).thenReturn(List.of(unit1, unit2));
 
@@ -79,8 +84,10 @@ public class UnitServiceTest {
 
     assertNotNull(result);
     assertEquals(2, result.size());
-    assertEquals("Liter", result.get(0).getName());
-    assertEquals("Kilogram", result.get(1).getName());
+    assertEquals("Liter", result.get(0).getEnglishName());
+    assertEquals("Liter", result.get(0).getNorwegianName());
+    assertEquals("Kilo gram", result.get(1).getEnglishName());
+    assertEquals("Kilogram", result.get(1).getNorwegianName());
   }
 
   @Test

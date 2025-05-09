@@ -9,6 +9,7 @@ import java.util.Optional;
 import org.ntnu.idatt2106.backend.dto.household.HouseholdCreate;
 import org.ntnu.idatt2106.backend.dto.household.HouseholdMinimalGetResponse;
 import org.ntnu.idatt2106.backend.dto.household.HouseholdRequest;
+import org.ntnu.idatt2106.backend.dto.household.UnregisteredMembersRequest;
 import org.ntnu.idatt2106.backend.dto.user.UserMinimalGetResponse;
 import org.ntnu.idatt2106.backend.dto.user.UserPositionResponse;
 import org.ntnu.idatt2106.backend.exceptions.JoinCodeException;
@@ -384,7 +385,19 @@ public class HouseholdService {
         }
       }
 
-      households.add(new HouseholdRequest(household.getId(), household.getName(), household.getLatitude(), household.getLongitude(), members, inventory));
+      households.add(
+              new HouseholdRequest(
+                      household.getId(),
+                      household.getName(),
+                      household.getLatitude(),
+                      household.getLongitude(),
+                      members,
+                      household.getUnregisteredAdultCount(),
+                      household.getUnregisteredChildCount(),
+                      household.getUnregisteredPetCount(),
+                      inventory
+              )
+      );
     }
     return households;
   }
@@ -523,6 +536,26 @@ public class HouseholdService {
   }
 
   /**
+   * Gets the position of a user.
+   *
+   * @param user The user whose position is to be retrieved.
+   * @return The user's position.
+   * @throws IllegalArgumentException if the user is null.
+   */
+  public UserPositionResponse getUserPosition(User user) {
+      if (user == null) {
+      throw new IllegalArgumentException("User cannot be null");
+    }
+    return new UserPositionResponse(
+        user.getLatitude(),
+        user.getLongitude(),
+        user.getFormattedPositionUpdateTime(),
+        user.getId(),
+        user.toString()
+    );
+  }
+
+  /**
    * Verifies if a user is an admin of a household.
    *
    * @param userId The id of the user to verify.
@@ -531,5 +564,28 @@ public class HouseholdService {
    */
   public boolean verifyAdmin(int userId, int householdId) {
     return householdMembersRepo.existsByUserIdAndHouseholdIdAndIsAdminIsTrue(userId, householdId);
+  }
+
+  /**
+   * Adds unregistered members to a household.
+   *
+   * @param householdId The id of the household to which the members will be added.
+   * @param members The list of unregistered members to be added.
+   * @param user The user who is adding the members.
+   */
+  public void setUnregisteredMembers(int householdId, UnregisteredMembersRequest members, User user) {
+    Optional<Household> household = householdRepo.findById(householdId);
+    if (household.isEmpty()) {
+      throw new NoSuchElementException("Household not found");
+    }
+    verifyUserInHousehold(household.get(), user);
+    Household householdObj = household.get();
+    if (members.getUnregisteredAdultCount() < 0 || members.getUnregisteredChildCount() < 0 || members.getUnregisteredPetCount() < 0) {
+      throw new IllegalArgumentException("Unregistered member counts cannot be negative");
+    }
+    householdObj.setUnregisteredAdultCount(members.getUnregisteredAdultCount());
+    householdObj.setUnregisteredChildCount(members.getUnregisteredChildCount());
+    householdObj.setUnregisteredPetCount(members.getUnregisteredPetCount());
+    householdRepo.save(householdObj);
   }
 }

@@ -42,6 +42,7 @@ public class NewsService {
   @EventListener(ApplicationReadyEvent.class)
   public void initOnStartup() {
     retrieveNewsFromAPIFeed();
+    clearExpiredNews();
   }
 
   /**
@@ -176,14 +177,55 @@ public class NewsService {
   }
 
   /**
+   * Method to get the SyndFeedInput object
+   * @return SyndFeedInput
+   */
+  protected SyndFeedInput getSyndFeedInput() {
+    return new SyndFeedInput();
+  }
+
+  /**
+   * Method to get the feed URL from the Politiloggen API
+   * @return URL of the feed
+   * @throws Exception if the URL cannot be created
+   */
+  protected URL getFeedUrl() throws Exception {
+    return new URL("https://api.politiet.no/politiloggen/v1/rss");
+  }
+
+  /**
+   * Method to load the feed from the Politiloggen API
+   * @param maxAttempts the maximum number of attempts to load the feed
+   * @return SyndFeed
+   * @throws Exception if the feed cannot be loaded
+   */
+  protected SyndFeed loadFeed(int maxAttempts) throws Exception {
+    int attemptCount = 0;
+
+    while (attemptCount < maxAttempts) {
+      try {
+        URL feedUrl = getFeedUrl();
+        SyndFeedInput input = getSyndFeedInput();
+        return input.build(new XmlReader(feedUrl));
+      } catch (Exception e) {
+        attemptCount++;
+        if (attemptCount >= maxAttempts) {
+          break;
+        }
+        Thread.sleep(1000);
+      }
+    }
+    throw new RuntimeException("Failed to load feed after " + maxAttempts + " attempts");
+  }
+
+
+  /**
    * Method to load the feed from the Politiloggen API
    * @return SyndFeed
    * @throws Exception if the feed cannot be loaded
    */
   protected SyndFeed loadFeed() throws Exception {
-    URL feedUrl = new URL("https://api.politiet.no/politiloggen/v1/rss");
-    SyndFeedInput input = new SyndFeedInput();
-    return input.build(new XmlReader(feedUrl));
+    return loadFeed(10);
   }
 
   /**
@@ -194,7 +236,7 @@ public class NewsService {
   @Scheduled(fixedRate = 300_000) // 5 minutes
   public void retrieveNewsFromAPIFeed() {
     try {
-      SyndFeed feed = loadFeed();
+      SyndFeed feed = loadFeed(10);
 
       System.out.println("Retrieving news from API...");
       System.out.println("Feed items length: " + feed.getEntries().size());
@@ -236,7 +278,7 @@ public class NewsService {
       }
 
     } catch (Exception e) {
-      throw new RuntimeException("Failed to retrieve news from API", e);
+      System.err.println("Error retrieving news from API: " + e.getMessage());
     }
   }
 
@@ -244,9 +286,10 @@ public class NewsService {
    * Scheduled method to clear expired news
    * This method is called every 24 hours
    */
-  @Scheduled(fixedRate = 86_400_000) // 24 hours
+  @Scheduled(fixedRate = 3_600_000) // 1 hour
   public void clearExpiredNews() {
-    long timeAlive = 86_400_000 * 2; // 2 days in millis
+    System.out.println("Clearing expired news...");
+    long timeAlive = 86_400_000; // 1 day(s) in millis
     Date now = new Date();
     List<News> expiredNews = newsRepo.findAll().stream()
             .filter(news -> now.getTime() - news.getDate().getTime() > timeAlive)
