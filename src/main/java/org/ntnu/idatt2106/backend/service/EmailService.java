@@ -287,7 +287,7 @@ public class EmailService {
     }
     String token = generateAdminToken(admin);
     String encodedToken = URLEncoder.encode(token, StandardCharsets.UTF_8);
-    String verificationUrl = BASE_URL + "admin-activation/" + encodedToken;
+    String verificationUrl = BASE_URL + "admin-activation/?token=" + encodedToken;
 
     String htmlContent = buildEmailTemplate(
         "Activate Your Admin Account",
@@ -330,7 +330,7 @@ public class EmailService {
   public void sendAdminPasswordResetEmail(Admin admin) throws MessagingException {
     String token = generateAdminPasswordResetToken(admin);
     String encodedToken = URLEncoder.encode(token, StandardCharsets.UTF_8);
-    String resetUrl = BASE_URL + "admin-password-reset/" + encodedToken;
+    String resetUrl = BASE_URL + "admin-password-reset/?token=" + encodedToken;
 
     String htmlContent = buildEmailTemplate(
         "Reset Your Admin Password",
