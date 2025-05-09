@@ -12,6 +12,9 @@ import lombok.Setter;
  * This class is used to transfer emergency zone data between the client and server.
  * It includes fields for the name, description, type, and severity level of the emergency zone.
  *
+ * @author André Merkesdal
+ * @version 0.2
+ * @since 0.2
  */
 @Getter
 @Setter

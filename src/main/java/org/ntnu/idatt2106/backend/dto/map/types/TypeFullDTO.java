@@ -9,6 +9,10 @@ import lombok.Setter;
 /**
  * Data transfer object for a full type object with id and name.
  * This class is used to transfer type data between the client and server.
+ *
+ * @author André Merkesdal
+ * @version 0.2
+ * @since 0.2
  */
 @Getter
 @Setter

@@ -9,6 +9,7 @@ import lombok.Setter;
  * This class is used to represent entities in the map.
  *
  * @author André Merkesdal
+ * @version 0.2
  * @since 0.1
  */
 @Entity

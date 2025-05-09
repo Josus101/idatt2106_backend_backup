@@ -7,8 +7,13 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 /**
  * Repository interface for type entity.
+ *
+ * @author André Merkesdal
+ * @version 0.2
+ * @since 0.1
  */
 public interface MapZoneTypeRepo extends JpaRepository<MapZoneType, Integer> {
+
   /**
    * Finds a type by its id.
     * @param id the id of the type

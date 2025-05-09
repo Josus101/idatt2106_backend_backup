@@ -11,6 +11,10 @@ import org.ntnu.idatt2106.backend.dto.map.CoordinatesDTO;
  * Data transfer object for creating a marker.
  * This class is used to transfer marker data between the client and server.
  * It includes fields for the name, type, and coordinates of the marker.
+ *
+ * @author André Merkesdal
+ * @version 0.2
+ * @since 0.2
  */
 @Getter
 @Setter

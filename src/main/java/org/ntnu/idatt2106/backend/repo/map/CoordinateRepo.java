@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
  * It is used to interact with the database and perform operations on the Coordinate table.
  *
  * @author André Merkesdal
+ * @version 0.2
  * @since 0.1
  */
 public interface CoordinateRepo extends JpaRepository<Coordinate, Long> {

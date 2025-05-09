@@ -7,6 +7,10 @@ import java.util.Optional;
 
 /**
  * Repository interface for a map entity's type.
+ *
+ * @author André Merkesdal
+ * @version 0.2
+ * @since 0.1
  */
 public interface MapEntityTypeRepo extends JpaRepository<MapEntityType, Integer> {
   /**

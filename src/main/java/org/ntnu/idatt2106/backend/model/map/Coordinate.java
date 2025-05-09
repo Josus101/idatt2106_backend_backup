@@ -9,6 +9,7 @@ import lombok.Setter;
  * It is used to represent the coordinates of a point on the map.
  *
  * @author André Merkesdal
+ * @version 0.2
  * @since 0.1
  */
 @Entity

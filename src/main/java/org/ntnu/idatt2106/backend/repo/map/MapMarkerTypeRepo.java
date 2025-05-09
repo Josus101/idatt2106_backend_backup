@@ -5,7 +5,17 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
 
+/**
+ * Repository interface for a map marker's type.
+ * This interface extends JpaRepository to provide CRUD operations for the MapMarkerType entity.
+ * It is used to interact with the database and perform operations on the MapMarkerType table.
+ *
+ * @author André Merkesdal
+ * @version 0.2
+ * @since 0.1
+ */
 public interface MapMarkerTypeRepo extends JpaRepository<MapMarkerType, Integer> {
+
   /**
    * Finds a type by its id.
    * @param id the id of the type

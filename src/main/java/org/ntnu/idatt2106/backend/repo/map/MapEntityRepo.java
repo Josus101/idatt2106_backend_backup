@@ -9,6 +9,10 @@ import java.util.Optional;
 
 /**
  * Repository interface for map entity.
+ *
+ * @author André Merkesdal
+ * @version 0.2
+ * @since 0.1
  */
 public interface MapEntityRepo extends JpaRepository<MapEntity, Long> {
   /**

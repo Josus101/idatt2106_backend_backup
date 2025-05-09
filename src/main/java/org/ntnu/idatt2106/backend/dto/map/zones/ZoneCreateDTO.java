@@ -15,6 +15,9 @@ import org.ntnu.idatt2106.backend.dto.map.CoordinatesDTO;
  * This class is used to transfer emergency zone data between the client and server.
  * It includes fields for the name, description, coordinates, type, and severity level of the emergency zone.
  *
+ * @author André Merkesdal
+ * @version 0.2
+ * @since 0.2
  */
 @Getter
 @Setter

@@ -13,6 +13,8 @@ import java.util.List;
  * Data transfer object for a query request in a specific area.
  * This class is used to transfer query request data between the client and server.
  *
+ * @author André Merkesdal
+ * @version 0.2
  * @since 0.2
  */
 @Getter

@@ -10,7 +10,8 @@ import java.util.List;
 /**
  * The model that represents a type for map markers
  *
- * @Author Jonas Reiher
+ * @author Jonas Reiher
+ * @version 0.2
  * @since 0.1
  */
 @Entity

@@ -10,7 +10,8 @@ import java.util.List;
 /**
  * The model that represents a type of emergency service
  *
- * @Author Jonas Reiher
+ * @author Jonas Reiher
+ * @version 0.2
  * @since 0.1
  */
 @Entity

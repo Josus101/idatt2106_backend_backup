@@ -10,6 +10,10 @@ import lombok.Setter;
  * Data transfer object for coordinates.
  * This class is used to transfer coordinates data between the client and server.
  * It includes fields for the latitude and longitude of the coordinates.
+ *
+ * @author André Merkesdal
+ * @version 0.2
+ * @since 0.2
  */
 @Getter
 @Setter
