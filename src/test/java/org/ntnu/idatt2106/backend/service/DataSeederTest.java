@@ -82,7 +82,7 @@ class DataSeederTest {
     doNothing().when(spySeeder).seedHouseholdTwo();
     doNothing().when(spySeeder).seedHouseholdThree();
     doNothing().when(spySeeder).seedHouseholdFour();
-    doNothing().when(spySeeder).seedEmergencyServicesWithTypes();
+    doNothing().when(spySeeder).seedMapEntities();
 
     // When
     spySeeder.run();
@@ -95,7 +95,7 @@ class DataSeederTest {
     verify(spySeeder).seedHouseholdTwo();
     verify(spySeeder).seedHouseholdThree();
     verify(spySeeder).seedHouseholdFour();
-    verify(spySeeder).seedEmergencyServicesWithTypes();
+    verify(spySeeder).seedMapEntities();
   }
 
   @Test
@@ -117,7 +117,7 @@ class DataSeederTest {
     verify(spySeeder, never()).seedHouseholdTwo();
     verify(spySeeder, never()).seedHouseholdThree();
     verify(spySeeder, never()).seedHouseholdFour();
-    verify(spySeeder, never()).seedEmergencyServicesWithTypes();
+    verify(spySeeder, never()).seedMapEntities();
   }
 
 

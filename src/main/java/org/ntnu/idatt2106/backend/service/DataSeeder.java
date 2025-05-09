@@ -6,8 +6,10 @@ import java.util.List;
 
 import org.ntnu.idatt2106.backend.dto.user.UserStoreSettingsRequest;
 import org.ntnu.idatt2106.backend.model.*;
-import org.ntnu.idatt2106.backend.model.map.MapZoneType;
+import org.ntnu.idatt2106.backend.model.map.MapEntityType;
 import org.ntnu.idatt2106.backend.repo.*;
+import org.ntnu.idatt2106.backend.repo.map.MapEntityTypeRepo;
+import org.ntnu.idatt2106.backend.repo.map.MapMarkerTypeRepo;
 import org.ntnu.idatt2106.backend.repo.map.MapZoneTypeRepo;
 import org.ntnu.idatt2106.backend.security.BCryptHasher;
 import org.springframework.boot.CommandLineRunner;
@@ -32,9 +34,13 @@ public class DataSeeder implements CommandLineRunner {
   private final ItemRepo itemRepo;
   private final UnitRepo unitRepo;
   private final HouseholdMembersRepo householdMembersRepo;
+  private final MapEntityTypeRepo mapEntityTypeRepo;
+  private final MapMarkerTypeRepo mapMarkerTypeRepo;
+  private final MapZoneTypeRepo mapZoneTypeRepo;
   private final BCryptHasher hasher;
   private final LoginService loginService;
   private final UserSettingsService userSettingsService;
+  private final MapEntityService mapEntityService;
 
   /**
    * Constructor for DataSeeder.
@@ -53,6 +59,8 @@ public class DataSeeder implements CommandLineRunner {
   public DataSeeder(AdminRepo adminRepo, UserRepo userRepo,
                     BCryptHasher hasher, LoginService loginService, CategoryRepo categoryRepo,
                     HouseholdRepo householdRepo, ItemRepo itemRepo, UnitRepo unitRepo,
+                    MapEntityTypeRepo mapEntityTypeRepo, MapMarkerTypeRepo mapMarkerTypeRepo,
+                    MapZoneTypeRepo mapZoneTypeRepo, MapEntityService mapEntityService,
                     HouseholdMembersRepo householdMembersRepo, UserSettingsService userSettingsService) {
     this.userRepo = userRepo;
     this.adminRepo = adminRepo;
@@ -64,6 +72,10 @@ public class DataSeeder implements CommandLineRunner {
     this.hasher = hasher;
     this.loginService = loginService;
     this.userSettingsService = userSettingsService;
+    this.mapEntityTypeRepo = mapEntityTypeRepo;
+    this.mapMarkerTypeRepo = mapMarkerTypeRepo;
+    this.mapZoneTypeRepo = mapZoneTypeRepo;
+    this.mapEntityService = mapEntityService;
   }
 
   /**
@@ -87,7 +99,7 @@ public class DataSeeder implements CommandLineRunner {
     seedHouseholdTwo();
     seedHouseholdThree();
     seedHouseholdFour();
-    seedEmergencyServicesWithTypes();
+    seedMapEntities();
     System.out.println("\nSeeding complete.\nZ");
   }
 
@@ -437,10 +449,15 @@ public class DataSeeder implements CommandLineRunner {
   }
 
   /**
-   * Seeds the database with emergency services and their types.
+   * Seeds the database with map entities.
    * This method is called during the application startup.
    */
-  public void seedEmergencyServicesWithTypes() {
-
+  public void seedMapEntities() {
+    MapEntityType markerType = new MapEntityType();
+    markerType.setName("marker");
+    MapEntityType zoneType = new MapEntityType();
+    zoneType.setName("zone");
+    mapEntityTypeRepo.save(markerType);
+    mapEntityTypeRepo.save(zoneType);
   }
 }

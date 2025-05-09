@@ -1,6 +1,9 @@
 package org.ntnu.idatt2106.backend.service;
 
 import org.ntnu.idatt2106.backend.dto.map.CoordinatesDTO;
+import org.ntnu.idatt2106.backend.dto.map.markers.MarkerCreateDTO;
+import org.ntnu.idatt2106.backend.dto.map.markers.MarkerFullDTO;
+import org.ntnu.idatt2106.backend.dto.map.types.TypeFullDTO;
 import org.ntnu.idatt2106.backend.dto.map.zones.ZoneCreateDTO;
 import org.ntnu.idatt2106.backend.dto.map.MapEntityDescDTO;
 import org.ntnu.idatt2106.backend.dto.map.zones.ZoneFullDTO;
@@ -145,6 +148,121 @@ public class MapEntityService {
   }
 
   /**
+   * Retrieves all markers from the database.
+   *
+   * @return a list of MarkerFullDTO objects representing all markers
+   */
+  public List<MarkerFullDTO> getAllMapMarkers() {
+    return mapEntityRepo.findAllByMapEntityTypeName("marker")
+        .stream()
+        .map(this::mapToMapMarkerFullDTO)
+        .toList();
+  }
+
+  /**
+   * Retrieves all markers within a specified area defined by a list of coordinates.
+   *
+   * @param coordinates a list of CoordinatesDTO objects representing the area
+   * @param markerIds   an array of marker IDs to exclude from the result
+   * @return a list of MarkerFullDTO objects representing the markers within the specified area
+   */
+  public List<MarkerFullDTO> getMapMarkersInMapArea(List<CoordinatesDTO> coordinates, Long[] markerIds) {
+    double minLat = coordinates.stream().mapToDouble(CoordinatesDTO::getLatitude).min().orElseThrow(NumberFormatException::new);
+    double maxLat = coordinates.stream().mapToDouble(CoordinatesDTO::getLatitude).max().orElseThrow(NumberFormatException::new);
+    double minLng = coordinates.stream().mapToDouble(CoordinatesDTO::getLongitude).min().orElseThrow(NumberFormatException::new);
+    double maxLng = coordinates.stream().mapToDouble(CoordinatesDTO::getLongitude).max().orElseThrow(NumberFormatException::new);
+
+    Set<Long> excludedIds = new HashSet<>(Arrays.asList(markerIds));
+
+    return mapEntityRepo.findAllByMapEntityTypeName("marker")
+        .stream()
+        .filter(marker -> !excludedIds.contains(marker.getId()))
+        .filter(marker -> {
+          double lat = marker.getCoordinatePoint().getLatitude();
+          double lng = marker.getCoordinatePoint().getLongitude();
+          return lat >= minLat && lat <= maxLat && lng >= minLng && lng <= maxLng;
+        })
+        .map(this::mapToMapMarkerFullDTO)
+        .toList();
+  }
+
+  /**
+   * Retrieves a specific marker by its ID.
+   *
+   * @param id the ID of the marker
+   * @return a ZoneFullDTO object representing the marker with the specified ID
+   */
+  public MarkerFullDTO getMapMarkerById(Long id) {
+    return mapEntityRepo.findById(id)
+        .map(this::mapToMapMarkerFullDTO)
+        .orElse(null);
+  }
+
+  /**
+   * Retrieves a specific marker's description by its ID.
+   *
+   * @param id the ID of the marker
+   * @return a MapEntityDescDTO object representing the marker with the specified ID
+   */
+  public MapEntityDescDTO getMapMarkerDescById(Long id) {
+    return mapEntityRepo.findById(id)
+        .map(marker -> new MapEntityDescDTO(
+            marker.getName(),
+            marker.getDescription(),
+            marker.getAddress()))
+        .orElse(null);
+  }
+
+  /**
+   * Creates a new marker in the database.
+   *
+   * @param markerCreateDTO the MarkerCreateDTO object containing the details of the new marker
+   * @return the ID of the newly created marker
+   */
+  public Long createMarker(MarkerCreateDTO markerCreateDTO) {
+    MapEntityType entityType = mapEntityTypeRepo.findByName("marker")
+        .orElseThrow(() -> new IllegalArgumentException("Marker entity type not found"));
+    MapMarkerType markerType = mapMarkerTypeRepo.findByName(markerCreateDTO.getType())
+        .orElseThrow(() -> new IllegalArgumentException("Marker type not found"));
+
+    MapEntity marker = new MapEntity(
+        markerCreateDTO.getName(),
+        markerCreateDTO.getDescription(),
+        markerCreateDTO.getAddress(),
+        entityType,
+        markerType,
+        new Coordinate(
+            markerCreateDTO.getCoordinates().getLatitude(),
+            markerCreateDTO.getCoordinates().getLongitude())
+    );
+    return mapEntityRepo.save(marker).getId();
+  }
+
+  /**
+   * Updates an existing emergency marker in the database.
+   *
+   * @param markerId        the ID of the emergency marker to update
+   * @param markerCreateDTO the MarkerCreateDTO object containing the updated details of the emergency marker
+   */
+  public void updateMarker(Long markerId, ZoneCreateDTO markerCreateDTO) {
+    MapEntity marker = mapEntityRepo.findById(markerId)
+        .orElseThrow(() -> new IllegalArgumentException("Marker (" + markerId + ") not found"));
+
+    MapMarkerType markerType = mapMarkerTypeRepo.findByName(markerCreateDTO.getType())
+        .orElseThrow(() -> new IllegalArgumentException("Marker type not found"));
+
+    marker.setName(markerCreateDTO.getName());
+    marker.setDescription(markerCreateDTO.getDescription());
+    marker.setAddress(markerCreateDTO.getAddress());
+    marker.setMapMarkerType(markerType);
+    marker.setCoordinatePoint(new Coordinate(
+        markerCreateDTO.getCoordinates().getLatitude(),
+        markerCreateDTO.getCoordinates().getLongitude()));
+
+    mapEntityRepo.save(marker);
+  }
+
+  /**
    * Retrieves the coordinates of a specific map entity by its ID.
    *
    * @param id the ID of the map entity
@@ -174,6 +292,34 @@ public class MapEntityService {
   }
 
   /**
+   * Retrieves all map marker types from the database.
+   *
+   * @return a list of MapMarkerType objects representing all map marker types
+   */
+  public List<TypeFullDTO> getZoneTypes() {
+    return mapZoneTypeRepo.findAll()
+        .stream()
+        .map(zoneType -> new TypeFullDTO(
+            zoneType.getId(),
+            zoneType.getName()))
+        .toList();
+  }
+
+  /**
+   * Retrieves all marker types from the database.
+   *
+   * @return a list of MapMarkerType objects representing all marker types
+   */
+  public List<TypeFullDTO> getMarkerTypes() {
+    return mapMarkerTypeRepo.findAll()
+        .stream()
+        .map(markerType -> new TypeFullDTO(
+            markerType.getId(),
+            markerType.getName()))
+        .toList();
+  }
+
+  /**
    * Helper method to map a MapEntity object to a ZoneFullDTO object.
    *
    * @param zone the MapEntity object to map
@@ -191,6 +337,25 @@ public class MapEntityService {
           zone.getCoordinatePoint().getLatitude(),
           zone.getCoordinatePoint().getLongitude()),
       zone.getPolygonCoordinateList()
+    );
+  }
+
+  /**
+   * Helper method to map a MapEntity object to a MarkerFullDTO object.
+   *
+   * @param marker the MapEntity object to map
+   * @return a MarkerFullDTO object representing the mapped marker
+   */
+  private MarkerFullDTO mapToMapMarkerFullDTO(MapEntity marker) {
+    return new MarkerFullDTO(
+        marker.getId(),
+        marker.getName(),
+        marker.getDescription(),
+        marker.getAddress(),
+        marker.getMapMarkerType().getName(),
+        new CoordinatesDTO(
+            marker.getCoordinatePoint().getLatitude(),
+            marker.getCoordinatePoint().getLongitude())
     );
   }
 }
