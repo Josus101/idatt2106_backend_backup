@@ -152,6 +152,12 @@ public class DataSeeder implements CommandLineRunner {
       urek.setTwoFactorEnabled(false);
       adminRepo.save(urek);
     }
+    if (!adminRepo.existsByUsername("albert")) {
+      Admin albert = new Admin("albert", hasher.hashPassword("admin123"), "albert@example.com", true);
+      albert.setActive(true);
+      albert.setTwoFactorEnabled(false);
+      adminRepo.save(albert);
+    }
   }
 
   /**
