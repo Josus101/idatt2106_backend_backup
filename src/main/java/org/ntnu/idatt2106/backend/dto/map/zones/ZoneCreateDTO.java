@@ -1,6 +1,8 @@
 package org.ntnu.idatt2106.backend.dto.map.zones;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -31,7 +33,9 @@ public class ZoneCreateDTO {
   private String address;
 
   @Schema(description = "Severity level of the emergency zone. 1-3 with 3 being severe and 1 being less severe",
-      example = "1")
+      example = "1", defaultValue = "1")
+  @Min(value = 1, message = "Severity level must be at least 1")
+  @Max(value = 3, message = "Severity level must be at most 3")
   private int severityLevel;
 
   @Schema(description = "Type of the emergency zone", example = "Flom")
