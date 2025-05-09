@@ -550,7 +550,7 @@ public class DataSeeder implements CommandLineRunner {
     mapEntityTypeRepo.save(zoneType);
 
     MapMarkerType defib = new MapMarkerType();
-    defib.setName("Hjerteutstyr");
+    defib.setName("Hjertestarter");
     MapMarkerType bunker = new MapMarkerType();
     bunker.setName("Bunker");
     MapMarkerType assembingArea = new MapMarkerType();
