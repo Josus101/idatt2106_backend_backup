@@ -1,5 +1,6 @@
 package org.ntnu.idatt2106.backend.service;
 
+import jakarta.mail.MessagingException;
 import java.util.List;
 import java.util.Optional;
 
@@ -288,6 +289,7 @@ public class AdminService {
       List<AdminGetResponse> admins = adminRepo.findAll().stream().map(admin -> new AdminGetResponse(
           admin.getId(),
           admin.getUsername(),
+          admin.getEmail(),
           admin.isSuperUser()
       )).toList();
       if (admins.isEmpty()) {
@@ -472,5 +474,26 @@ public class AdminService {
     } catch (UnauthorizedException e) {
       throw new UnauthorizedException("You are not authorized to delete a user");
     }
+  }
+
+  /**
+   * Sends a password reset email to the user.
+   *
+   * @param email The email of the user.
+   * @param authorizationHeader The authorization header containing the bearer token.
+   * @throws MessagingException if the email sending fails.
+   */
+  public void sendPasswordResetEmail(String email, String authorizationHeader)
+      throws MessagingException {
+    if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
+      throw new IllegalArgumentException("Invalid authorization header");
+    }
+    verifyAdminIsSuperUser(authorizationHeader.substring(7));
+    if (email == null || email.isEmpty()) {
+      throw new IllegalArgumentException("Email is required");
+    }
+    Admin admin = adminRepo.findByEmail(email)
+        .orElseThrow(() -> new UserNotFoundException("Admin not found"));
+    emailService.sendAdminPasswordResetEmail(admin);
   }
 }

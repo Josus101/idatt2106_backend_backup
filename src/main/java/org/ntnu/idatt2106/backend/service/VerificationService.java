@@ -137,4 +137,20 @@ public class VerificationService {
     System.out.println("admin found: " + admin);
     adminService.activateAdmin(admin, newPassword);
   }
+
+  /**
+   * Changes the password for the admin with the given token
+   * @param token The token to find the user with
+   * @param newPassword The new password to set
+   * @throws UserNotFoundException if the user is not found
+   * @throws TokenExpiredException if the token is expired
+   */
+  public void changeAdminPassword(String token, String newPassword) {
+    Admin admin = findAdminByToken(token, VerificationTokenType.ADMIN_PASSWORD_RESET);
+    if (admin != null) {
+      adminService.changePassword(admin, newPassword);
+    } else {
+      throw new UserNotFoundException("Admin not found");
+    }
+  }
 }
