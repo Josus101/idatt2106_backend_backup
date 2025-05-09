@@ -78,7 +78,7 @@ public class MapEntityService {
   public ZoneFullDTO getMapZoneById(Long id) {
     return mapEntityRepo.findById(id)
         .map(this::mapToMapZoneFullDTO)
-        .orElse(null);
+        .orElseThrow(() -> new NoSuchElementException("Zone with ID " + id + " not found"));
   }
 
   /**

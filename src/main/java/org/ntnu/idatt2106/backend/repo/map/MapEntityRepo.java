@@ -17,7 +17,7 @@ public interface MapEntityRepo extends JpaRepository<MapEntity, Long> {
    * @param id the id of the map entity
    * @return the map entity with the given id
    */
-  Optional<MapEntity> findById(long id);
+  MapEntity findById(long id);
 
   /**
    * Finds a map entity by its name.
@@ -25,12 +25,12 @@ public interface MapEntityRepo extends JpaRepository<MapEntity, Long> {
    * @param name the name of the map entity
    * @return the map entity with the given name
    */
-  Optional<MapEntity> findByName(String name);
+  MapEntity findByName(String name);
 
   /**
    * Finds a map entity by its local id.
    */
-  Optional<MapEntity> findByLocalID(String localID);
+  MapEntity findByLocalID(String localID);
 
   /**
    * Finds map entities by its type.

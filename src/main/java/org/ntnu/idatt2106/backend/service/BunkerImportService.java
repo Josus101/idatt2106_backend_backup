@@ -82,7 +82,7 @@ public class BunkerImportService {
             double latitude = latlon[0];
             double longitude = latlon[1];
 
-            if (mapEntityRepo.findByLocalID(localID).isEmpty()) {
+            if (mapEntityRepo.findByLocalID(localID) == null) {
                 MapEntity service = new MapEntity();
                 service.setName("Bunker " + localID);
                 service.setDescription("Bunker with capacity: " + capacity);

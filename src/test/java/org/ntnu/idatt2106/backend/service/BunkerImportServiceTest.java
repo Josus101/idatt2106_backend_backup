@@ -82,7 +82,7 @@ class BunkerImportServiceTest {
         when(mapMarkerTypeRepo.findByName("Bunker")).thenReturn(Optional.of(bunkerMapMarkerType));
 
         // Mock repo to return empty so service will be saved
-        when(mapEntityRepo.findByLocalID("localID123")).thenReturn(Optional.empty());
+        when(mapEntityRepo.findByLocalID("localID123")).thenReturn(null);
 
         // Spy BunkerImportService for mocking file reading
         BunkerImportService spyService = Mockito.spy(bunkerImportService);
