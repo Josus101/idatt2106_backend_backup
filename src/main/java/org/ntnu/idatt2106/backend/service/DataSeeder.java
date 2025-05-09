@@ -1,10 +1,12 @@
 package org.ntnu.idatt2106.backend.service;
 
+import com.fasterxml.jackson.databind.jsontype.impl.AsDeductionTypeDeserializer;
 import jakarta.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import org.ntnu.idatt2106.backend.controller.BunkerImportController;
 import org.ntnu.idatt2106.backend.dto.user.UserStoreSettingsRequest;
 import org.ntnu.idatt2106.backend.model.*;
 import org.ntnu.idatt2106.backend.model.map.MapEntityType;
@@ -45,6 +47,8 @@ public class DataSeeder implements CommandLineRunner {
   private final UserSettingsService userSettingsService;
   private final MapEntityService mapEntityService;
 
+  private final BunkerImportController bunkerImportController;
+
   /**
    * Constructor for DataSeeder.
    *
@@ -64,7 +68,8 @@ public class DataSeeder implements CommandLineRunner {
                     HouseholdRepo householdRepo, ItemRepo itemRepo, UnitRepo unitRepo,
                     MapEntityTypeRepo mapEntityTypeRepo, MapMarkerTypeRepo mapMarkerTypeRepo,
                     MapZoneTypeRepo mapZoneTypeRepo, MapEntityService mapEntityService,
-                    HouseholdMembersRepo householdMembersRepo, UserSettingsService userSettingsService) {
+                    HouseholdMembersRepo householdMembersRepo, UserSettingsService userSettingsService,
+                    BunkerImportController bunkerImportController) {
     this.userRepo = userRepo;
     this.adminRepo = adminRepo;
     this.categoryRepo = categoryRepo;
@@ -79,6 +84,7 @@ public class DataSeeder implements CommandLineRunner {
     this.mapMarkerTypeRepo = mapMarkerTypeRepo;
     this.mapZoneTypeRepo = mapZoneTypeRepo;
     this.mapEntityService = mapEntityService;
+    this.bunkerImportController = bunkerImportController;
   }
 
   /**
@@ -102,7 +108,11 @@ public class DataSeeder implements CommandLineRunner {
     seedHouseholdTwo();
     seedHouseholdThree();
     seedHouseholdFour();
+    seedHouseholdFive();
     seedMapEntities();
+
+    createTestUserAndAdminData();
+    bunkerImportController.importBunkerData();
     System.out.println("\nSeeding complete.\nZ");
   }
 
@@ -174,7 +184,7 @@ public class DataSeeder implements CommandLineRunner {
    * This method is called during the application startup.
    */
   public void seedHouseholdOne() {
-    User testUser = createVerifiedUser("test@example.com", "test123", "Test", "Bruker", "12345678");
+    User testUser = createVerifiedUser("test@example.com", "test123", "Test", "Bruker", "12345677");
     User albert = createVerifiedUser("albert@example.com", "password123", "Albert", "Zindel", "98765432");
     Household household = createHousehold("Test Household", 59.9139, 10.7522);
     Household household2 = createHousehold("Albert household", 40.0815, 124.4993);
@@ -202,7 +212,8 @@ public class DataSeeder implements CommandLineRunner {
    * This method is called during the application startup.
    */
   public void seedHouseholdTwo() {
-    User krekar = createVerifiedUser("krekar@gmail.com", "test123", "Krekar", "Design", "11111111");
+    User krekar = createVerifiedUser("krekar@gmail.com", "test123456", "Krekar", "Design", "11111111");
+
 
     Household household = createHousehold("Krekar's Household", 60.3913, 5.3221);
     addHouseholdMember(household, krekar, true, false);
@@ -238,6 +249,31 @@ public class DataSeeder implements CommandLineRunner {
     addHouseholdMember(household, kare, true, true);
 
     List<Item> items = createItemsForHouseholdFour();
+    household.setInventory(items);
+    householdRepo.save(household);
+  }
+
+  public void seedHouseholdFive() {
+    User jonas = createVerifiedUser("jonas@email.com", "password123", "Jonas", "Reiher", "12121212");
+    User erlend = createVerifiedUser("erlend@email.com", "password123", "Erlend Eide", "Zindel", "34343434");
+    User andré = createVerifiedUser("andre@email.com", "password123", "André Wikheim", "Merkesdal", "56565656");
+    User christian = createVerifiedUser("christian@email.com", "password123", "Christian Hess", "Bore", "78787878");
+    User ekslid = createVerifiedUser("eskild@email.com", "password123", "Eskild", "Smestu", "90909090");
+    User konrad = createVerifiedUser("konrad@email.com", "password123", "Konrad", "Seime", "10101010");
+    User oleThomas = createVerifiedUser("oleThomas@email.com", "password123", "Ole-Thomas Sundvoll", "Moe", "21212121");
+    User sigurd = createVerifiedUser("sigurd@email.com", "password123", "Sigurd", "Spook", "23232323");
+
+    Household household = createHousehold("Team 1", 63.419302, 10.401528);
+    addHouseholdMember(household, jonas, true, true);
+    addHouseholdMember(household, erlend, true, true);
+    addHouseholdMember(household, andré, false, true);
+    addHouseholdMember(household, christian, true, true);
+    addHouseholdMember(household, ekslid, false, true);
+    addHouseholdMember(household, konrad, false, true);
+    addHouseholdMember(household, oleThomas, false, true);
+    addHouseholdMember(household, sigurd, false, true);
+
+    List<Item> items = createItemsForHouseholdFive();
     household.setInventory(items);
     householdRepo.save(household);
   }
@@ -443,6 +479,50 @@ public class DataSeeder implements CommandLineRunner {
   }
 
   /**
+   * Creates items for household five.
+   *
+   * @return List of created items
+   */
+  public List<Item> createItemsForHouseholdFive() {
+    Date now = new Date();
+    Calendar cal = Calendar.getInstance();
+    cal.setTime(now);
+
+    Unit kg = unitRepo.findByEnglishName("KG").orElseThrow();
+    Unit count = unitRepo.findByEnglishName("PCS").orElseThrow();
+    Unit liter = unitRepo.findByEnglishName("L").orElseThrow();
+
+    Category water = categoryRepo.findByEnglishName("Water").orElseThrow();
+    Category cannedFood = categoryRepo.findByEnglishName("Canned Food").orElseThrow();
+    Category driedFood = categoryRepo.findByEnglishName("Dried Food").orElseThrow();
+    Category snacks = categoryRepo.findByEnglishName("Snacks").orElseThrow();
+    Category beverages = categoryRepo.findByEnglishName("Beverages").orElseThrow();
+    Category batteries = categoryRepo.findByEnglishName("Batteries").orElseThrow();
+    Category hygieneProducts = categoryRepo.findByEnglishName("Hygiene Products").orElseThrow();
+
+    List<Item> items = new ArrayList<>();
+
+    // Water and beverages
+    items.add(new Item("Bottled Water", 15, liter, getFutureDate(cal, Calendar.MONTH, 6), water));
+    items.add(new Item("Energy Drink", 19, liter, getFutureDate(cal, Calendar.MONTH, 3), beverages));
+
+    // Canned and dried foods
+    items.add(new Item("Canned Beans", 3, kg, getFutureDate(cal, Calendar.YEAR, 2), cannedFood));
+    items.add(new Item("Canned Soup", 4, kg, getFutureDate(cal, Calendar.YEAR, 2), cannedFood));
+    items.add(new Item("Dried Lentils", 2, kg, getFutureDate(cal, Calendar.YEAR, 1), driedFood));
+    items.add(new Item("Dried Fruit Mix", 1, kg, getFutureDate(cal, Calendar.MONTH, 6), driedFood));
+    items.add(new Item("Nuts and Seeds", 1, kg, getFutureDate(cal, Calendar.MONTH, 6), snacks));
+    items.add(new Item("Chips", 3, count, getFutureDate(cal, Calendar.MONTH, 3), snacks));
+
+    // Utility items
+    items.add(new Item("Hand Sanitizer", 2, count, getFutureDate(cal, Calendar.YEAR, 1), hygieneProducts));
+    items.add(new Item("AA Batteries", 8, count, getFutureDate(cal, Calendar.YEAR, 1), batteries));
+    items.add(new Item("Rechargeable Battery Pack", 1, count, getFutureDate(cal, Calendar.YEAR, 3), batteries));
+
+    return itemRepo.saveAll(items);
+  }
+
+  /**
    * Gets a future date by adding the specified amount to the given field.
    *
    * @param cal    The calendar instance
@@ -495,5 +575,24 @@ public class DataSeeder implements CommandLineRunner {
     mapZoneTypeRepo.save(fire);
     mapZoneTypeRepo.save(earthquake);
     mapZoneTypeRepo.save(gas);
+  }
+
+  /**
+   * Creates test user and admin data.
+   * This method is called during the application startup.
+   */
+  public void createTestUserAndAdminData() {
+    User userNormal = createVerifiedUser("test.user@example.com", "password123", "Test", "User", "12345678");
+    Admin admin = new Admin("admin123", "password123", "test.admin@example.com", false);
+    Admin adminSuper = new Admin("super123", "password123", "test.super@example.com", true);
+
+    admin.setTwoFactorEnabled(false);
+    admin.setActive(true);
+    adminSuper.setTwoFactorEnabled(false);
+    adminSuper.setActive(true);
+
+    userRepo.save(userNormal);
+    adminRepo.save(admin);
+    adminRepo.save(adminSuper);
   }
 }
