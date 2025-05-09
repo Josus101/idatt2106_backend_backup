@@ -105,7 +105,11 @@ public class MapEntityService {
     MapEntityType entityType = mapEntityTypeRepo.findByName("zone")
         .orElseThrow(() -> new IllegalArgumentException("Zone entity type not found"));
     MapZoneType zoneType = mapZoneTypeRepo.findByName(zoneCreateDTO.getType())
-        .orElseThrow(() -> new IllegalArgumentException("Zone type not found"));
+        .orElseGet(() -> {
+          MapZoneType newZoneType = new MapZoneType();
+          newZoneType.setName(zoneCreateDTO.getType());
+          return mapZoneTypeRepo.save(newZoneType);
+        });
 
     MapEntity zone = new MapEntity(
         zoneCreateDTO.getName(),
@@ -131,9 +135,12 @@ public class MapEntityService {
   public void updateZone(Long zoneId, ZoneCreateDTO zoneCreateDTO) {
     MapEntity zone = mapEntityRepo.findById(zoneId)
         .orElseThrow(() -> new IllegalArgumentException("Zone (" + zoneId + ") not found"));
-
     MapZoneType zoneType = mapZoneTypeRepo.findByName(zoneCreateDTO.getType())
-        .orElseThrow(() -> new IllegalArgumentException("Zone type not found"));
+        .orElseGet(() -> {
+          MapZoneType newZoneType = new MapZoneType();
+          newZoneType.setName(zoneCreateDTO.getType());
+          return mapZoneTypeRepo.save(newZoneType);
+        });
 
     zone.setName(zoneCreateDTO.getName());
     zone.setDescription(zoneCreateDTO.getDescription());
@@ -223,7 +230,11 @@ public class MapEntityService {
     MapEntityType entityType = mapEntityTypeRepo.findByName("marker")
         .orElseThrow(() -> new IllegalArgumentException("Marker entity type not found"));
     MapMarkerType markerType = mapMarkerTypeRepo.findByName(markerCreateDTO.getType())
-        .orElseThrow(() -> new IllegalArgumentException("Marker type not found"));
+        .orElseGet(() -> {
+          MapMarkerType newMarkerType = new MapMarkerType();
+          newMarkerType.setName(markerCreateDTO.getType());
+          return mapMarkerTypeRepo.save(newMarkerType);
+        });
 
     MapEntity marker = new MapEntity(
         markerCreateDTO.getName(),
@@ -247,9 +258,12 @@ public class MapEntityService {
   public void updateMarker(Long markerId, ZoneCreateDTO markerCreateDTO) {
     MapEntity marker = mapEntityRepo.findById(markerId)
         .orElseThrow(() -> new IllegalArgumentException("Marker (" + markerId + ") not found"));
-
     MapMarkerType markerType = mapMarkerTypeRepo.findByName(markerCreateDTO.getType())
-        .orElseThrow(() -> new IllegalArgumentException("Marker type not found"));
+        .orElseGet(() -> {
+          MapMarkerType newMarkerType = new MapMarkerType();
+          newMarkerType.setName(markerCreateDTO.getType());
+          return mapMarkerTypeRepo.save(newMarkerType);
+        });
 
     marker.setName(markerCreateDTO.getName());
     marker.setDescription(markerCreateDTO.getDescription());
