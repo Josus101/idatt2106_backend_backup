@@ -133,9 +133,19 @@ public class MapEntityService {
     zone.setAddress(zoneCreateDTO.getAddress());
     zone.setSeverityLevel(zoneCreateDTO.getSeverityLevel());
     zone.setMapZoneType(zoneType);
-    zone.setCoordinatePoint(new Coordinate(
-        zoneCreateDTO.getCoordinates().getLatitude(),
-        zoneCreateDTO.getCoordinates().getLongitude()));
+
+    Coordinate coord = zone.getCoordinatePoint();
+    if (coord == null) {
+      coord = new Coordinate(
+          zoneCreateDTO.getCoordinates().getLatitude(),
+          zoneCreateDTO.getCoordinates().getLongitude());
+      zone.setCoordinatePoint(coord);
+    } else {
+      coord.setLatitude(zoneCreateDTO.getCoordinates().getLatitude());
+      coord.setLongitude(zoneCreateDTO.getCoordinates().getLongitude());
+    }
+
+    zone.setPolygonCoordinateList(zoneCreateDTO.getPolygonCoordinateList());
 
     mapEntityRepo.save(zone);
   }
@@ -240,9 +250,17 @@ public class MapEntityService {
     marker.setDescription(markerCreateDTO.getDescription());
     marker.setAddress(markerCreateDTO.getAddress());
     marker.setMapMarkerType(markerType);
-    marker.setCoordinatePoint(new Coordinate(
-        markerCreateDTO.getCoordinates().getLatitude(),
-        markerCreateDTO.getCoordinates().getLongitude()));
+
+    Coordinate coord = marker.getCoordinatePoint();
+    if (coord == null) {
+      coord = new Coordinate(
+          markerCreateDTO.getCoordinates().getLatitude(),
+          markerCreateDTO.getCoordinates().getLongitude());
+      marker.setCoordinatePoint(coord);
+    } else {
+      coord.setLatitude(markerCreateDTO.getCoordinates().getLatitude());
+      coord.setLongitude(markerCreateDTO.getCoordinates().getLongitude());
+    }
 
     mapEntityRepo.save(marker);
   }
