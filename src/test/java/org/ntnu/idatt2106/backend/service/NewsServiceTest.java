@@ -440,7 +440,7 @@ public class NewsServiceTest {
 
 
   @Test
-  @DisplayName("clearExpiredNews clears expired news (older than 2 days)")
+  @DisplayName("clearExpiredNews clears expired news (older than 1 days)")
   void testClearExpiredNews() {
     News expiredNews = new News(
             "Expired",
@@ -457,7 +457,7 @@ public class NewsServiceTest {
   }
 
   @Test
-  @DisplayName("clearExpiredNews does not clear news newer than 2 days")
+  @DisplayName("clearExpiredNews does not clear news newer than 1 days")
   void testClearExpiredNewsNotExpired() {
     News freshNews = new News(
             "Recent",
@@ -466,7 +466,7 @@ public class NewsServiceTest {
             12.34,
             56.78,
             "Fresh District",
-            new Date(System.currentTimeMillis() - 1000L * 60 * 60 * 24)); // 1 day ago
+            new Date(System.currentTimeMillis() - 1000L * 60 * 60 * 22)); // 22 hours ago
 
     when(newsRepo.findAll()).thenReturn(List.of(freshNews));
     newsService.clearExpiredNews();

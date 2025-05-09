@@ -224,9 +224,23 @@ public class EmailService {
    */
   private String generateAdminToken(Admin admin) {
     String token = jwtTokenService.generateJwtToken(admin).getToken();
-    Date expirationDate = new Date(System.currentTimeMillis() + EXPIRATION_TIME);
+    Date expirationDate = new Date(System.currentTimeMillis() + EXPIRATION_TIME*24); // 24 hours
     verificationTokenRepo.save(new VerificationToken(token, admin.getEmail(), expirationDate,
         VerificationTokenType.ADMIN_VERIFICATION));
+    return token;
+  }
+
+  /**
+   * Generates a password reset token for the given admin and saves it to the database.
+   *
+   * @param admin The admin for whom the token is generated.
+   * @return The generated token.
+   */
+  private String generateAdminPasswordResetToken(Admin admin) {
+    String token = jwtTokenService.generateJwtToken(admin).getToken();
+    Date expirationDate = new Date(System.currentTimeMillis() + EXPIRATION_TIME);
+    verificationTokenRepo.save(new VerificationToken(token, admin.getEmail(), expirationDate,
+        VerificationTokenType.ADMIN_PASSWORD_RESET));
     return token;
   }
 
@@ -305,5 +319,28 @@ public class EmailService {
             + "If you did not request this token, please ignore this email."
     );
     sendHtmlEmail(to, "2FA Token", htmlContent);
+  }
+
+  /**
+   * Sends a password reset email to the admin.
+   *
+   * @param admin The admin to whom the email is sent.
+   * @throws MessagingException If there is an error while sending the email.
+   */
+  public void sendAdminPasswordResetEmail(Admin admin) throws MessagingException {
+    String token = generateAdminPasswordResetToken(admin);
+    String encodedToken = URLEncoder.encode(token, StandardCharsets.UTF_8);
+    String resetUrl = BASE_URL + "admin-password-reset/" + encodedToken;
+
+    String htmlContent = buildEmailTemplate(
+        "Reset Your Admin Password",
+        "You've requested to reset your password. Click the button below to proceed",
+        resetUrl,
+        "Reset Password",
+        "This link is valid for 1 hour."
+    );
+
+    sendHtmlEmail(admin.getEmail(), "Admin Password Reset Request", htmlContent);
+
   }
 }

@@ -9,6 +9,7 @@ package org.ntnu.idatt2106.backend.model;
 public enum VerificationTokenType {
   EMAIL_VERIFICATION,
   PASSWORD_RESET,
+  ADMIN_PASSWORD_RESET,
   ADMIN_VERIFICATION,
   TWO_FACTOR_AUTHENTICATION
 }

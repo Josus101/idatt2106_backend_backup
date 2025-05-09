@@ -289,7 +289,7 @@ public class NewsService {
   @Scheduled(fixedRate = 3_600_000) // 1 hour
   public void clearExpiredNews() {
     System.out.println("Clearing expired news...");
-    long timeAlive = 86_400_000 * 1; // 1 day(s) in millis
+    long timeAlive = 86_400_000; // 1 day(s) in millis
     Date now = new Date();
     List<News> expiredNews = newsRepo.findAll().stream()
             .filter(news -> now.getTime() - news.getDate().getTime() > timeAlive)
