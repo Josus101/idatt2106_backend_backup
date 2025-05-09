@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.*;
 import org.ntnu.idatt2106.backend.dto.admin.AdminGetResponse;
 import org.ntnu.idatt2106.backend.dto.admin.AdminLoginRequest;
+import org.ntnu.idatt2106.backend.dto.admin.AdminLoginResponse;
 import org.ntnu.idatt2106.backend.dto.admin.AdminRegisterRequest;
 import org.ntnu.idatt2106.backend.dto.user.EmailRequest;
 import org.ntnu.idatt2106.backend.exceptions.UnauthorizedException;
@@ -119,12 +120,22 @@ class AdminControllerTest {
   @DisplayName("Should return token on successful admin login")
   void testAdminLoginSuccess() {
     AdminLoginRequest loginDTO = new AdminLoginRequest("admin", "securePass", "token");
-    when(adminService.authenticate("admin", "securePass", "token")).thenReturn("validToken");
-
+    AdminLoginResponse expectedResponse = new AdminLoginResponse("validToken", false);
+    when(adminService.authenticate("admin", "securePass", "token")).thenReturn(expectedResponse);
     ResponseEntity<?> response = adminController.login(loginDTO);
-
     assertEquals(HttpStatus.OK, response.getStatusCode());
-    assertEquals("validToken", response.getBody());
+    assertEquals(expectedResponse, response.getBody());
+  }
+
+  @Test
+  @DisplayName("Should return token on successful admin login without 2FA")
+  void testAdminLoginSuccessWithout2FA() {
+    AdminLoginRequest loginDTO = new AdminLoginRequest("admin", "securePass", null);
+    AdminLoginResponse expectedResponse = new AdminLoginResponse("validToken", true);
+    when(adminService.authenticate("admin", "securePass")).thenReturn(expectedResponse);
+    ResponseEntity<?> response = adminController.login(loginDTO);
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertEquals(expectedResponse, response.getBody());
   }
 
   @Test
