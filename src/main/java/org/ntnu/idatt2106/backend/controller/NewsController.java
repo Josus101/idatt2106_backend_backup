@@ -77,7 +77,7 @@ public class NewsController {
   })
   public ResponseEntity<?> getNews() {
     try {
-      List<NewsGetResponse> news = newsService.getAllNews(); // all the news
+      List<NewsGetResponse> news = newsService.getAllNews();
       List<List<NewsGetResponse>> groupedNews = newsService.groupNewsByCaseIdAndSort(news); // group the news by case
       List<NewsGetResponse> recentNews = newsService.getRecentFromGroupedNews(groupedNews); // get the most recent news from each case
 
@@ -317,7 +317,7 @@ public class NewsController {
           @RequestBody NewsCreateRequest newsCreateRequest
   ){
     try {
-      if (jwt.getAdminUserByToken(authorizationHeader) == null) {
+      if (jwt.getAdminUserByToken(authorizationHeader.substring(7)) == null) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Error: Unauthorized");
       }
       newsService.addNews(newsCreateRequest);
@@ -335,14 +335,14 @@ public class NewsController {
   /**
    * Delete news from the database by id
    *
-   * @param id the id of the news to delete
+   * @param caseId the id of the news to delete
    * @param authorizationHeader the authorization header
    * @return ResponseEntity with status code
    */
-  @DeleteMapping("/{id}")
+  @DeleteMapping("/{caseId}")
   @Operation(
-      summary = "Delete news by ID",
-      description = "Deletes news from the database by ID. Only admin users can delete news."
+      summary = "Delete news by caseID",
+      description = "Deletes news from the database by caseID. Only admin users can delete news."
   )
   @ApiResponses(value = {
       @ApiResponse(
@@ -378,12 +378,12 @@ public class NewsController {
           )
       )
   })
-  public void deleteNewsReport(
+  public ResponseEntity<?> deleteNewsReport(
       @Parameter(
-          description = "ID of the news to delete",
+          description = "caseID of the news to delete",
           required = true,
           example = "1"
-      ) @PathVariable int id,
+      ) @PathVariable String caseId,
       @Parameter(
           description = "The authorization header",
           required = true,
@@ -393,11 +393,12 @@ public class NewsController {
       if (jwt.getAdminUserByToken(authorizationHeader) == null) {
         ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Error: Unauthorized");
       }
-      newsService.deleteNews(id);
+      newsService.deleteNews(caseId);
     } catch (EntityNotFoundException e) {
       ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: " + e.getMessage());
     } catch (Exception e) {
       ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: Error deleting news");
     }
+    return ResponseEntity.status(HttpStatus.OK).body("News deleted successfully");
   }
 }

@@ -166,13 +166,13 @@ public class NewsService {
 
     News news = new News(
             newsCreateRequest.getTitle(),
-            newsCreateRequest.getContent(),
             newsCreateRequest.getCaseId(),
+            newsCreateRequest.getContent(),
             newsCreateRequest.getLatitude(),
             newsCreateRequest.getLongitude(),
             newsCreateRequest.getDistrict(),
             now);
-
+    System.out.println("Adding news: " + news.getTitle() + " " + news.getContent() + " " + news.getDistrict() + " " + news.getDate() + " " + news.getCaseId() + " " + news.getLatitude() + " " + news.getLongitude());
     newsRepo.save(news);
   }
 
@@ -303,9 +303,12 @@ public class NewsService {
    * Method to delete news by ID
    * @param id the ID of the news to delete
    */
-  public void deleteNews(int id) {
-    News news = newsRepo.findById(id)
-            .orElseThrow(() -> new EntityNotFoundException("News with ID " + id + " not found"));
-    newsRepo.delete(news);
+  public void deleteNews(String id) {
+    List<News> news = newsRepo.findByCaseId(id);
+    if (news.isEmpty()) {
+      throw new EntityNotFoundException("News with ID: " + id + " not found");
+    }
+
+    newsRepo.deleteAll(news);
   }
 }
