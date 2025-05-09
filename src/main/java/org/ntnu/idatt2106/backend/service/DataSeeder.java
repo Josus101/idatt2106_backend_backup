@@ -7,6 +7,8 @@ import java.util.List;
 import org.ntnu.idatt2106.backend.dto.user.UserStoreSettingsRequest;
 import org.ntnu.idatt2106.backend.model.*;
 import org.ntnu.idatt2106.backend.model.map.MapEntityType;
+import org.ntnu.idatt2106.backend.model.map.MapMarkerType;
+import org.ntnu.idatt2106.backend.model.map.MapZoneType;
 import org.ntnu.idatt2106.backend.repo.*;
 import org.ntnu.idatt2106.backend.repo.map.MapEntityTypeRepo;
 import org.ntnu.idatt2106.backend.repo.map.MapMarkerTypeRepo;
@@ -459,5 +461,32 @@ public class DataSeeder implements CommandLineRunner {
     zoneType.setName("zone");
     mapEntityTypeRepo.save(markerType);
     mapEntityTypeRepo.save(zoneType);
+
+    MapMarkerType defib = new MapMarkerType();
+    defib.setName("Hjerteutstyr");
+    MapMarkerType bunker = new MapMarkerType();
+    bunker.setName("Bunker");
+    MapMarkerType assembingArea = new MapMarkerType();
+    assembingArea.setName("Møteplass");
+    MapMarkerType foodEmergency = new MapMarkerType();
+    foodEmergency.setName("Matstasjon");
+    mapMarkerTypeRepo.save(defib);
+    mapMarkerTypeRepo.save(bunker);
+    mapMarkerTypeRepo.save(assembingArea);
+    mapMarkerTypeRepo.save(foodEmergency);
+
+
+    MapZoneType flood = new MapZoneType();
+    flood.setName("Flom");
+    MapZoneType fire = new MapZoneType();
+    fire.setName("Brann");
+    MapZoneType earthquake = new MapZoneType();
+    earthquake.setName("Jordskjelv");
+    MapZoneType gas = new MapZoneType();
+    gas.setName("Gassutslipp");
+    mapZoneTypeRepo.save(flood);
+    mapZoneTypeRepo.save(fire);
+    mapZoneTypeRepo.save(earthquake);
+    mapZoneTypeRepo.save(gas);
   }
 }
