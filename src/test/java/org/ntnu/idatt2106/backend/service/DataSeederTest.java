@@ -157,11 +157,12 @@ class DataSeederTest {
   void testSeedAdminUsersWhenNotExist() {
     when(adminRepo.existsByUsername("admin")).thenReturn(false);
     when(adminRepo.existsByUsername("urekmazino")).thenReturn(false);
+    when(adminRepo.existsByUsername("albert")).thenReturn(false);
     when(hasher.hashPassword("admin123")).thenReturn("hashedPassword");
 
     dataSeeder.seedAdminUsers();
 
-    verify(adminRepo, times(2)).save(any(Admin.class));
+    verify(adminRepo, times(3)).save(any(Admin.class));
   }
 
   @Test
@@ -169,6 +170,7 @@ class DataSeederTest {
   void testSeedAdminUsersWhenExist() {
     when(adminRepo.existsByUsername("admin")).thenReturn(true);
     when(adminRepo.existsByUsername("urekmazino")).thenReturn(true);
+    when(adminRepo.existsByUsername("albert")).thenReturn(true);
 
     dataSeeder.seedAdminUsers();
 
