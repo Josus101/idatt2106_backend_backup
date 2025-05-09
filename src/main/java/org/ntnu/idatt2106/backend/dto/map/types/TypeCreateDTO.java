@@ -15,6 +15,6 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class TypeCreateDTO {
-  @Schema(description = "Name of the type", example = "Fire")
+  @Schema(description = "Name of the type", example = "Flom")
   private String type;
 }

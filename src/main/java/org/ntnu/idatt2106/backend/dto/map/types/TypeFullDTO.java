@@ -18,6 +18,6 @@ public class TypeFullDTO {
   @Schema(description = "ID of the type", example = "1")
   private int id;
 
-  @Schema(description = "Name of the type", example = "Fire")
+  @Schema(description = "Name of the type", example = "Flom")
   private String type;
 }

@@ -27,6 +27,6 @@ public class MapEntityDescDTO {
   private String description;
 
   @Schema(description = "Address of the emergency zone, based on the coordinates of the centered point",
-      example = "Bergen, Norway")
+      example = "Høgskoleringen 5, 7034 Trondheim")
   private String address;
 }

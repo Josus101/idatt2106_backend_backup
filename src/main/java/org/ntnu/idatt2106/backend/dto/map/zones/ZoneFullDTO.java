@@ -19,25 +19,25 @@ import org.ntnu.idatt2106.backend.dto.map.CoordinatesDTO;
 @NoArgsConstructor
 @Schema(description = "Data transfer object for creating an emergency zone")
 public class ZoneFullDTO {
-  @Schema(description = "ID of the emergency zone", example = "12345")
+  @Schema(description = "ID of the emergency zone", example = "1")
   private Long id;
 
-  @Schema(description = "Name of the emergency zone", example = "Crash site")
+  @Schema(description = "Name of the emergency zone", example = "Brannsted")
   private String name;
 
   @Schema(description = "Description of the emergency zone",
-      example = "A crash site from a plane accident in the area")
+      example = "Brann i området")
   private String description;
 
   @Schema(description = "Address of the emergency zone",
-      example = "Bergen, Norway")
+      example = "Høgskoleringen 5, 7034 Trondheim")
   private String address;
 
   @Schema(description = "Severity level of the emergency zone. 1-3 with 3 being severe and 1 being less severe",
-      example = "1, 2, 3")
+      example = "1")
   private int severityLevel;
 
-  @Schema(description = "Type of the emergency zone", example = "Fire, Flood, Power outage, etc.")
+  @Schema(description = "Type of the emergency zone", example = "Flom")
   private String type;
 
   @Schema(description = "Coordinates of the center of the emergency zone",

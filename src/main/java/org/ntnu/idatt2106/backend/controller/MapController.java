@@ -159,7 +159,7 @@ public class MapController {
   public ResponseEntity<?> getZoneById(
       @Parameter(
           description = "The ID of the emergency zone to retrieve.",
-          example = "12345",
+          example = "1",
           required = true
       ) @PathVariable Long zoneId) {
     try {
@@ -249,7 +249,7 @@ public class MapController {
   public ResponseEntity<?> updateZone(
       @Parameter(
           description = "The ID of the emergency zone to update.",
-          example = "12345",
+          example = "1",
           required = true
       ) @PathVariable Long zoneId,
       @Parameter(
@@ -379,7 +379,7 @@ public class MapController {
   public ResponseEntity<?> getMarkerById(
       @Parameter(
           description = "The ID of the marker to retrieve.",
-          example = "12345",
+          example = "1",
           required = true
       ) @PathVariable Long markerId) {
     try {
@@ -469,7 +469,7 @@ public class MapController {
   public ResponseEntity<?> updateMarker(
       @Parameter(
           description = "The ID of the marker to update.",
-          example = "12345",
+          example = "1",
           required = true
       ) @PathVariable Long markerId,
       @Parameter(
@@ -520,7 +520,7 @@ public class MapController {
   public ResponseEntity<?> getMapEntityCoordinates(
       @Parameter(
           description = "The ID of the map entity to retrieve the coordinates from.",
-          example = "12345",
+          example = "1",
           required = true
       ) @PathVariable Long id) {
     try {
@@ -563,7 +563,7 @@ public class MapController {
   public ResponseEntity<?> getDescription(
       @Parameter(
           description = "The ID of the map entity to retrieve the description from.",
-          example = "12345",
+          example = "1",
           required = true
       ) @PathVariable Long id) {
     try {
@@ -606,7 +606,7 @@ public class MapController {
   public ResponseEntity<?> deleteEntity(
       @Parameter(
           description = "The ID of the entity to delete.",
-          example = "12345",
+          example = "1",
           required = true
       ) @PathVariable Long id) {
     try {

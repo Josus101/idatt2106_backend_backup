@@ -21,17 +21,17 @@ public class MarkerFullDTO {
   @Schema(description = "ID of the marker", example = "1")
   private Long id;
 
-  @Schema(description = "Name of the marker", example = "Crash site")
+  @Schema(description = "Name of the marker", example = "Flystyrt")
   private String name;
 
   @Schema(description = "Description of the marker",
-      example = "A crash site from a plane accident in the area")
+      example = "Fly crasjet i området")
   private String description;
 
-  @Schema(description = "Address of the marker", example = "Bergen, Norway")
+  @Schema(description = "Address of the marker", example = "Høgskoleringen 5, 7034 Trondheim")
   private String address;
 
-  @Schema(description = "Type of the marker", example = "Bunker, Defibrillator, etc.")
+  @Schema(description = "Type of the marker", example = "Bunker")
   private String type;
 
   @Schema(description = "Coordinates of the marker",
